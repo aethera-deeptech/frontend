@@ -6,13 +6,15 @@
 |:---|:---|:---|
 | `commits.yaml` | pull requests | Lints the commits of the pull request with commitlint and its Conventional Commits rules, which are set in `commitlint.config.mjs`, and checks the pull request title against the same types. It never cancels a run, skips an edit that changes neither the title nor the base branch, and reads the title from the pull request when it runs, so editing the body of a pull request cannot leave a cancelled required check behind and a rerun checks the current title. Merge commits are skipped, and the line lengths of the body and footer are not limited because Renovate writes long ones |
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
-| `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the eight jobs below |
+| `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the nine jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 | `docker.yaml` | push to main and to `v*.*.*` tags, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. A push to main or to a version tag then publishes the image to GitHub Container Registry for `linux/amd64` and `linux/arm64`, signs the image, tags it and then scans both platforms and attaches an SBOM for each. A run for a pull request is cancelled when a newer one starts. A run for main or a tag is never cancelled once it has started, because a half published image would stay unsigned |
 | `docker-hub-mirror.yaml` | after `docker.yaml` finishes on main or on a version tag | Copies the image that `docker.yaml` published from GitHub Container Registry to Docker Hub by digest, after it has checked that the signature on the image was made by `docker.yaml` for that commit. It runs in the `docker-hub` environment, which holds the write token. The tags are `latest` and `sha-<commit>` for main, and `1.2.3` for a version tag, plus `1.2` and `1` when the release is the newest of that line |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
 | `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the five jobs below. The daily run catches problems that are disclosed later in code that did not change |
 | `performance.yaml` | push to main, pull requests, manual | Builds the app twice and checks it with the two jobs below, which run in parallel |
+| `vale.yaml` | push to main, pull requests, manual | Lints the prose of the Markdown files with Vale, as described in the section on prose |
+| `links.yaml` | every Monday 02:00 UTC, manual | Checks every link of the Markdown files with lychee. It never runs for a pull request, so a site that is down for a day cannot block a merge |
 
 ### Jobs
 
@@ -28,11 +30,13 @@
 | `config.yaml` | Dotenv lint | `.env.example` for duplicate keys, wrong spacing and other format problems, with dotenv-linter. The check for the order of the keys is off, because the file lists the settings in the order of the code that reads them |
 | `config.yaml` | Compose config | `docker compose config` on `compose.yml` with a copy of `.env.example` as `.env`. It checks that the compose file is valid and that the example file parses as its env file. It builds nothing and starts nothing |
 | `config.yaml` | ShellCheck | Every tracked file that ends in `.sh`, with the settings of `.shellcheckrc` |
+| `config.yaml` | Spell check | English spelling of the code, the comments and the Markdown files with cspell, as set in `cspell.json` |
 | `ci.yaml` | Typecheck | `tsc -b` over the app and the Vite config |
 | `ci.yaml` | Lint | ESLint with the strict type checked rules of typescript-eslint, the React hooks rules and the accessibility rules of jsx-a11y, then the Prettier check |
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
+| `vale.yaml` | Vale prose lint | The README, the CONTRIBUTING, SECURITY and ACCESSIBILITY guides, the pull request template and the Markdown files of `docs` against the Vale and Google styles and two rules of the repository. Only the rules at error level fail the job |
 | `performance.yaml` | Bundle size | Builds the app and runs size-limit. The JavaScript files of `dist/assets` may add up to 120 kB compressed with Brotli and the CSS files to 10 kB, as set in `.size-limit.json`. Raise a limit in the pull request that needs it and say why |
 | `performance.yaml` | Lighthouse CI | Builds the app and runs Lighthouse three times on the built files in `dist`. It fails when the median score of performance is under 0.9, accessibility under 0.95 or best practices under 0.9, as set in `.lighthouserc.json`. The SEO category is not asserted because the page is `noindex` on purpose. The HTML and JSON reports are an artifact of the run that is kept for 7 days and are not uploaded anywhere else |
 | `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset and on `/_headers`, the cache headers (a 404 is not immutable), the five security headers on six paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
@@ -73,6 +77,8 @@ Every check below is required. All of them are reported by GitHub Actions except
 | ShellCheck | GitHub Actions | yes |
 | Bundle size | GitHub Actions | yes |
 | Lighthouse CI | GitHub Actions | yes |
+| Spell check | GitHub Actions | yes |
+| Vale prose lint | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
@@ -142,9 +148,16 @@ To set up the login, create a read-only access token in the Docker Hub account s
 
 `security.yaml` has the jobs of the table above. The results of CodeQL, gitleaks and Trivy are uploaded to code scanning, so they show up in the security tab of the repository. A pull request from a fork cannot upload, so its jobs skip that step. The gitleaks and Trivy steps still fail on a finding. The CodeQL job passes whatever it finds, because the code scanning rule of the ruleset is what gates it, and a fork cannot upload results for that rule to read. The jobs that read a secret, `DOCKERHUB_PULL_TOKEN`, only use it for the image pulls.
 
+## Prose and spelling
+
+Vale reads `.vale.ini`, which combines the Vale and Google styles with the two rules in `.github/vale/styles/Aethera/`. An em dash or a semicolon in prose fails the job, so split the sentence or use a comma or a connector word. Words such as "and" and "because" work as connectors. The same goes for a semicolon, so a list is written with commas or as bullet points. The Google style is downloaded by `vale sync` at the release that `.vale.ini` names, and Renovate raises that release. The warnings of the Google style are a local hint and do not fail the job. The Contributor Covenant text in `CODE_OF_CONDUCT.md` is not checked, because it is published text.
+
+cspell checks the spelling of English in the code, the comments and the Markdown files. The Indonesian text of the screens is not checked, so the few Indonesian words that sit in the code and the tests are listed under `words` in `cspell.json`. Add a word there only when it is a real name or term, and fix the spelling otherwise.
+
 ## Ignore lists
 
 - `.github/zizmor.yml` tells zizmor to accept the `./` form of a local action in `config.yaml` and `security.yaml`. zizmor prefers the `$/` syntax, and actionlint does not know it yet and rejects it.
+- `.ls-lint.yml` does not check `.github/vale/styles`, because Vale names a style after its folder.
 - `.trivyignore.yaml` accepts the missing `USER` line (DS-0002) of `.github/tools/Dockerfile` and nothing else. That file only names the images of the lint jobs, and nothing builds or runs it. The Dockerfile of the app is still checked.
 
 ## Dependency updates

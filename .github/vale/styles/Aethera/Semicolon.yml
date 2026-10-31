@@ -1,0 +1,6 @@
+extends: existence
+message: "Don't use a semicolon. Split the sentence into two or use a connector like 'and' or 'because'."
+level: error
+nonword: true
+raw:
+  - ";"

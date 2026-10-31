@@ -65,6 +65,14 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s*(?:version|[A-Z][A-Z0-9_]*_VERSION): [\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
       ]
+    },
+    {
+      "description": "The release of the Google style that vale sync downloads",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.vale\\.ini$/"],
+      "matchStrings": ["releases/download/(?<currentValue>v[\\d.]+)/Google\\.zip"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "errata-ai/Google"
     }
   ]
 }
