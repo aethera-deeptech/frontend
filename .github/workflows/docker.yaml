@@ -155,7 +155,8 @@ jobs:
           fetch-depth: 0
 
       # Anyone with write access can push a version tag on any commit until the release ruleset exists. A commit on main has been
-      # through a pull request, so a tag on any other commit is refused and no image is built for it.
+      # through a pull request, so a tag on any other commit is refused. This step guards against a tag by mistake. Someone who
+      # can push a tag can also edit this workflow in the tagged commit, so only the ruleset for tag creation stops that.
       - name: Check that a version tag is on main
         if: ${{ github.ref_type == 'tag' }}
         run: |
@@ -271,6 +272,11 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           args=()
+          # The tags are read again here, because a newer release may have been tagged since the checkout. Only tags on main count,
+          # so a tag that was refused or never published does not hold a floating tag back.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            git fetch --force origin '+refs/heads/main:refs/remotes/origin/main' '+refs/tags/*:refs/tags/*'
+          fi
           while IFS= read -r tag; do
             if [ -z "$tag" ]; then
               continue
@@ -279,7 +285,7 @@ jobs:
             # A floating tag such as 1 or 1.2 only moves when this release is the newest one of its line, so a run for an older
             # release that finishes last cannot move it back. The tag of the full version always moves.
             if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$version" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-              newest="$(git tag -l "v${version}.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+              newest="$(git tag --merged origin/main -l "v${version}.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
               if [ "$newest" != "$GITHUB_REF_NAME" ]; then
                 echo "skip $tag, the newest release of that line is $newest"
                 continue
