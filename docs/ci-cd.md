@@ -7,8 +7,9 @@
 | `commits.yaml` | pull requests | Lints the commits of the pull request with commitlint and its Conventional Commits rules, which are set in `commitlint.config.mjs`, and checks the pull request title against the same types. It never cancels a run, skips an edit that changes neither the title nor the base branch, and reads the title from the pull request when it runs, so editing the body of a pull request cannot leave a cancelled required check behind and a rerun checks the current title. Merge commits are skipped, and the line lengths of the body and footer are not limited because Renovate writes long ones |
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
+| `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 | `docker.yaml` | push to main, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. It publishes nothing yet. A run is cancelled when a newer one starts for the same ref |
-| `ci.yaml` | push to main, pull requests, manual | Checks the app with four jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
+| `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
 
 ### Jobs
 
@@ -24,6 +25,7 @@
 | `ci.yaml` | Lint | ESLint with the strict type checked rules of typescript-eslint, the React hooks rules and the accessibility rules of jsx-a11y, then the Prettier check |
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
+| `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
 | `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset, the cache headers, the five security headers on four paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
 
 ## Required checks
@@ -44,6 +46,7 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Lint | GitHub Actions | yes |
 | Unit tests | GitHub Actions | yes |
 | Build | GitHub Actions | yes |
+| E2E | GitHub Actions | yes |
 | Docker build | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
@@ -59,6 +62,14 @@ The `Dockerfile` builds the app in a Node stage and serves the files with `nginx
 - `compose.yml` runs the image on `http://localhost:3000` to look at the production build. Its content security policy only allows the hosts of Aethera, so use `npm run dev` for work against another API.
 - The image is built and scanned on every pull request but it is not published yet. The push to GitHub Container Registry, the signature and the Docker Hub mirror come in later changes.
 - BuildKit asks `mirror.gcr.io` before Docker Hub for the base images, because Docker Hub limits anonymous pulls per IP address and the runners share theirs.
+
+## End to end tests
+
+The tests are in `e2e/` and run against the production build served by `vite preview`, so they see the same files as the site. The devices of a pull request are listed in `playwright.config.ts`. They are an iPhone SE (the smallest screen at 320 px), an iPhone 13 (the 390 px of the design), an iPhone 17 Pro Max, a Galaxy S8, a Galaxy S24, a Pixel 7, the cover screen of a Galaxy Z Fold 7, an iPad Mini, an iPad Pro 11 in both orientations and four desktop browsers (Chrome, Chrome HiDPI, Firefox and Safari). Playwright picks Chromium, Firefox or WebKit for each device. The weekly workflow `e2e-devices.yaml` sets `ALL_DEVICES=1` and runs the whole list of Playwright. The Desktop Edge entry is Chromium with the user agent of Edge, so it does not test the real Edge browser.
+
+`npm ci` does not download the browsers because `.npmrc` skips install scripts. Run `npx playwright install` once to get them, and then `npm run test:e2e`. Run the tests locally only when the CI logs cannot explain a failure, and add `--project "iPhone 13"` to keep it small.
+
+Accessibility has two layers. ESLint with jsx-a11y checks the code and axe checks the rendered page on every device. Neither one is a test with assistive technology such as a screen reader, which [ACCESSIBILITY.md](../ACCESSIBILITY.md) lists as a gap.
 
 ## Coverage
 

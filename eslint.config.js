@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import playwright from 'eslint-plugin-playwright';
 import reactHooks from 'eslint-plugin-react-hooks';
 import { reactRefresh } from 'eslint-plugin-react-refresh';
 import globals from 'globals';
@@ -29,8 +30,12 @@ export default defineConfig([
   },
   {
     // the config files run in Node and are not part of the app
-    files: ['vite.config.ts'],
+    files: ['vite.config.ts', 'playwright.config.ts'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    extends: [playwright.configs['flat/recommended']],
   },
   {
     // plain JavaScript has no type information
