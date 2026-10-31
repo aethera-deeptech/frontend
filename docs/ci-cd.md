@@ -27,7 +27,7 @@
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
-| `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature and the provenance of every installed package |
+| `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature of every installed package and the provenance attestations of the packages that provide them |
 | `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
 | `security.yaml` | Trivy filesystem scan | Trivy over the lockfile, the workflows and the repository files for vulnerabilities, secrets and misconfiguration. It fails on a fixed critical or high finding and reports to code scanning |
 | `security.yaml` | OSSF Scorecard | Runs on `main` and on the schedule only, because Scorecard rejects pull requests. It reports to code scanning and is never required |
