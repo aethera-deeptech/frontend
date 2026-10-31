@@ -1,0 +1,118 @@
+name: Docker
+
+# Never add workflow_call here. A workflow that calls this one would run with the identity of this file, and the checks that
+# accept an image by that identity would accept it too.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  image:
+    name: Docker build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          # Docker Hub limits anonymous pulls per IP address and the runners share their addresses, so BuildKit asks the Google
+          # mirror first and falls back to Docker Hub when the mirror does not have an image
+          buildkitd-config-inline: |
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
+
+      # The image is built for the platform of the runner and kept in the local Docker, so the next steps can run and scan it.
+      # The values of the build are public placeholders, because no test needs a real API.
+      - name: Build the image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        env:
+          # the build record is one more artifact for every run and nothing reads it
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+        with:
+          context: .
+          load: true
+          push: false
+          tags: aethera-frontend:ci
+          build-args: |
+            VITE_API_BASE_URL=https://api.example.com
+          cache-from: type=gha
+          # Only main writes the cache, because a cache that a pull request wrote can only be read by that same pull request
+          cache-to: ${{ github.ref == 'refs/heads/main' && 'type=gha,mode=max' || '' }}
+
+      - name: Start the container
+        run: |
+          docker run -d --name app -p 8080:8080 --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true aethera-frontend:ci
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs app
+          echo "the container did not answer on /healthz in 30 seconds" >&2
+          exit 1
+
+      # Every check below is a behavior of the nginx config that the image ships, so a change to it is caught here
+      - name: Check the behavior of the image
+        run: |
+          base=http://127.0.0.1:8080
+          fail=0
+
+          expect() {
+            if [ "$2" != "$3" ]; then
+              echo "FAIL $1, expected '$3' and got '$2'" >&2
+              fail=1
+            else
+              echo "ok   $1"
+            fi
+          }
+
+          asset="$(curl -fsS "$base/" | grep -o '/assets/[^"]*\.js' | head -1)"
+          test -n "$asset"
+
+          expect "the home page answers 200" "$(curl -s -o /dev/null -w '%{http_code}' "$base/")" 200
+          expect "the home page has the root element" "$(curl -fsS "$base/" | grep -c 'id="root"')" 1
+          expect "an unknown path serves the app" "$(curl -s -o /dev/null -w '%{http_code}' "$base/halaman-yang-tidak-ada")" 200
+          expect "a missing asset is a 404" "$(curl -s -o /dev/null -w '%{http_code}' "$base/assets/does-not-exist.js")" 404
+          expect "the health check answers 200" "$(curl -s -o /dev/null -w '%{http_code}' "$base/healthz")" 200
+          expect "an asset is cached as immutable" "$(curl -sI "$base$asset" | tr -d '\r' | grep -i '^cache-control:' | tr 'A-Z' 'a-z')" "cache-control: public, max-age=31536000, immutable"
+          expect "the home page is revalidated" "$(curl -sI "$base/" | tr -d '\r' | grep -i '^cache-control:' | tr 'A-Z' 'a-z')" "cache-control: public, max-age=0, must-revalidate"
+
+          for path in / "$asset" /healthz /halaman-yang-tidak-ada; do
+            expect "the security headers are on $path" "$(curl -sI "$base$path" | tr -d '\r' | grep -c -i -E '^(content-security-policy|x-content-type-options|referrer-policy|permissions-policy|strict-transport-security):')" 5
+          done
+
+          expect "the process is not root" "$(docker exec app id -u)" 101
+
+          exit "$fail"
+
+      - name: Show the container log
+        if: ${{ failure() }}
+        run: docker logs app
+
+      - name: Scan the image with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: aethera-frontend:ci
+          severity: CRITICAL,HIGH
+          # a vulnerability without a fix cannot be acted on, so it does not fail the build
+          ignore-unfixed: true
+          exit-code: '1'
