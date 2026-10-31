@@ -28,7 +28,7 @@
 
 The ruleset of `main` requires a pull request that is merged with a merge commit, resolved review threads, branches that are up to date with `main` (strict checks), and it refuses deletion and force pushes. Signed commits are not required yet.
 
-Every check below is required and is reported by GitHub Actions.
+Every check below is required. All of them are reported by GitHub Actions except `codecov/patch`, which Codecov reports a few minutes after the tests finish, so a merge has to wait for it.
 
 | Check | Reported by | Required |
 |:---|:---|:---|
@@ -38,10 +38,17 @@ Every check below is required and is reported by GitHub Actions.
 | Zizmor | GitHub Actions | yes |
 | File names | GitHub Actions | yes |
 | Renovate config | GitHub Actions | yes |
-
-The four jobs of `ci.yaml` (Typecheck, Lint, Unit tests and Build) are not in the ruleset yet. They are added to the ruleset and to this table once they have reported on a pull request, and the same goes for `codecov/patch` after its first report.
+| Typecheck | GitHub Actions | yes |
+| Lint | GitHub Actions | yes |
+| Unit tests | GitHub Actions | yes |
+| Build | GitHub Actions | yes |
+| codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
+
+## Coverage
+
+The `Unit tests` job uploads `coverage/lcov.info` to Codecov, which comments on pull requests that change the coverage. The thresholds are in `codecov.yml`. `codecov/patch` is required, so new code needs tests. Codecov does not report `codecov/project` here, so it cannot be required. The `Unit tests` job has a coverage floor of 70 percent in `vite.config.ts` instead. Raise the floor when the coverage has grown and never lower it to let a change in. A failed upload fails the job on `main` only, so a Codecov outage never blocks a pull request.
 
 ## Dependency updates
 
