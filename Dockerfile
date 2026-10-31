@@ -26,9 +26,8 @@ FROM nginxinc/nginx-unprivileged:stable-alpine3.24@sha256:f5116ed4606f3eb015dd4a
 # The date is a build argument that CI changes every day. A RUN step sees the arguments as environment variables, so a new date
 # makes the next build run the upgrade again instead of taking an old layer from the build cache.
 ARG PACKAGES_DATE=unset
-# root is user 0 in every image, so the host can always resolve it. The last user of the image is the numeric 101.
-# hadolint ignore=DL3066
-USER root
+# The numeric id of root, because Hadolint warns about a user name that the host may not resolve
+USER 0
 RUN apk upgrade --no-cache
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
