@@ -67,6 +67,7 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Lint | GitHub Actions | yes |
 | Unit tests | GitHub Actions | yes |
 | Build | GitHub Actions | yes |
+| Storybook build | GitHub Actions | yes |
 | E2E | GitHub Actions | yes |
 | Docker build | GitHub Actions | yes |
 | CodeQL | GitHub Actions | yes |
