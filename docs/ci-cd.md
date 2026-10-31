@@ -54,6 +54,10 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Build | GitHub Actions | yes |
 | E2E | GitHub Actions | yes |
 | Docker build | GitHub Actions | yes |
+| CodeQL | GitHub Actions | yes |
+| npm audit | GitHub Actions | yes |
+| Secret scan (gitleaks) | GitHub Actions | yes |
+| Trivy filesystem scan | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
