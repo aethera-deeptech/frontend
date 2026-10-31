@@ -4,8 +4,9 @@
   "language": "en",
   "useGitignore": true,
   "ignorePaths": [
-    "package-lock.json",
-    ".git/**"
+    ".git/**",
+    "CHANGELOG.md",
+    "package-lock.json"
   ],
   "files": [
     "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh,conf}",
