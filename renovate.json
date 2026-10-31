@@ -40,8 +40,15 @@
     {
       "description": "the images of .github/tools/Dockerfile are the tools that CI starts from a workflow, so they take the commit type of the workflows",
       "matchManagers": ["dockerfile"],
+      "matchFileNames": [".github/tools/Dockerfile"],
       "semanticCommitType": "ci",
       "addLabels": ["github_actions"]
+    },
+    {
+      "description": "the base images of the Dockerfile in the root are part of the app image, so they take the commit type of the packages",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["Dockerfile"],
+      "semanticCommitType": "build"
     },
     {
       "description": "the tools that CI starts from a workflow, such as ls-lint and Renovate itself, take the commit type of the workflows",
