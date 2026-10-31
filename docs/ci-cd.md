@@ -5,7 +5,7 @@
 | Workflow | Trigger | What it does |
 |:---|:---|:---|
 | `commits.yaml` | pull requests | Lints the commits of the pull request with commitlint and its Conventional Commits rules, which are set in `commitlint.config.mjs`, and checks the pull request title against the same types. It never cancels a run, skips an edit that changes neither the title nor the base branch, and reads the title from the pull request when it runs, so editing the body of a pull request cannot leave a cancelled required check behind and a rerun checks the current title. Merge commits are skipped, and the line lengths of the body and footer are not limited because Renovate writes long ones |
-| `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
+| `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
 
 ### Jobs
@@ -23,18 +23,18 @@
 
 The ruleset of `main` requires a pull request that is merged with a merge commit, resolved review threads, branches that are up to date with `main` (strict checks), and it refuses deletion and force pushes. Signed commits are not required yet.
 
-Today the only required status check is "Conventional commits", reported by GitHub Actions.
+Every check below is required and is reported by GitHub Actions.
 
 | Check | Reported by | Required |
 |:---|:---|:---|
 | Conventional commits | GitHub Actions | yes |
-| PR format | GitHub Actions | not yet |
-| Actionlint | GitHub Actions | not yet |
-| Zizmor | GitHub Actions | not yet |
-| File names | GitHub Actions | not yet |
-| Renovate config | GitHub Actions | not yet |
+| PR format | GitHub Actions | yes |
+| Actionlint | GitHub Actions | yes |
+| Zizmor | GitHub Actions | yes |
+| File names | GitHub Actions | yes |
+| Renovate config | GitHub Actions | yes |
 
-The other checks are added to the ruleset after each of them has reported once on a pull request, because GitHub only offers a check that it has seen. Pin every check to the app that reports it when you add it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
+Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
 
 ## Dependency updates
 
@@ -61,4 +61,8 @@ Two names that differ only by case are not checked, because the tool does not do
 
 ## Pull request flow
 
-A pull request must pass `Conventional commits` before it can be merged, and `PR format` should pass too because it becomes required after its first run, as [CONTRIBUTING.md](../CONTRIBUTING.md#pull-requests) describes. Merge commits are the only merge method. The checks run in CI, so contributors do not need to run heavy tasks on their own machine.
+A pull request must pass `Conventional commits` before it can be merged, and `PR format` before it can be merged, as [CONTRIBUTING.md](../CONTRIBUTING.md#pull-requests) describes. Merge commits are the only merge method. The checks run in CI, so contributors do not need to run heavy tasks on their own machine.
+
+## Known gaps
+
+The Actionlint and Zizmor jobs, and the image that the commit message action builds, pull images from Docker Hub and GitHub Container Registry without a login or a mirror, as the reference repository does with one. A rate limit on an anonymous pull fails the job for a reason that has nothing to do with the change, and the first response is to rerun the failed job once. A pull mirror is added when that happens more than once.

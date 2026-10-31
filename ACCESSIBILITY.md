@@ -21,4 +21,4 @@ This repository has no application code yet, so there is no interface to audit. 
 
 ## Report a barrier
 
-Open an issue with the bug report form and fill in the Accessibility field. Describe what you were trying to do, where it went wrong and which tools you use, such as a browser and a screen reader. The form applies the `bug` label, and this repository does not promise an accessibility label or a reply time for these reports.
+Open an issue with the bug report form and fill in the Accessibility field. Describe what you were trying to do, where it went wrong and which tools you use, such as a browser and a screen reader. The form applies the `bug` label and a maintainer adds the `accessibility` label. This repository does not promise a reply time for these reports.
