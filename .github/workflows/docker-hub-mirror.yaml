@@ -15,10 +15,11 @@ on:
 
 concurrency:
   # One copy at a time for each branch or tag. A copy that waits is replaced by a newer one, and a copy that has started is never
-  # cancelled halfway. A run that has nothing to copy, such as the one of a failed build, gets a group of its own, so it cannot
-  # replace the copy that is waiting for a good build.
+  # cancelled halfway. A run that has nothing to copy, such as the one of a failed build or of a pull request, gets a group of its
+  # own, so it cannot replace the copy that is waiting for a good build.
   group: >-
     hub-mirror-${{ github.event.workflow_run.conclusion == 'success' &&
+    (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
     format('ref-{0}', github.event.workflow_run.head_branch) || github.run_id }}
   cancel-in-progress: false
 
@@ -74,6 +75,13 @@ jobs:
             # A branch with a name like this builds with another identity, so the signature check below refuses its image
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
+            # Someone who can push a version tag can also change docker.yaml in the tagged commit, so the check on main that docker.yaml
+            # makes proves nothing here. This workflow runs from main, so it asks GitHub whether the tagged commit is on main
+            status="$(gh api "repos/${REPOSITORY}/compare/main...${HEAD_SHA}" --jq .status)"
+            case "$status" in
+              identical | behind) ;;
+              *) skip "The commit ${sha7} of ${HEAD_BRANCH} is not on main, so its image is not copied" ;;
+            esac
             source="${major}.${minor}.${BASH_REMATCH[3]}"
             tags="$source"
             # A run of an older release that is started again must not move 1.2 or 1 back, so a floating tag is only a
@@ -114,9 +122,9 @@ jobs:
         if: steps.plan.outputs.copy == 'true'
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
-      # The image is only copied when the signature on it was made by the run that started this one, and not by any run of
-      # docker.yaml of this repository, so a tag that someone pushed to another image in GitHub Container Registry is never copied.
-      # The certificate also has to name this commit. Docker Hub is not logged in yet at this point
+      # The image is only copied when its signature was made by docker.yaml for the ref, the trigger and the commit of the run that
+      # started this one, and not by any other run of docker.yaml of this repository, so a tag that someone pushed to another image
+      # in GitHub Container Registry is never copied. Docker Hub is not logged in yet at this point
       - name: Find the image and check its signature
         id: image
         if: steps.plan.outputs.copy == 'true'
