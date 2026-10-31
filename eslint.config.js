@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import storybook from 'eslint-plugin-storybook';
 import playwright from 'eslint-plugin-playwright';
 import reactHooks from 'eslint-plugin-react-hooks';
 import { reactRefresh } from 'eslint-plugin-react-refresh';
@@ -8,7 +9,14 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'playwright-report', 'test-results', 'lighthouse-report']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'playwright-report',
+    'test-results',
+    'lighthouse-report',
+    'storybook-static',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -27,6 +35,12 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+  },
+  storybook.configs['flat/recommended'],
+  {
+    // a story file exports its metadata and its stories, which is not a component
+    files: ['**/*.stories.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
   {
     // the config files run in Node and are not part of the app

@@ -11,6 +11,8 @@ dist
 coverage
 playwright-report
 lighthouse-report
+storybook-static
+.storybook
 .lighthouseci
 test-results
 docs
