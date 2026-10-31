@@ -29,9 +29,7 @@ function headersOfNginx(): Map<string, string> {
   for (const match of text.matchAll(/^add_header (\S+) "(.*)" always;$/gm)) {
     const [, name, value] = match;
 
-    if (name !== undefined && value !== undefined) {
-      headers.set(name, value);
-    }
+    headers.set(name, value);
   }
 
   return headers;
