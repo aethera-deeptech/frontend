@@ -50,7 +50,7 @@
 
 ## Required checks
 
-The ruleset of `main` requires a pull request that is merged with a merge commit, resolved review threads, branches that are up to date with `main` (strict checks), and it refuses deletion and force pushes. Every commit that reaches `main` must have a verified signature. The commits of a pull request are signed by their authors, the merge commit is signed by GitHub, the commits of Renovate are signed by GitHub because of its `platformCommit` setting, and the release commits are made by the release App through the API.
+The ruleset of `main` requires a pull request that is merged with a merge commit, resolved review threads, branches that are up to date with `main` (strict checks), and it refuses deletion and force pushes. From now on every commit that reaches `main` must have a verified signature. The commits of a pull request are signed by their authors, the merge commit is signed by GitHub, and the release commits are made by the release App through the API. Renovate is set to `platformCommit`, which should make GitHub sign its commits. That has not been seen yet, because no Renovate pull request exists, so check the first one.
 
 Every check below is required. All of them are reported by GitHub Actions except `codecov/patch`, which Codecov reports a few minutes after the tests finish, so a merge has to wait for it.
 
