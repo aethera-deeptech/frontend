@@ -31,7 +31,7 @@ function project(name: string) {
   return { name, use: descriptor };
 }
 
-const selected = process.env.ALL_DEVICES ? Object.keys(devices) : pullRequestDevices;
+const selected = process.env.ALL_DEVICES === '1' ? Object.keys(devices) : pullRequestDevices;
 const port = 4173;
 
 export default defineConfig({
