@@ -2,7 +2,7 @@
  * Design tokens of the Figma file Frontend, collections Primitives and Theme. Every name is the web code syntax of the
  * Figma variable, so --btn-accent-chonk is btn/accent/slab and --btn-accent-face is accent/fill. The Light values are the
  * default. The Dark values apply when the page has data-theme="dark", or when the system prefers dark and the page has not
- * chosen light. src/styles/tokens.test.ts fails when the two themes define different names or when a color has no
+ * chosen light. design/tokens.test.ts fails when the two themes define different names or when a color has no
  * Tailwind name below.
  */
 

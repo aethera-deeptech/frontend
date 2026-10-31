@@ -1,6 +1,9 @@
+// @vitest-environment node
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
-import css from './tokens.css?raw';
+const css = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
 
 // The tokens come from the Figma variables. This test keeps the file consistent with itself, so a color that is added to
 // one theme and not to the other, a value that is not a color, or a color that Tailwind cannot name fails here and not on
