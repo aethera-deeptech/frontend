@@ -35,7 +35,10 @@ jobs:
       - name: Install
         run: npm ci
 
+      # the same public placeholder as the Docker build, so the built page does not stop at the check of the settings
       - name: Build
+        env:
+          VITE_API_BASE_URL: https://api.example.com
         run: npm run build
 
       # size-limit compresses each file of the build with Brotli and compares the total with the limit of .size-limit.json
@@ -63,7 +66,10 @@ jobs:
       - name: Install
         run: npm ci
 
+      # the same public placeholder as the Docker build, so the built page does not stop at the check of the settings
       - name: Build
+        env:
+          VITE_API_BASE_URL: https://api.example.com
         run: npm run build
 
       # The CLI runs from npx and not from the lockfile, because it pulls in an old Lighthouse and a large tree of packages that
@@ -81,4 +87,4 @@ jobs:
           name: lighthouse-report
           path: lighthouse-report
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: warn
