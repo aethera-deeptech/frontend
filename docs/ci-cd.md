@@ -9,6 +9,7 @@
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
+| `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the six jobs below. The daily run catches problems that are disclosed later in code that did not change |
 
 ### Jobs
 
@@ -25,6 +26,12 @@
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
+| `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
+| `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature and the provenance of every installed package |
+| `security.yaml` | Dependency review | Pull requests only. Fails when a pull request adds or changes a dependency with a high or critical advisory or under the SSPL-1.0 license |
+| `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
+| `security.yaml` | Trivy filesystem scan | Trivy over the lockfile, the workflows and the repository files for vulnerabilities, secrets and misconfiguration. It fails on a fixed critical or high finding and reports to code scanning |
+| `security.yaml` | OSSF Scorecard | Runs on `main` and on the schedule only, because Scorecard rejects pull requests. It reports to code scanning and is never required |
 
 ## Required checks
 
@@ -66,6 +73,21 @@ The `Unit tests` job uploads `coverage/lcov.info` to Codecov, which comments on 
 - The `Unit tests` job has a coverage floor of 70 percent in `vite.config.ts`. Raise the floor when the coverage has grown and never lower it to let a change in.
 - A failed upload fails the job on `main` only. On a pull request it fails nothing in the job, but `codecov/patch` then never arrives and blocks the merge until the upload works again or the check is taken out of the ruleset.
 
+## Pulling images
+
+Docker Hub limits anonymous pulls per IP address, and every GitHub runner shares its addresses with many other people, so a job that pulls from Docker Hub can fail with `toomanyrequests` or a timeout for a reason that has nothing to do with the change. The jobs avoid it in two ways.
+
+- The jobs that run a Docker Hub image call the local action `.github/actions/pull-images` right after the checkout. It adds `mirror.gcr.io` to `registry-mirrors` of the Docker daemon, which serves the popular Docker Hub images without the limit, and it logs in to Docker Hub with a read-only token so that an image the mirror does not have is pulled by a known account. A login that fails does not fail the job.
+- `.github/actions/pull-images/pull.sh` pulls an image from `mirror.gcr.io/` plus its name first and from Docker Hub when the mirror fails. The digests are the same, so the mirror serves the identical image.
+- The Docker workflow gives BuildKit the same mirror in its config, because BuildKit does not read the settings of the Docker daemon.
+- Images from `ghcr.io`, such as zizmor, are not limited this way and are pulled as they are.
+
+To set up the login, create a read-only access token in the Docker Hub account settings and add it as the secret `DOCKERHUB_PULL_TOKEN`. The account name comes from the variable `DOCKERHUB_USERNAME`. A pull request from a fork gets neither, so its jobs pull without a login.
+
+## Security
+
+`security.yaml` has the jobs of the table above. The results of CodeQL, gitleaks and Trivy are uploaded to code scanning, so they show up in the security tab of the repository. A pull request from a fork cannot upload, so its jobs skip that step and still fail on a finding. The jobs that read a secret, `DOCKERHUB_PULL_TOKEN`, only use it for the image pulls.
+
 ## Dependency updates
 
 Renovate opens the update pull requests when its GitHub App runs on the repository, and `renovate.json` holds its rules. It runs on Mondays before 07:00 WIB, proposes a release only after it is 7 days old, and groups minor and patch updates of Actions (`actions`) and of npm packages (`npm-minor-patch`). A major update gets its own pull request. The commit type is `ci` for Actions and the tools of the workflows, and `build` for npm packages, so neither is a `feat` or a `fix`. The bot keeps an issue called Dependency Dashboard with every update it knows about. Security fixes ignore the schedule and the 7 day wait. Renovate learns about them from the Dependabot alerts of the repository, so those alerts need to stay on.
@@ -74,7 +96,7 @@ Renovate opens the update pull requests when its GitHub App runs on the reposito
 
 The bot cannot read a tool that is named inside a `run` step, so the tools of the jobs are listed where it can.
 
-- `.github/tools/Dockerfile` has one stage for each image that a job starts with `docker run`, which are actionlint and zizmor. Nothing builds it. The jobs read the image of their stage from this file, so the version of a bump is the version the jobs run.
+- `.github/tools/Dockerfile` has one stage for each image that a job starts with `docker run`, which are actionlint, zizmor and gitleaks. Nothing builds it. The jobs ask `.github/tools/image.sh` for the image of a stage, so the version of a bump is the version the jobs run.
 - The ls-lint and Renovate versions sit in `env` of their steps. A comment such as `# renovate: datasource=npm depName=@ls-lint/ls-lint` right above the line tells Renovate where to look, so keep the comment when you edit the line.
 
 ## File names
@@ -97,4 +119,4 @@ A pull request must pass `Conventional commits` before it can be merged, and `PR
 
 `npm audit` reports 13 moderate advisories on 2026-10-31. All of them are one denial of service issue in `minimatch`, which sits inside ESLint 9 and typescript-eslint. These are development tools that are not part of the build, and CI never gives them a glob pattern from outside. ESLint 9 stays because eslint-plugin-jsx-a11y does not support ESLint 10 yet. Revisit this when it does.
 
-The Actionlint and Zizmor jobs, and the image that the commit message action builds, pull images from Docker Hub and GitHub Container Registry without a login or a mirror, as the reference repository does with one. A rate limit on an anonymous pull fails the job for a reason that has nothing to do with the change, and the first response is to rerun the failed job once. A pull mirror is added when that happens more than once.
+The image that the commit message action builds pulls its base image from Docker Hub without a login or a mirror, because the action builds it itself. A rate limit on that pull fails the job for a reason that has nothing to do with the change, and the first response is to rerun the failed job once.
