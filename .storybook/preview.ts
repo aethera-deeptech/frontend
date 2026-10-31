@@ -4,7 +4,7 @@ import '../src/index.css';
 
 const preview: Preview = {
   parameters: {
-    // A violation of the accessibility rules fails the story in the interface, as it fails the end to end tests
+    // The accessibility add-on reports a violation as an error. CI only builds Storybook and does not run these checks
     a11y: { test: 'error' },
   },
 };
