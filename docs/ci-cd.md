@@ -9,7 +9,7 @@
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
-| `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the six jobs below. The daily run catches problems that are disclosed later in code that did not change |
+| `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the five jobs below. The daily run catches problems that are disclosed later in code that did not change |
 
 ### Jobs
 
@@ -28,7 +28,6 @@
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
 | `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature and the provenance of every installed package |
-| `security.yaml` | Dependency review | Pull requests only. Fails when a pull request adds or changes a dependency with a high or critical advisory or under the SSPL-1.0 license |
 | `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
 | `security.yaml` | Trivy filesystem scan | Trivy over the lockfile, the workflows and the repository files for vulnerabilities, secrets and misconfiguration. It fails on a fixed critical or high finding and reports to code scanning |
 | `security.yaml` | OSSF Scorecard | Runs on `main` and on the schedule only, because Scorecard rejects pull requests. It reports to code scanning and is never required |
@@ -88,6 +87,11 @@ To set up the login, create a read-only access token in the Docker Hub account s
 
 `security.yaml` has the jobs of the table above. The results of CodeQL, gitleaks and Trivy are uploaded to code scanning, so they show up in the security tab of the repository. A pull request from a fork cannot upload, so its jobs skip that step and still fail on a finding. The jobs that read a secret, `DOCKERHUB_PULL_TOKEN`, only use it for the image pulls.
 
+## Ignore lists
+
+- `.github/zizmor.yml` tells zizmor to accept the `./` form of a local action in `config.yaml` and `security.yaml`. zizmor prefers the `$/` syntax, and actionlint does not know it yet and rejects it.
+- `.trivyignore.yaml` accepts the missing `USER` line (DS-0002) of `.github/tools/Dockerfile` and nothing else. That file only names the images of the lint jobs, and nothing builds or runs it. The Dockerfile of the app is still checked.
+
 ## Dependency updates
 
 Renovate opens the update pull requests when its GitHub App runs on the repository, and `renovate.json` holds its rules. It runs on Mondays before 07:00 WIB, proposes a release only after it is 7 days old, and groups minor and patch updates of Actions (`actions`) and of npm packages (`npm-minor-patch`). A major update gets its own pull request. The commit type is `ci` for Actions and the tools of the workflows, and `build` for npm packages, so neither is a `feat` or a `fix`. The bot keeps an issue called Dependency Dashboard with every update it knows about. Security fixes ignore the schedule and the 7 day wait. Renovate learns about them from the Dependabot alerts of the repository, so those alerts need to stay on.
@@ -107,6 +111,7 @@ The `File names` job runs [ls-lint](https://ls-lint.org/) with the rules of `.ls
 - Every other file is lowercase words joined by hyphens, with dots for the extension and for a variant such as `button.test.tsx`. This includes `.ts` and `.tsx` files, which are kebab case in the shadcn/ui convention. A Markdown file may also be in capitals such as `README.md`.
 - A YAML file ends with `.yml`. The workflows end with `.yaml` and never `.yml`.
 - A file with no extension, such as `Dockerfile` and `LICENSE`, has no rule.
+- `.trivyignore.yaml` keeps the name that Trivy reads, so it is in the `ignore` list of `.ls-lint.yml`.
 - The folders `.git`, `node_modules`, `dist`, `coverage`, `playwright-report` and `test-results` are left out, and so is `.github/ISSUE_TEMPLATE` because GitHub names the issue forms by what the person sees.
 
 Two names that differ only by case are not checked, because the tool does not do it. A new tool that needs a name of its own is added to the `ignore` list of `.ls-lint.yml`, with the reason in a comment.
