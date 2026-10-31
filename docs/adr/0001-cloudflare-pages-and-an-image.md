@@ -15,4 +15,4 @@ Cloudflare Pages is the host. It builds `main` for production and every other br
 - Every pull request has a preview address, and production follows `main` without a deploy step of ours.
 - The security headers live in two places, `public/_headers` for Pages and `nginx/security-headers.conf` for the image. A unit test fails when the two differ.
 - The two hosts differ in small ways, and the Docker section of [ci-cd.md](../ci-cd.md) lists them.
-- A change of host later means moving the headers and the redirects, and nothing in the app code.
+- A change of host later means moving the headers and the fallback to `index.html` for unknown paths, and nothing in the app code.

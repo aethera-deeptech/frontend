@@ -42,7 +42,7 @@ The app needs Node.js 24 (24.15 or newer) or 26. [CONTRIBUTING.md](CONTRIBUTING.
 docker compose up --build
 ```
 
-This builds the image and serves it on http://localhost:3000. The published image is `ghcr.io/aethera-deeptech/frontend` and `syafa/aethera-frontend` on Docker Hub, and [docs/ci-cd.md](docs/ci-cd.md) shows how to verify its signature. It is for looking at the production build, and `npm run dev` is for work against another API, because the content security policy of the image only allows the hosts of Aethera.
+This builds the image and serves it on http://localhost:3000. The published image is `ghcr.io/aethera-deeptech/frontend` and `syafa/aethera-frontend` on Docker Hub, and [docs/ci-cd.md](docs/ci-cd.md) shows how to verify its signature. This compose setup is for looking at the production build, and `npm run dev` is for work against another API, because the content security policy of the image only allows the hosts of Aethera.
 
 ## Hosting
 

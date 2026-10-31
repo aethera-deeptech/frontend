@@ -8,7 +8,7 @@ The app runs in the browser, so every setting that it reads is public. Vite repl
 
 ## Decision
 
-The settings are build arguments and environment variables of the build. `src/lib/env.ts` reads them once and checks them with Zod, so a missing or malformed address fails at start and not later inside a request. One build is made for one environment, and the image has no settings at run time. The published image is built for production, and a build for another environment sets its own arguments. A secret never gets a `VITE_` name, because it would end up in the files.
+The settings are build arguments and environment variables of the build. `src/lib/env.ts` reads them once on the first call of `getEnv` and checks them with Zod, so a missing or malformed address fails there and not later inside a request. The app does not call `getEnv` yet, and the first screen that needs a setting is the place to call it at start. One build is made for one environment, and the image has no settings at run time. The published image is built for production, and a build for another environment sets its own arguments. A secret never gets a `VITE_` name, because it would end up in the files.
 
 ## Consequences
 

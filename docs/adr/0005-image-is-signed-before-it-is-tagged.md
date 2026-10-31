@@ -8,7 +8,7 @@ People pull an image by a tag such as `latest` or `1.2.3`. A tag that moves to a
 
 ## Decision
 
-The publish job runs only for a push to `main` or to a version tag. It pushes the image by digest with no tag, signs the index with cosign in keyless mode, verifies the signature against the identity of `docker.yaml`, attests an SBOM for each platform, and only then adds the tags. The Docker Hub mirror is a separate workflow in its own environment. It starts after the Docker workflow, so a pull request cannot change it. It copies an image only after it has checked the signature again, and it sets `latest` and the floating version tags after the signature has been copied and checked on Docker Hub.
+The publish job runs only for a push to `main`, a push of a version tag or a manual run from `main`. It pushes the image by digest with no tag, signs the index with cosign in keyless mode, verifies the signature against the identity of `docker.yaml`, attests an SBOM for each platform, and only then adds the tags. The Docker Hub mirror is a separate workflow in its own environment. It starts after the Docker workflow, so a pull request cannot change it. It copies an image only after it has checked the signature again, and it sets `latest` and the floating version tags after the signature has been copied and checked on Docker Hub.
 
 ## Consequences
 
