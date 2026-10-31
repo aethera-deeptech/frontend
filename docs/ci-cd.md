@@ -35,7 +35,7 @@
 | `performance.yaml` | Bundle size | Builds the app and runs size-limit. The JavaScript files of `dist/assets` may add up to 120 kB compressed with Brotli and the CSS files to 10 kB, as set in `.size-limit.json`. Raise a limit in the pull request that needs it and say why |
 | `performance.yaml` | Lighthouse CI | Builds the app and runs Lighthouse three times on the built files in `dist`. It fails when the median score of performance is under 0.9, accessibility under 0.95 or best practices under 0.9, as set in `.lighthouserc.json`. The SEO category is not asserted because the page is `noindex` on purpose. The HTML and JSON reports are an artifact of the run that is kept for 7 days and are not uploaded anywhere else |
 | `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset and on `/_headers`, the cache headers (a 404 is not immutable), the five security headers on six paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
-| `docker.yaml` | Publish image | Runs after Docker build on a push to main or to a version tag, and on a manual run from main. It builds the image for both platforms with the production API address, pushes it to `ghcr.io/aethera-deeptech/frontend`, reports the Trivy scan of each platform to code scanning, attests an SBOM, signs the image with cosign and verifies the signature. It never runs for a pull request, so it is not a required check |
+| `docker.yaml` | Publish image | Runs after Docker build on a push to main or to a version tag, and on a manual run from main. It builds the image for both platforms with the production API address, pushes it to `ghcr.io/aethera-deeptech/frontend`, reports the Trivy scan of each platform to code scanning, attests an SBOM, signs the image with cosign and verifies the signature. The workflow on main never runs it for a pull request, so it is not a required check |
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
 | `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature of every installed package and the provenance attestations of the packages that provide them |
 | `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
@@ -84,10 +84,13 @@ The `Dockerfile` builds the app in a Node stage and serves the files with `nginx
 - `nginx/security-headers.conf` has the same security headers as the `/*` block of `public/_headers`, which Cloudflare Pages reads. A unit test (`nginx/security-headers.test.ts`) fails when the two files differ.
 - The web server differs from Pages in two small ways. A missing file under `/assets/` is a 404 and not the app, and that 404 is never cached as immutable, because an HTML page under the address of a script would be cached for a year. The file `/_headers` is a 404, as on Pages. A bare directory name such as `/assets` gets a relative redirect, where Pages serves the app.
 - `compose.yml` runs the image on `http://localhost:3000` to look at the production build. Its content security policy only allows the hosts of Aethera, so use `npm run dev` for work against another API.
-- The image is built and scanned on every pull request and published only from main and from version tags. Pull requests never get a write token for packages, and the preview of a pull request is the job of Cloudflare Pages. The Docker Hub mirror comes in a later change.
+- The image is built and scanned on every pull request and published only from main and from version tags. The workflow on main gives a pull request no write token for packages, and the preview of a pull request is the job of Cloudflare Pages. A collaborator can still change the workflow on a branch of this repository, so the signature check below, which accepts only the identities of main and of version tags, is what tells a published image from any other. The Docker Hub mirror comes in a later change.
 - Image tags are `latest` for main, `sha-<commit>` for builds of main, and `1.2.3`, `1.2` and `1` for version tags. A release commit is built twice, once for main and once for its tag, so only the main build sets `latest` and the `sha-` tag and the tag build only adds the version tags. The published image is built for the production API at `https://api-aethera.syafahadyan.com`, so run a build of your own for another environment.
 - The last stage of the `Dockerfile` runs a command, so the arm64 image is built with QEMU on the amd64 runner. The build stage runs on the machine that builds the image and needs no emulation.
 - The first push creates the package in GitHub Container Registry as a private package. Make it public in the settings of the package if the image should be pulled without a login.
+
+- The upgrade step of the final stage takes the newest Alpine fixes, and the build argument `PACKAGES_DATE` changes every day so that BuildKit does not reuse an old layer of that step from the cache.
+- BuildKit asks `mirror.gcr.io` before Docker Hub for the base images, because Docker Hub limits anonymous pulls per IP address and the runners share theirs.
 
 Verify a published image with cosign by checking the identity of the workflow that signed it.
 
@@ -99,10 +102,7 @@ cosign verify \
   ghcr.io/aethera-deeptech/frontend:latest
 ```
 
-Every tag is one index for both platforms and the signature covers that index. Trivy scans each platform and reports it in its own code scanning category. The SBOM is made for the amd64 image only, which has the same npm packages and the same base image packages as the arm64 one.
-
-- The upgrade step of the final stage takes the newest Alpine fixes, and the build argument `PACKAGES_DATE` changes every day so that BuildKit does not reuse an old layer of that step from the cache.
-- BuildKit asks `mirror.gcr.io` before Docker Hub for the base images, because Docker Hub limits anonymous pulls per IP address and the runners share theirs.
+Every tag is one index for both platforms and the signature covers that index. Trivy scans each platform and reports it in its own code scanning category. The SBOM is made for the amd64 image only, which has the same nginx and base image packages as the arm64 one. The app itself is static files, so the SBOM lists no npm packages.
 
 ## End to end tests
 
@@ -170,6 +170,8 @@ Two names that differ only by case are not checked, because the tool does not do
 A pull request must pass `Conventional commits` before it can be merged, and `PR format` before it can be merged, as [CONTRIBUTING.md](../CONTRIBUTING.md#pull-requests) describes. Merge commits are the only merge method. The checks run in CI, so contributors do not need to run heavy tasks on their own machine.
 
 ## Known gaps
+
+The signature check accepts any tag that matches `v*.*.*`, because anyone with write access can push such a tag on any commit. The ruleset that lets only the release App create `v*` tags comes with Release Please, and until then the version tags are only as trustworthy as the people with write access. The `publish` job also has no environment, so a branch of this repository can change its workflow and push an image tag, and the signature check is what rejects that image. An environment limited to main and to version tags would close that and is a setting for the owner to decide.
 
 `npm audit` reports 13 moderate advisories on 2026-10-31. All of them are one denial of service issue in `minimatch`, which sits inside ESLint 9 and typescript-eslint. These are development tools that are not part of the build, and CI never gives them a glob pattern from outside. ESLint 9 stays because eslint-plugin-jsx-a11y does not support ESLint 10 yet. Revisit this when it does.
 
