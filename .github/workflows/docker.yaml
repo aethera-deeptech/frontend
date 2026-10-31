@@ -206,8 +206,9 @@ jobs:
             [registry."docker.io"]
               mirrors = ["mirror.gcr.io"]
 
-      # The image is pushed by digest and gets no tag here. The tags move only after the signature is verified, so a failure of
-      # any step before that leaves an untagged image and never an unsigned image under latest or a version.
+      # The image is pushed by digest and gets no tag here. The tags move only after the signature is verified and both SBOMs are
+      # attested, so a failure of any step before that leaves no release tag on the image and never an unsigned image under
+      # latest or a version. The digest and the signature tag of such a run stay in the registry.
       - name: Build and push the image by digest
         id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -266,36 +267,6 @@ jobs:
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             "${GHCR_IMAGE}@${DIGEST}" > /dev/null
 
-      - name: Add the tags to the signed image
-        env:
-          DIGEST: ${{ steps.build.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          args=()
-          # The tags are read again here, because a newer release may have been tagged since the checkout. Only tags on main count,
-          # so a tag that was refused or never published does not hold a floating tag back.
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            git fetch --force origin '+refs/heads/main:refs/remotes/origin/main' '+refs/tags/*:refs/tags/*'
-          fi
-          while IFS= read -r tag; do
-            if [ -z "$tag" ]; then
-              continue
-            fi
-            version="${tag##*:}"
-            # A floating tag such as 1 or 1.2 only moves when this release is the newest one of its line, so a run for an older
-            # release that finishes last cannot move it back. The tag of the full version always moves.
-            if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$version" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-              newest="$(git tag --merged origin/main -l "v${version}.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
-              if [ "$newest" != "$GITHUB_REF_NAME" ]; then
-                echo "skip $tag, the newest release of that line is $newest"
-                continue
-              fi
-            fi
-            args+=(--tag "$tag")
-          done <<< "$TAGS"
-          test "${#args[@]}" -gt 0
-          docker buildx imagetools create "${args[@]}" "${GHCR_IMAGE}@${DIGEST}"
-
       # The SBOM and its attestation are made for each platform image, so the subject of an attestation is the image that the
       # SBOM describes
       - name: Generate the SBOM (amd64)
@@ -333,6 +304,36 @@ jobs:
           subject-name: ${{ env.GHCR_IMAGE }}
           subject-digest: ${{ steps.platforms.outputs.arm64 }}
           sbom-path: sbom-arm64.cdx.json
+
+      - name: Add the tags to the signed image
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          args=()
+          # The tags are read again here, because a newer release may have been tagged since the checkout. Only tags on main count,
+          # so a tag that was refused or never published does not hold a floating tag back.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            git fetch --force origin '+refs/heads/main:refs/remotes/origin/main' '+refs/tags/*:refs/tags/*'
+          fi
+          while IFS= read -r tag; do
+            if [ -z "$tag" ]; then
+              continue
+            fi
+            version="${tag##*:}"
+            # A floating tag such as 1 or 1.2 only moves when this release is the newest one of its line, so a run for an older
+            # release that finishes last cannot move it back. The tag of the full version always moves.
+            if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$version" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+              newest="$(git tag --merged origin/main -l "v${version}.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+              if [ "$newest" != "$GITHUB_REF_NAME" ]; then
+                echo "skip $tag, the newest release of that line is $newest"
+                continue
+              fi
+            fi
+            args+=(--tag "$tag")
+          done <<< "$TAGS"
+          test "${#args[@]}" -gt 0
+          docker buildx imagetools create "${args[@]}" "${GHCR_IMAGE}@${DIGEST}"
 
       # These scans report to code scanning and do not fail the run. The image is already published and signed at this point, and
       # the Docker build job has failed the pull request on a fixed critical or high vulnerability before the merge.
