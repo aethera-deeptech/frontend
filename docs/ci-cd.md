@@ -8,6 +8,7 @@
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
+| `docker.yaml` | push to main, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. It publishes nothing yet. A run is cancelled when a newer one starts for the same ref |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
 
 ### Jobs
@@ -25,6 +26,7 @@
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
+| `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset and on `/_headers`, the cache headers (a 404 is not immutable), the five security headers on six paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
 
 ## Required checks
 
@@ -45,9 +47,22 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Unit tests | GitHub Actions | yes |
 | Build | GitHub Actions | yes |
 | E2E | GitHub Actions | yes |
+| Docker build | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
+
+## Docker image
+
+The `Dockerfile` builds the app in a Node stage and serves the files with `nginxinc/nginx-unprivileged` on port 8080, as user 101. Both base images are pinned by digest and Renovate keeps them current with the commit type `build`. The tools of `.github/tools/Dockerfile` keep the commit type `ci`.
+
+- The `VITE_` settings are build arguments. They end up in the files, so one image is built for one environment and has no settings at run time.
+- `nginx/security-headers.conf` has the same security headers as the `/*` block of `public/_headers`, which Cloudflare Pages reads. A unit test (`nginx/security-headers.test.ts`) fails when the two files differ.
+- The web server differs from Pages in two small ways. A missing file under `/assets/` is a 404 and not the app, and that 404 is never cached as immutable, because an HTML page under the address of a script would be cached for a year. The file `/_headers` is a 404, as on Pages. A bare directory name such as `/assets` gets a relative redirect, where Pages serves the app.
+- `compose.yml` runs the image on `http://localhost:3000` to look at the production build. Its content security policy only allows the hosts of Aethera, so use `npm run dev` for work against another API.
+- The image is built and scanned on every pull request but it is not published yet. The push to GitHub Container Registry, the signature and the Docker Hub mirror come in later changes.
+- The upgrade step of the final stage takes the newest Alpine fixes, and the build argument `PACKAGES_DATE` changes every day so that BuildKit does not reuse an old layer of that step from the cache.
+- BuildKit asks `mirror.gcr.io` before Docker Hub for the base images, because Docker Hub limits anonymous pulls per IP address and the runners share theirs.
 
 ## End to end tests
 

@@ -1,0 +1,19 @@
+# Runs the image of the app on http://localhost:3000, to look at the production build. Use npm run dev for development.
+# The content security policy of the image only allows the hosts of Aethera, so the app cannot call an API on localhost from here.
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api-aethera-staging.syafahadyan.com}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+    ports:
+      - '127.0.0.1:3000:8080'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
