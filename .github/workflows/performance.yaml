@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      # size-limit gzips each file of the build and compares the total with the limit of .size-limit.json
+      # size-limit compresses each file of the build with Brotli and compares the total with the limit of .size-limit.json
       - name: Check the size of the bundle
         run: npm run size
 
