@@ -27,7 +27,7 @@ function variables(text: string): Map<string, string> {
   const found = new Map<string, string>();
 
   for (const match of text.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;]+);/gm)) {
-    found.set(match[1] ?? '', match[2] ?? '');
+    found.set(match[1], match[2]);
   }
 
   return found;
