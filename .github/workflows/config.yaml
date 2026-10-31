@@ -120,8 +120,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # docker compose config reads the file and builds nothing and starts nothing. The copy of the example file makes
-      # the check use the same names as the example, so the two cannot drift apart without a failure here.
+      # docker compose config reads the file and builds nothing and starts nothing. The copy of the example file only proves
+      # that it parses as an env file, because every variable of compose.yml has a default and none can be missing.
       - name: Check the compose file
         run: |
           cp .env.example .env

@@ -24,8 +24,8 @@
 | `config.yaml` | Renovate config | `renovate.json` with the Renovate validator in strict mode |
 | `config.yaml` | Hadolint | The `Dockerfile` of the app against the Dockerfile rules and the shell rules of its `RUN` steps, with Hadolint |
 | `config.yaml` | Dotenv lint | `.env.example` for duplicate keys, wrong spacing and other format problems, with dotenv-linter. The check for the order of the keys is off, because the file lists the settings in the order of the code that reads them |
-| `config.yaml` | Compose config | `docker compose config` on `compose.yml` with a copy of `.env.example` as `.env`. It builds nothing and starts nothing |
-| `config.yaml` | ShellCheck | Every shell script that git tracks, with the settings of `.shellcheckrc` |
+| `config.yaml` | Compose config | `docker compose config` on `compose.yml` with a copy of `.env.example` as `.env`. It checks that the compose file is valid and that the example file parses as its env file. It builds nothing and starts nothing |
+| `config.yaml` | ShellCheck | Every tracked file that ends in `.sh`, with the settings of `.shellcheckrc` |
 | `ci.yaml` | Typecheck | `tsc -b` over the app and the Vite config |
 | `ci.yaml` | Lint | ESLint with the strict type checked rules of typescript-eslint, the React hooks rules and the accessibility rules of jsx-a11y, then the Prettier check |
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
@@ -123,7 +123,7 @@ Renovate opens the update pull requests when its GitHub App runs on the reposito
 
 The bot cannot read a tool that is named inside a `run` step, so the tools of the jobs are listed where it can.
 
-- `.github/tools/Dockerfile` has one stage for each image that a job starts with `docker run`, which are actionlint, zizmor and gitleaks. Nothing builds it. The jobs ask `.github/tools/image.sh` for the image of a stage, so the version of a bump is the version the jobs run.
+- `.github/tools/Dockerfile` has one stage for each image that a job starts with `docker run`, which are actionlint, zizmor, gitleaks, hadolint, shellcheck and dotenv-linter. Nothing builds it. The jobs ask `.github/tools/image.sh` for the image of a stage, so the version of a bump is the version the jobs run.
 - The ls-lint and Renovate versions sit in `env` of their steps. A comment such as `# renovate: datasource=npm depName=@ls-lint/ls-lint` right above the line tells Renovate where to look, so keep the comment when you edit the line.
 
 ## File names
