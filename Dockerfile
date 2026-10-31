@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The build runs on the machine that builds the image, so an arm64 image needs no emulation. The result is plain files.
+# The build stage runs on the machine that builds the image, so the build of an arm64 image needs no emulation. The result is
+# plain files. The last stage runs on the target platform, so its RUN step needs QEMU when the target is not the machine.
 FROM --platform=$BUILDPLATFORM node:24-alpine3.24@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS build
 
 WORKDIR /src
