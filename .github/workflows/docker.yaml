@@ -93,9 +93,11 @@ jobs:
           expect "a missing asset is a 404" "$(curl -s -o /dev/null -w '%{http_code}' "$base/assets/does-not-exist.js")" 404
           expect "the health check answers 200" "$(curl -s -o /dev/null -w '%{http_code}' "$base/healthz")" 200
           expect "an asset is cached as immutable" "$(curl -sI "$base$asset" | tr -d '\r' | grep -i '^cache-control:' | tr '[:upper:]' '[:lower:]')" "cache-control: public, max-age=31536000, immutable"
+          expect "a missing asset is not cached as immutable" "$(curl -sI "$base/assets/does-not-exist.js" | tr -d '\r' | grep -c -i 'immutable')" 0
+          expect "the headers file of Pages is not served" "$(curl -s -o /dev/null -w '%{http_code}' "$base/_headers")" 404
           expect "the home page is revalidated" "$(curl -sI "$base/" | tr -d '\r' | grep -i '^cache-control:' | tr '[:upper:]' '[:lower:]')" "cache-control: public, max-age=0, must-revalidate"
 
-          for path in / "$asset" /healthz /halaman-yang-tidak-ada; do
+          for path in / "$asset" /healthz /halaman-yang-tidak-ada /assets/does-not-exist.js /_headers; do
             expect "the security headers are on $path" "$(curl -sI "$base$path" | tr -d '\r' | grep -c -i -E '^(content-security-policy|x-content-type-options|referrer-policy|permissions-policy|strict-transport-security):')" 5
           done
 
