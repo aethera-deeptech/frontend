@@ -15,13 +15,13 @@ What exists now:
 - Vitest and Testing Library for unit tests
 - ESLint and Prettier
 - npm, with exact versions in `package-lock.json`
+- A Docker image (nginx, non-root), built and scanned in CI but not published yet
 
 What is planned and not built yet:
 
 - shadcn/ui components and Tailwind driven by the Figma tokens
 - React Router, TanStack Query and Recharts
 - Playwright with axe, Lighthouse CI and Storybook
-- A Docker image, built in CI
 
 ## Run it
 
@@ -32,6 +32,14 @@ npm run dev
 ```
 
 The app needs Node.js 24 (24.15 or newer) or 26. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
+
+## Docker
+
+```sh
+docker compose up --build
+```
+
+This builds the image and serves it on http://localhost:3000. It is for looking at the production build, and `npm run dev` is for work against another API, because the content security policy of the image only allows the hosts of Aethera.
 
 ## Hosting
 
