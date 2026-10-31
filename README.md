@@ -15,14 +15,16 @@ What exists now:
 - Vitest and Testing Library for unit tests
 - Playwright with axe for end to end and accessibility tests on 14 devices
 - ESLint and Prettier
+- Lighthouse CI and size-limit for the scores and the size of the build
 - npm, with exact versions in `package-lock.json`
-- A Docker image (nginx, non-root), built and scanned in CI but not published yet
+- A Docker image (nginx, non-root), published signed to GitHub Container Registry and Docker Hub
+- Release Please for the version and the changelog
 
 What is planned and not built yet:
 
 - shadcn/ui components and Tailwind driven by the Figma tokens
 - React Router, TanStack Query and Recharts
-- Lighthouse CI and Storybook
+- Storybook
 
 ## Run it
 
@@ -40,7 +42,7 @@ The app needs Node.js 24 (24.15 or newer) or 26. [CONTRIBUTING.md](CONTRIBUTING.
 docker compose up --build
 ```
 
-This builds the image and serves it on http://localhost:3000. It is for looking at the production build, and `npm run dev` is for work against another API, because the content security policy of the image only allows the hosts of Aethera.
+This builds the image and serves it on http://localhost:3000. The published image is `ghcr.io/aethera-deeptech/frontend` and `syafa/aethera-frontend` on Docker Hub, and [docs/ci-cd.md](docs/ci-cd.md) shows how to verify its signature. It is for looking at the production build, and `npm run dev` is for work against another API, because the content security policy of the image only allows the hosts of Aethera.
 
 ## Hosting
 
@@ -49,6 +51,10 @@ The site is static files. Cloudflare Pages builds `main` with `npm run build` an
 ## Design
 
 The design lives in Figma. It has a Mobile version at 390 px wide and a Desktop version at 1280 px wide, each in a Light and a Dark theme. The Figma file is not linked from this repository yet.
+
+## Decisions
+
+The reasons behind the larger choices are in [docs/adr](docs/adr). Each file is one decision with its context and its consequences.
 
 ## Contributing
 
