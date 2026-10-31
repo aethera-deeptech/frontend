@@ -11,5 +11,28 @@
   "files": [
     "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh}"
   ],
-  "words": []
+  "words": [
+    "aethera",
+    "deeptech",
+    "energi",
+    "hackathon",
+    "hadyan",
+    "halaman",
+    "healthz",
+    "lighthouserc",
+    "ossf",
+    "perkiraan",
+    "prformat",
+    "shellcheck",
+    "syafa",
+    "terverifikasi",
+    "tidak",
+    "tmpfs",
+    "toomanyrequests",
+    "typechecks",
+    "umkm",
+    "vite",
+    "wcag",
+    "zizmor"
+  ]
 }
