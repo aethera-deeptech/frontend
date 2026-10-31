@@ -18,8 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "size": "size-limit",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "storybook": "storybook dev -p 6006 --disable-telemetry",
+    "build-storybook": "storybook build --disable-telemetry"
   },
   "dependencies": {
     "react": "19.3.1",
