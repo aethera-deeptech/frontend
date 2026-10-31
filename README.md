@@ -52,7 +52,7 @@ The site is static files. Cloudflare Pages builds `main` with `npm run build` an
 
 ## Design
 
-The design lives in Figma. The colors, the radii, the spacing and the button lift of the file are CSS variables in `src/styles/tokens.css`, and every variable has the name that the Figma variable carries as its web code syntax. The Light theme is the default. The Dark theme applies with `data-theme="dark"` on the page, or when the system prefers dark and the page has not chosen `data-theme="light"`. Tailwind names the colors after the variables, so `--bg-1` gives `bg-bg-1`, and the radii give `rounded-sm` to `rounded-xl`. It has a Mobile version at 390 px wide and a Desktop version at 1280 px wide, each in a Light and a Dark theme. The Figma file is not linked from this repository yet.
+The design lives in Figma. The colors, the radii, the spacing and the button lift of the file are CSS variables in `src/styles/tokens.css`, and every variable has the name that the Figma variable carries as its web code syntax. The Light theme is the default. The Dark theme applies with `data-theme="dark"` on the page, or when the system prefers dark and the page has not chosen `data-theme="light"`. Tailwind names the colors after the variables, so `--bg-1` gives `bg-bg-1`, and the radii give `rounded-sm` to `rounded-xl`. The design has a Mobile version at 390 px wide and a Desktop version at 1280 px wide, each in a Light and a Dark theme. The Figma file is not linked from this repository yet.
 
 ## Decisions
 

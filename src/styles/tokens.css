@@ -7,6 +7,7 @@
  */
 
 :root {
+  color-scheme: light;
   --btn-accent-face: #7553ff;
   --btn-danger-face: #e60027;
   --btn-warning-face: #ffce00;
@@ -68,6 +69,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --bg-1: #252c34;
   --bg-2: #1e2229;
   --bg-3: #161a1e;
@@ -106,6 +108,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
+    color-scheme: dark;
     --bg-1: #252c34;
     --bg-2: #1e2229;
     --bg-3: #161a1e;
