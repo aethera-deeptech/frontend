@@ -26,15 +26,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Pull images through the Google mirror
+        uses: ./.github/actions/pull-images
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_PULL_TOKEN }}
+
       # The image is the actionlint stage of .github/tools/Dockerfile, which the update bot keeps current
       - name: Lint workflows
         run: |
-          image="$(awk -v stage=actionlint 'toupper($1) == "FROM" && toupper($3) == "AS" && $4 == stage { print $2 }' .github/tools/Dockerfile)"
-          if [ -z "$image" ]; then
-            echo "no stage named actionlint in .github/tools/Dockerfile" >&2
-            exit 1
-          fi
-          docker run --rm -v "$PWD:/repo" -w /repo "$image" -color
+          docker run --rm -v "$PWD:/repo" -w /repo "$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh actionlint)")" -color
 
   zizmor:
     name: Zizmor
@@ -54,12 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          image="$(awk -v stage=zizmor 'toupper($1) == "FROM" && toupper($3) == "AS" && $4 == stage { print $2 }' .github/tools/Dockerfile)"
-          if [ -z "$image" ]; then
-            echo "no stage named zizmor in .github/tools/Dockerfile" >&2
-            exit 1
-          fi
-          docker run --rm -e GH_TOKEN -v "$PWD:/repo" -w /repo "$image" \
+          docker run --rm -e GH_TOKEN -v "$PWD:/repo" -w /repo "$(bash ./.github/tools/image.sh zizmor)" \
             --no-progress --format github .
 
   names:
