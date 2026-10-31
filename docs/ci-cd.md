@@ -6,7 +6,7 @@
 |:---|:---|:---|
 | `commits.yaml` | pull requests | Lints the commits of the pull request with commitlint and its Conventional Commits rules, which are set in `commitlint.config.mjs`, and checks the pull request title against the same types. It never cancels a run, skips an edit that changes neither the title nor the base branch, and reads the title from the pull request when it runs, so editing the body of a pull request cannot leave a cancelled required check behind and a rerun checks the current title. Merge commits are skipped, and the line lengths of the body and footer are not limited because Renovate writes long ones |
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
-| `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
+| `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the eight jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 | `docker.yaml` | push to main, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. It publishes nothing yet. A run is cancelled when a newer one starts for the same ref |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
@@ -22,6 +22,10 @@
 | `config.yaml` | Zizmor | The workflows for security problems, such as unpinned actions, broad permissions and injection through expressions, with zizmor |
 | `config.yaml` | File names | The names of the files and folders against `.ls-lint.yml`, with ls-lint |
 | `config.yaml` | Renovate config | `renovate.json` with the Renovate validator in strict mode |
+| `config.yaml` | Hadolint | The `Dockerfile` of the app against the Dockerfile rules and the shell rules of its `RUN` steps, with Hadolint |
+| `config.yaml` | Dotenv lint | `.env.example` for duplicate keys, wrong spacing and other format problems, with dotenv-linter. The check for the order of the keys is off, because the file lists the settings in the order of the code that reads them |
+| `config.yaml` | Compose config | `docker compose config` on `compose.yml` with a copy of `.env.example` as `.env`. It builds nothing and starts nothing |
+| `config.yaml` | ShellCheck | Every shell script that git tracks, with the settings of `.shellcheckrc` |
 | `ci.yaml` | Typecheck | `tsc -b` over the app and the Vite config |
 | `ci.yaml` | Lint | ESLint with the strict type checked rules of typescript-eslint, the React hooks rules and the accessibility rules of jsx-a11y, then the Prettier check |
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
