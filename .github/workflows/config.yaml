@@ -74,11 +74,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # The repository has no .node-version file yet, so the major version is set here. ls-lint only needs a current Node.
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version-file: .node-version
 
       # ls-lint reads the names of the files and never opens one, the rules are in .ls-lint.yml
       - name: Check the names of the files
@@ -102,7 +101,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version-file: .node-version
 
       # A broken renovate.json does not fail anything by itself, the bot just stops opening dependency pull requests. The strict
       # mode also fails on an option that was renamed or removed, which the bot would only migrate with a warning

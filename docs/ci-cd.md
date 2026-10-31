@@ -7,6 +7,7 @@
 | `commits.yaml` | pull requests | Lints the commits of the pull request with commitlint and its Conventional Commits rules, which are set in `commitlint.config.mjs`, and checks the pull request title against the same types. It never cancels a run, skips an edit that changes neither the title nor the base branch, and reads the title from the pull request when it runs, so editing the body of a pull request cannot leave a cancelled required check behind and a rerun checks the current title. Merge commits are skipped, and the line lengths of the body and footer are not limited because Renovate writes long ones |
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the four jobs below |
+| `ci.yaml` | push to main, pull requests, manual | Checks the app with four jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
 
 ### Jobs
 
@@ -18,12 +19,16 @@
 | `config.yaml` | Zizmor | The workflows for security problems, such as unpinned actions, broad permissions and injection through expressions, with zizmor |
 | `config.yaml` | File names | The names of the files and folders against `.ls-lint.yml`, with ls-lint |
 | `config.yaml` | Renovate config | `renovate.json` with the Renovate validator in strict mode |
+| `ci.yaml` | Typecheck | `tsc -b` over the app and the Vite config |
+| `ci.yaml` | Lint | ESLint with the strict type checked rules of typescript-eslint, the React hooks rules and the accessibility rules of jsx-a11y, then the Prettier check |
+| `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
+| `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 
 ## Required checks
 
 The ruleset of `main` requires a pull request that is merged with a merge commit, resolved review threads, branches that are up to date with `main` (strict checks), and it refuses deletion and force pushes. Signed commits are not required yet.
 
-Every check below is required and is reported by GitHub Actions.
+Every check below is required. All of them are reported by GitHub Actions except `codecov/patch`, which Codecov reports a few minutes after the tests finish, so a merge has to wait for it.
 
 | Check | Reported by | Required |
 |:---|:---|:---|
@@ -33,8 +38,22 @@ Every check below is required and is reported by GitHub Actions.
 | Zizmor | GitHub Actions | yes |
 | File names | GitHub Actions | yes |
 | Renovate config | GitHub Actions | yes |
+| Typecheck | GitHub Actions | yes |
+| Lint | GitHub Actions | yes |
+| Unit tests | GitHub Actions | yes |
+| Build | GitHub Actions | yes |
+| codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
+
+## Coverage
+
+The `Unit tests` job uploads `coverage/lcov.info` to Codecov, which comments on pull requests that change the coverage. The thresholds are in `codecov.yml`.
+
+- `codecov/patch` is required. It compares the coverage of the changed lines with the base and tolerates a drop of 5 percentage points, so it catches code that is added without tests, but it does not demand that every changed line is covered.
+- `codecov/project` is set up in `codecov.yml` with a tolerance of 1 percentage point, but it is not required. It needs a base report from `main`, which does not exist before the first upload.
+- The `Unit tests` job has a coverage floor of 70 percent in `vite.config.ts`. Raise the floor when the coverage has grown and never lower it to let a change in.
+- A failed upload fails the job on `main` only. On a pull request it fails nothing in the job, but `codecov/patch` then never arrives and blocks the merge until the upload works again or the check is taken out of the ruleset.
 
 ## Dependency updates
 
@@ -64,5 +83,7 @@ Two names that differ only by case are not checked, because the tool does not do
 A pull request must pass `Conventional commits` before it can be merged, and `PR format` before it can be merged, as [CONTRIBUTING.md](../CONTRIBUTING.md#pull-requests) describes. Merge commits are the only merge method. The checks run in CI, so contributors do not need to run heavy tasks on their own machine.
 
 ## Known gaps
+
+`npm audit` reports 13 moderate advisories on 2026-10-31. All of them are one denial of service issue in `minimatch`, which sits inside ESLint 9 and typescript-eslint. These are development tools that are not part of the build, and CI never gives them a glob pattern from outside. ESLint 9 stays because eslint-plugin-jsx-a11y does not support ESLint 10 yet. Revisit this when it does.
 
 The Actionlint and Zizmor jobs, and the image that the commit message action builds, pull images from Docker Hub and GitHub Container Registry without a login or a mirror, as the reference repository does with one. A rate limit on an anonymous pull fails the job for a reason that has nothing to do with the change, and the first response is to rerun the failed job once. A pull mirror is added when that happens more than once.

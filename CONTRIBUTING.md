@@ -6,7 +6,9 @@ Everyone who takes part in this project follows the [Code of Conduct](CODE_OF_CO
 
 ## Set up
 
-The repository has no application code yet, so there is nothing to install or run. This section will say how to start the app once the code and the package manager are chosen. The [README](README.md) describes the planned stack.
+The app needs Node.js 24 (the version is in `.node-version`) and npm. Install the packages with `npm ci`, copy `.env.example` to `.env` and start the dev server with `npm run dev`. The `VITE_` settings are public values that end up in the build. An empty `VITE_GOOGLE_CLIENT_ID` means Google sign-in is not configured.
+
+`.npmrc` saves exact versions and does not run the install scripts of dependencies. The npm scripts you run are listed in `package.json`. The checks that CI runs are `typecheck`, `lint`, `format:check`, `test:coverage` and `build`. Run `npm run format` to fix the formatting of your changes.
 
 ## Making a change
 
@@ -14,7 +16,7 @@ The repository has no application code yet, so there is nothing to install or ru
 2. Keep one pull request to one concern. Unrelated changes go into separate branches and pull requests.
 3. Write commits in the [Conventional Commits](https://www.conventionalcommits.org/) style, as `type(scope): summary`. The summary is the whole message, so do not add a body. The types are `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` and `revert`. A pull request cannot be merged while a commit message or its title does not follow this, because the required check "Conventional commits" fails. Fix the message with `git commit --amend` for the last commit, or an interactive rebase for an older one, and push again.
 4. Write code, comments, commit messages and documentation in English. The text that people see in the interface is Indonesian. Match the style of the code around your change.
-5. Add tests with every behavior change once the test tools are in place. A bug fix should come with a test that fails without the fix.
+5. Add tests with every behavior change. A bug fix should come with a test that fails without the fix. Unit tests use Vitest and Testing Library, and they never need a backend or sample data in the app itself.
 
 Commit signing is not required by the repository rules yet. Signed commits are welcome.
 
