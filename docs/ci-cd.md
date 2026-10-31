@@ -69,6 +69,8 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Dotenv lint | GitHub Actions | yes |
 | Compose config | GitHub Actions | yes |
 | ShellCheck | GitHub Actions | yes |
+| Bundle size | GitHub Actions | yes |
+| Lighthouse CI | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
