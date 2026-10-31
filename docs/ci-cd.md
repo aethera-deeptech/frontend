@@ -8,7 +8,7 @@
 | `prformat.yaml` | pull requests | Checks that the branch is named `type/short-description` with a type of Conventional Commits, that the pull request has a label and an assignee, and that the body is only hyphen bullets with text. A pull request that a bot opened (Renovate, Dependabot or Release Please) from its own branch is skipped. It never cancels a run and reads the pull request when it runs, so a label or an assignee that was added later is picked up by a rerun of the failed run or by an edit of the body. Adding a label or an assignee starts no run, and the newest run of the check is the one that counts |
 | `config.yaml` | push to main, pull requests, manual | Lints the configuration of the repository with the eight jobs below |
 | `ci.yaml` | push to main, pull requests, manual | Checks the app with five jobs that run in parallel and install with `npm ci`. Every job uses the Node.js version of `.node-version` |
-| `docker.yaml` | push to main, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. It publishes nothing yet. A run is cancelled when a newer one starts for the same ref |
+| `docker.yaml` | push to main and to `v*.*.*` tags, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. A push to main or to a version tag then publishes the image to GitHub Container Registry for `linux/amd64` and `linux/arm64`, scans both platforms, attaches an SBOM and signs the image. A run for a pull request is cancelled when a newer one starts. A run for main or a tag is never cancelled once it has started, because a half published image would stay unsigned |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
 | `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the five jobs below. The daily run catches problems that are disclosed later in code that did not change |
 | `performance.yaml` | push to main, pull requests, manual | Builds the app twice and checks it with the two jobs below, which run in parallel |
@@ -35,6 +35,7 @@
 | `performance.yaml` | Bundle size | Builds the app and runs size-limit. The JavaScript files of `dist/assets` may add up to 120 kB compressed with Brotli and the CSS files to 10 kB, as set in `.size-limit.json`. Raise a limit in the pull request that needs it and say why |
 | `performance.yaml` | Lighthouse CI | Builds the app and runs Lighthouse three times on the built files in `dist`. It fails when the median score of performance is under 0.9, accessibility under 0.95 or best practices under 0.9, as set in `.lighthouserc.json`. The SEO category is not asserted because the page is `noindex` on purpose. The HTML and JSON reports are an artifact of the run that is kept for 7 days and are not uploaded anywhere else |
 | `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset and on `/_headers`, the cache headers (a 404 is not immutable), the five security headers on six paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
+| `docker.yaml` | Publish image | Runs after Docker build on a push to main or to a version tag, and on a manual run from main. It builds the image for both platforms with the production API address, pushes it to `ghcr.io/aethera-deeptech/frontend`, reports the Trivy scan of each platform to code scanning, attests an SBOM, signs the image with cosign and verifies the signature. It never runs for a pull request, so it is not a required check |
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
 | `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature of every installed package and the provenance attestations of the packages that provide them |
 | `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
@@ -83,7 +84,23 @@ The `Dockerfile` builds the app in a Node stage and serves the files with `nginx
 - `nginx/security-headers.conf` has the same security headers as the `/*` block of `public/_headers`, which Cloudflare Pages reads. A unit test (`nginx/security-headers.test.ts`) fails when the two files differ.
 - The web server differs from Pages in two small ways. A missing file under `/assets/` is a 404 and not the app, and that 404 is never cached as immutable, because an HTML page under the address of a script would be cached for a year. The file `/_headers` is a 404, as on Pages. A bare directory name such as `/assets` gets a relative redirect, where Pages serves the app.
 - `compose.yml` runs the image on `http://localhost:3000` to look at the production build. Its content security policy only allows the hosts of Aethera, so use `npm run dev` for work against another API.
-- The image is built and scanned on every pull request but it is not published yet. The push to GitHub Container Registry, the signature and the Docker Hub mirror come in later changes.
+- The image is built and scanned on every pull request and published only from main and from version tags. Pull requests never get a write token for packages, and the preview of a pull request is the job of Cloudflare Pages. The Docker Hub mirror comes in a later change.
+- Image tags are `latest` for main, `sha-<commit>` for builds of main, and `1.2.3`, `1.2` and `1` for version tags. A release commit is built twice, once for main and once for its tag, so only the main build sets `latest` and the `sha-` tag and the tag build only adds the version tags. The published image is built for the production API at `https://api-aethera.syafahadyan.com`, so run a build of your own for another environment.
+- The last stage of the `Dockerfile` runs a command, so the arm64 image is built with QEMU on the amd64 runner. The build stage runs on the machine that builds the image and needs no emulation.
+- The first push creates the package in GitHub Container Registry as a private package. Make it public in the settings of the package if the image should be pulled without a login.
+
+Verify a published image with cosign by checking the identity of the workflow that signed it.
+
+```sh
+cosign verify \
+  --new-bundle-format=false \
+  --certificate-identity-regexp '^https://github\.com/aethera-deeptech/frontend/\.github/workflows/docker\.yaml@refs/(heads/main|tags/v.+)$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/aethera-deeptech/frontend:latest
+```
+
+Every tag is one index for both platforms and the signature covers that index. Trivy scans each platform and reports it in its own code scanning category. The SBOM is made for the amd64 image only, which has the same npm packages and the same base image packages as the arm64 one.
+
 - The upgrade step of the final stage takes the newest Alpine fixes, and the build argument `PACKAGES_DATE` changes every day so that BuildKit does not reuse an old layer of that step from the cache.
 - BuildKit asks `mirror.gcr.io` before Docker Hub for the base images, because Docker Hub limits anonymous pulls per IP address and the runners share theirs.
 
