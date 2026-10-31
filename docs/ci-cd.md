@@ -148,7 +148,7 @@ To set up the login, create a read-only access token in the Docker Hub account s
 
 ## Prose and spelling
 
-Vale reads `.vale.ini`, which combines the Vale and Google styles with the two rules in `.github/vale/styles/Aethera/`. An em dash or a semicolon in prose fails the job, so split the sentence or use a comma or a connector such as "and" or "because". A semicolon that separates list items is fine and the rule says so. The Google style is downloaded by `vale sync` at the release that `.vale.ini` names, and Renovate raises that release. The warnings of the Google style are a local hint and do not fail the job. The Contributor Covenant text in `CODE_OF_CONDUCT.md` is not checked, because it is published text.
+Vale reads `.vale.ini`, which combines the Vale and Google styles with the two rules in `.github/vale/styles/Aethera/`. An em dash or a semicolon in prose fails the job, so split the sentence or use a comma or a connector word. Words such as "and" and "because" work as connectors. A semicolon that separates list items is fine and the rule says so. The Google style is downloaded by `vale sync` at the release that `.vale.ini` names, and Renovate raises that release. The warnings of the Google style are a local hint and do not fail the job. The Contributor Covenant text in `CODE_OF_CONDUCT.md` is not checked, because it is published text.
 
 cspell checks the spelling of English in the code, the comments and the Markdown files. The Indonesian text of the screens is not checked, so the few Indonesian words that sit in the code and the tests are listed under `words` in `cspell.json`. Add a word there only when it is a real name or term, and fix the spelling otherwise.
 
