@@ -12,8 +12,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{ts,js}\" index.html",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{ts,js}\" index.html",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"nginx/**/*.ts\" \"*.{ts,js}\" index.html",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"nginx/**/*.ts\" \"*.{ts,js}\" index.html",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
