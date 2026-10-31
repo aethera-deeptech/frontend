@@ -23,6 +23,9 @@ FROM nginxinc/nginx-unprivileged:stable-alpine3.24@sha256:f5116ed4606f3eb015dd4a
 
 # The base image is rebuilt every few weeks, so a package can have a fix that the image does not have yet. Trivy fails the
 # build on a fixed CRITICAL or HIGH vulnerability, and the upgrade below takes the fixes from the Alpine repository.
+# The date is a build argument that CI changes every day. A RUN step sees the arguments as environment variables, so a new date
+# makes the next build run the upgrade again instead of taking an old layer from the build cache.
+ARG PACKAGES_DATE=unset
 USER root
 RUN apk upgrade --no-cache
 

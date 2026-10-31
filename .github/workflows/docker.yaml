@@ -38,6 +38,11 @@ jobs:
             [registry."docker.io"]
               mirrors = ["mirror.gcr.io"]
 
+      # The upgrade step of the Dockerfile is cached by BuildKit, so a new day starts it again and takes the newest fixes of Alpine
+      - name: Compute the date of the packages
+        id: date
+        run: echo "value=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
       # The image is built for the platform of the runner and kept in the local Docker, so the next steps can run and scan it.
       # The values of the build are public placeholders, because no test needs a real API.
       - name: Build the image
@@ -52,6 +57,7 @@ jobs:
           tags: aethera-frontend:ci
           build-args: |
             VITE_API_BASE_URL=https://api.example.com
+            PACKAGES_DATE=${{ steps.date.outputs.value }}
           cache-from: type=gha
           # Only main writes the cache, because a cache that a pull request wrote can only be read by that same pull request
           cache-to: ${{ github.ref == 'refs/heads/main' && 'type=gha,mode=max' || '' }}
