@@ -16,6 +16,7 @@ What exists now:
 - Playwright with axe for end to end and accessibility tests on 14 devices
 - ESLint and Prettier
 - Lighthouse CI and size-limit for the scores and the size of the build
+- Storybook for components, with the accessibility add-on (`npm run storybook`)
 - npm, with exact versions in `package-lock.json`
 - A Docker image (nginx, non-root), published signed to GitHub Container Registry and Docker Hub
 - Release Please for the version and the changelog
@@ -24,7 +25,6 @@ What is planned and not built yet:
 
 - shadcn/ui components and Tailwind driven by the Figma tokens
 - React Router, TanStack Query and Recharts
-- Storybook
 
 ## Run it
 
