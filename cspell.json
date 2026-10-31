@@ -4,12 +4,11 @@
   "language": "en",
   "useGitignore": true,
   "ignorePaths": [
-    "package-lock.json",
-    ".git",
-    "public/_headers"
+    "package-lock.json"
   ],
   "files": [
-    "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh}"
+    "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh,conf}",
+    "**/Dockerfile"
   ],
   "words": [
     "aethera",
