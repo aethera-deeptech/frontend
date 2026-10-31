@@ -4,17 +4,17 @@ import { z } from 'zod';
 // An empty value means the feature is not configured, for example no Google sign-in.
 const envSchema = z.object({
   VITE_API_BASE_URL: z.url({
-    message: 'VITE_API_BASE_URL must be a full URL, for example https://api.example.com',
+    error: 'VITE_API_BASE_URL must be a full URL, for example https://api.example.com',
   }),
   VITE_GOOGLE_CLIENT_ID: z.string().default(''),
   VITE_SENTRY_DSN: z.string().default(''),
 });
 
-export type Env = {
+export interface Env {
   apiBaseUrl: string;
   googleClientId: string;
   sentryDsn: string;
-};
+}
 
 export function parseEnv(raw: Record<string, unknown>): Env {
   const parsed = envSchema.safeParse(raw);
