@@ -1,6 +1,6 @@
 # Accessibility statement
 
-This repository has no application code yet, so there is no interface to audit. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about code that does not exist.
+The app is a bare scaffold that shows only the product name, so there is no real interface to audit yet. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that are not built.
 
 ## What the design aims for
 
