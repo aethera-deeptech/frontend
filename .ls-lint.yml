@@ -28,3 +28,5 @@ ignore:
   - test-results
   # GitHub names the issue forms by what the person sees
   - .github/ISSUE_TEMPLATE
+  # Trivy reads this exact name
+  - .trivyignore.yaml
