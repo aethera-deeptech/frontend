@@ -18,7 +18,7 @@ The app needs Node.js 24 (the version is in `.node-version`) and npm. Install th
 4. Write code, comments, commit messages and documentation in English. The text that people see in the interface is Indonesian. Match the style of the code around your change.
 5. Add tests with every behavior change. A bug fix should come with a test that fails without the fix. Unit tests use Vitest and Testing Library, and they never need a backend or sample data in the app itself.
 
-Commit signing is not required by the repository rules yet. Signed commits are welcome.
+The ruleset of `main` requires every commit of a pull request to have a verified signature. Sign your commits with a GPG, SSH or S/MIME key that you have added to your GitHub account. The merge commit that GitHub makes when a pull request is merged is signed by GitHub.
 
 ## Checks run in CI
 
