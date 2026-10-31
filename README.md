@@ -31,11 +31,11 @@ cp .env.example .env
 npm run dev
 ```
 
-The app needs Node.js 24. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
+The app needs Node.js 24 (24.15 or newer) or 26. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
 
 ## Hosting
 
-The site is static files. Cloudflare Pages builds `main` with `npm run build` and serves `dist`. `public/_redirects` sends every path to the single page app, and `public/_headers` sets the security headers and the content security policy. The API address is a build setting (`VITE_API_BASE_URL`), so a change needs a new build.
+The site is static files. Cloudflare Pages builds `main` with `npm run build` and serves `dist`. The repository has no `404.html`, so Pages serves `index.html` for every unknown path, which is what a single page app needs. `public/_headers` sets the security headers and the content security policy. The API address is a build setting (`VITE_API_BASE_URL`), so a change needs a new build.
 
 ## Design
 
