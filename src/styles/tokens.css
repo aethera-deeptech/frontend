@@ -1,0 +1,202 @@
+/*
+ * Design tokens of the Figma file Frontend, collections Primitives and Theme. Every name is the web code syntax of the
+ * Figma variable, so --btn-accent-chonk is btn/accent/slab and --btn-accent-face is accent/fill. The Light values are the
+ * default. The Dark values apply when the page has data-theme="dark", or when the system prefers dark and the page has not
+ * chosen light. design/tokens.test.ts fails when the two themes define different names or when a color has no
+ * Tailwind name below.
+ */
+
+:root {
+  color-scheme: light;
+  --btn-accent-face: #7553ff;
+  --btn-danger-face: #e60027;
+  --btn-warning-face: #ffce00;
+  --btn-success-face: #00f261;
+  --chart-blurple: #7553ff;
+  --chart-pink: #f0369a;
+  --chart-orange: #ff9838;
+  --focus: #7553ff;
+  --focus-invalid: #ff002b;
+  --disabled-opacity: 0.6;
+  --lift-rest: 2px;
+  --lift-hover: 3px;
+  --lift-pressed: 0px;
+  --lift-inset-rest: 1px;
+  --lift-inset-hover: 0px;
+  --lift-inset-pressed: 3px;
+  --space-3: 3px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --bg-1: #ffffff;
+  --bg-2: #f8f8f9;
+  --bg-3: #f0f0f2;
+  --bg-overlay: #ffffff;
+  --text-heading: #13151a;
+  --text-1: #293038;
+  --text-2: #616976;
+  --text-disabled: #7c8794;
+  --text-accent: #653de9;
+  --text-danger: #d50000;
+  --text-warning: #a45200;
+  --text-success: #006600;
+  --border-1: #d7dadd;
+  --border-2: #e5e6e9;
+  --btn-neutral-face: #ffffff;
+  --btn-neutral-chonk: #d7dadd;
+  --btn-neutral-ink: #13151a;
+  --btn-accent-chonk: #5827d6;
+  --btn-danger-chonk: #c10000;
+  --btn-warning-chonk: #d59600;
+  --btn-success-chonk: #007800;
+  --btn-accent-ink: #ffffff;
+  --btn-danger-ink: #ffffff;
+  --btn-warning-ink: #000000;
+  --btn-success-ink: #000000;
+  --bg-accent-muted: #0008f012;
+  --bg-danger-muted: #f828081c;
+  --bg-warning-muted: #e0b01030;
+  --bg-success-muted: #00b8001c;
+  --chart-indigo: #3a1873;
+  --border-field: #808b97;
+  --bg-scrim: #13151a73;
+  --chart-anomaly: #e60027;
+  --bg-anomaly-muted: #f828081c;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-1: #252c34;
+  --bg-2: #1e2229;
+  --bg-3: #161a1e;
+  --bg-overlay: #2f3741;
+  --text-heading: #ffffff;
+  --text-1: #e5e6e7;
+  --text-2: #afb2b9;
+  --text-disabled: #88929e;
+  --text-accent: #aba8f8;
+  --text-danger: #f6938c;
+  --text-warning: #ffce00;
+  --text-success: #5ece73;
+  --border-1: #111217;
+  --border-2: #161a1e;
+  --btn-neutral-face: #252c34;
+  --btn-neutral-chonk: #111217;
+  --btn-neutral-ink: #ffffff;
+  --btn-accent-chonk: #120539;
+  --btn-danger-chonk: #330000;
+  --btn-warning-chonk: #260900;
+  --btn-success-chonk: #001f00;
+  --btn-accent-ink: #ffffff;
+  --btn-danger-ink: #ffffff;
+  --btn-warning-ink: #000000;
+  --btn-success-ink: #000000;
+  --bg-accent-muted: #4828b894;
+  --bg-danger-muted: #f8000033;
+  --bg-warning-muted: #ffb0002e;
+  --bg-success-muted: #00f8001f;
+  --chart-indigo: #50219c;
+  --border-field: #7c8693;
+  --bg-scrim: #00000099;
+  --chart-anomaly: #ff4d62;
+  --bg-anomaly-muted: #ff4d6247;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg-1: #252c34;
+    --bg-2: #1e2229;
+    --bg-3: #161a1e;
+    --bg-overlay: #2f3741;
+    --text-heading: #ffffff;
+    --text-1: #e5e6e7;
+    --text-2: #afb2b9;
+    --text-disabled: #88929e;
+    --text-accent: #aba8f8;
+    --text-danger: #f6938c;
+    --text-warning: #ffce00;
+    --text-success: #5ece73;
+    --border-1: #111217;
+    --border-2: #161a1e;
+    --btn-neutral-face: #252c34;
+    --btn-neutral-chonk: #111217;
+    --btn-neutral-ink: #ffffff;
+    --btn-accent-chonk: #120539;
+    --btn-danger-chonk: #330000;
+    --btn-warning-chonk: #260900;
+    --btn-success-chonk: #001f00;
+    --btn-accent-ink: #ffffff;
+    --btn-danger-ink: #ffffff;
+    --btn-warning-ink: #000000;
+    --btn-success-ink: #000000;
+    --bg-accent-muted: #4828b894;
+    --bg-danger-muted: #f8000033;
+    --bg-warning-muted: #ffb0002e;
+    --bg-success-muted: #00f8001f;
+    --chart-indigo: #50219c;
+    --border-field: #7c8693;
+    --bg-scrim: #00000099;
+    --chart-anomaly: #ff4d62;
+    --bg-anomaly-muted: #ff4d6247;
+  }
+}
+
+/* Tailwind names. A color named --color-bg-1 gives the utilities bg-bg-1, text-bg-1 and border-bg-1. */
+@theme inline {
+  --color-btn-accent-face: var(--btn-accent-face);
+  --color-btn-danger-face: var(--btn-danger-face);
+  --color-btn-warning-face: var(--btn-warning-face);
+  --color-btn-success-face: var(--btn-success-face);
+  --color-chart-blurple: var(--chart-blurple);
+  --color-chart-pink: var(--chart-pink);
+  --color-chart-orange: var(--chart-orange);
+  --color-focus: var(--focus);
+  --color-focus-invalid: var(--focus-invalid);
+  --color-bg-1: var(--bg-1);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-text-heading: var(--text-heading);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-disabled: var(--text-disabled);
+  --color-text-accent: var(--text-accent);
+  --color-text-danger: var(--text-danger);
+  --color-text-warning: var(--text-warning);
+  --color-text-success: var(--text-success);
+  --color-border-1: var(--border-1);
+  --color-border-2: var(--border-2);
+  --color-btn-neutral-face: var(--btn-neutral-face);
+  --color-btn-neutral-chonk: var(--btn-neutral-chonk);
+  --color-btn-neutral-ink: var(--btn-neutral-ink);
+  --color-btn-accent-chonk: var(--btn-accent-chonk);
+  --color-btn-danger-chonk: var(--btn-danger-chonk);
+  --color-btn-warning-chonk: var(--btn-warning-chonk);
+  --color-btn-success-chonk: var(--btn-success-chonk);
+  --color-btn-accent-ink: var(--btn-accent-ink);
+  --color-btn-danger-ink: var(--btn-danger-ink);
+  --color-btn-warning-ink: var(--btn-warning-ink);
+  --color-btn-success-ink: var(--btn-success-ink);
+  --color-bg-accent-muted: var(--bg-accent-muted);
+  --color-bg-danger-muted: var(--bg-danger-muted);
+  --color-bg-warning-muted: var(--bg-warning-muted);
+  --color-bg-success-muted: var(--bg-success-muted);
+  --color-chart-indigo: var(--chart-indigo);
+  --color-border-field: var(--border-field);
+  --color-bg-scrim: var(--bg-scrim);
+  --color-chart-anomaly: var(--chart-anomaly);
+  --color-bg-anomaly-muted: var(--bg-anomaly-muted);
+}
+
+/* The radii are Tailwind theme values, so rounded-sm, rounded-md, rounded-lg and rounded-xl use the Figma radii */
+@theme {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+}
