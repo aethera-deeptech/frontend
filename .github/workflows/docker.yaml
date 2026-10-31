@@ -272,9 +272,20 @@ jobs:
         run: |
           args=()
           while IFS= read -r tag; do
-            if [ -n "$tag" ]; then
-              args+=(--tag "$tag")
+            if [ -z "$tag" ]; then
+              continue
             fi
+            version="${tag##*:}"
+            # A floating tag such as 1 or 1.2 only moves when this release is the newest one of its line, so a run for an older
+            # release that finishes last cannot move it back. The tag of the full version always moves.
+            if [ "$GITHUB_REF_TYPE" = tag ] && [[ "$version" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+              newest="$(git tag -l "v${version}.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+              if [ "$newest" != "$GITHUB_REF_NAME" ]; then
+                echo "skip $tag, the newest release of that line is $newest"
+                continue
+              fi
+            fi
+            args+=(--tag "$tag")
           done <<< "$TAGS"
           test "${#args[@]}" -gt 0
           docker buildx imagetools create "${args[@]}" "${GHCR_IMAGE}@${DIGEST}"
