@@ -86,8 +86,9 @@ jobs:
             tags="$source"
             # A run of an older release that is started again must not move 1.2 or 1 back, so a floating tag is only a
             # candidate when no higher version exists in its line
-            versions="$(gh api "repos/${REPOSITORY}/git/matching-refs/tags/v${major}." --paginate --jq '.[].ref' \
-              | sed -n 's|^refs/tags/v||p' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)"
+            # The call is outside the pipeline, so a failed call stops the step and does not leave the list empty
+            refs="$(gh api "repos/${REPOSITORY}/git/matching-refs/tags/v${major}." --paginate --jq '.[].ref')"
+            versions="$(sed -n 's|^refs/tags/v||p' <<< "$refs" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)"
             highest_minor="$(grep -E "^${major}\.${minor}\." <<< "$versions" | sort -V | tail -n 1 || true)"
             highest_major="$(sort -V <<< "$versions" | tail -n 1)"
             [ "$highest_minor" = "$source" ] && candidates="${major}.${minor}"
