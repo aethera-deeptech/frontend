@@ -59,6 +59,99 @@ jobs:
           docker run --rm -e GH_TOKEN -v "$PWD:/repo" -w /repo "$(bash ./.github/tools/image.sh zizmor)" \
             --no-progress --format github .
 
+  hadolint:
+    name: Hadolint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Pull images through the Google mirror
+        uses: ./.github/actions/pull-images
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_PULL_TOKEN }}
+
+      - name: Lint Dockerfile
+        run: |
+          image="$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh hadolint)")"
+          docker run --rm -i "$image" < Dockerfile
+
+  dotenv:
+    name: Dotenv lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Pull images through the Google mirror
+        uses: ./.github/actions/pull-images
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_PULL_TOKEN }}
+
+      # The example file lists the settings in the order of the code that reads them and not in alphabetical order, so the
+      # check for the order of the keys is off
+      - name: Lint the example env file
+        run: |
+          image="$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh dotenv-linter)")"
+          docker run --rm -v "$PWD:/app:ro" -w /app "$image" \
+            check --skip-updates --plain --ignore-checks UnorderedKey .env.example
+
+  compose:
+    name: Compose config
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # docker compose config reads the file and builds nothing and starts nothing. The copy of the example file only proves
+      # that it parses as an env file, because every variable of compose.yml has a default and none can be missing.
+      - name: Check the compose file
+        run: |
+          cp .env.example .env
+          docker compose -f compose.yml config --quiet
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Pull images through the Google mirror
+        uses: ./.github/actions/pull-images
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_PULL_TOKEN }}
+
+      # every file that git tracks with the .sh ending, the settings are in .shellcheckrc
+      - name: ShellCheck
+        run: |
+          image="$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh shellcheck)")"
+          mapfile -d '' files < <(git ls-files -z '*.sh')
+          docker run --rm -v "$PWD:/mnt:ro" -w /mnt "$image" "${files[@]}"
+
   names:
     name: File names
     runs-on: ubuntu-latest
