@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in the dashboard looks or behaves wrongly
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the wrong behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: What you did, step by step, with any personal data removed.
+      placeholder: |
+        1. Open the Saran screen
+        2. Choose a status in the Tampilkan filter
+        3. See the result
+    validations:
+      required: true
+  - type: input
+    id: screen
+    attributes:
+      label: Screen
+      description: The screen or the flow where it happens.
+      placeholder: Beranda, Saran, Alat, Laporan, Produksi or Pengaturan
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device or viewport
+      description: The device, the browser and the width of the window if you know it.
+      placeholder: Phone at 390 px wide with Chrome, or a desktop window at 1280 px wide with Firefox
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options:
+        - Light
+        - Dark
+        - Both
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: The language of the interface and of your browser or device.
+      placeholder: Indonesian
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release, the commit or the address of the deployment you used.
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility
+      description: Say whether this stops you from using the dashboard with a keyboard, a screen reader, zoom, a high contrast setting or by touch, and name the tool you use. Write "none" if it does not apply.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots and console output
+      description: Anything that helps. Remove tokens and personal data first.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: This is not a security problem. Those go through the private report in SECURITY.md.
+          required: true
+        - label: I removed secrets and personal data from everything above.
+          required: true
