@@ -7,6 +7,8 @@ dist/
 # Test and coverage output
 coverage/
 playwright-report/
+lighthouse-report/
+.lighthouseci/
 test-results/
 
 # Logs

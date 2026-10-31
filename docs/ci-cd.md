@@ -11,6 +11,7 @@
 | `docker.yaml` | push to main, pull requests, manual | Builds the image of the app for the platform of the runner, starts it, checks the behavior of its web server and scans it with Trivy. It publishes nothing yet. A run is cancelled when a newer one starts for the same ref |
 | `e2e-devices.yaml` | every Monday 03:00 UTC, manual | Runs the end to end tests on every device that Playwright knows, about 200 phones, tablets and desktop browsers. It is too slow for pull requests. A failure here is not a required check, read the report artifact and fix it in a normal pull request |
 | `security.yaml` | push to main, pull requests, every day at 20:00 UTC, manual | Scans the code, the dependencies, the history and the repository files with the five jobs below. The daily run catches problems that are disclosed later in code that did not change |
+| `performance.yaml` | push to main, pull requests, manual | Builds the app twice and checks it with the two jobs below, which run in parallel |
 
 ### Jobs
 
@@ -31,6 +32,8 @@
 | `ci.yaml` | Unit tests | The Vitest tests with coverage. The job fails when the total statement, branch, function or line coverage drops under the floor of `vite.config.ts`, and it uploads `coverage/lcov.info` to Codecov |
 | `ci.yaml` | Build | `npm run build`, which typechecks and builds the app with Vite |
 | `ci.yaml` | E2E | Builds the app, serves it with `vite preview` and runs the Playwright tests on 14 devices in Chromium, Firefox and WebKit. The tests check that the page loads, that an unknown path still loads the app, that the console has no errors, that the page does not scroll sideways and that axe finds no WCAG 2.2 AA or best practice violations. The HTML report is uploaded as an artifact |
+| `performance.yaml` | Bundle size | Builds the app and runs size-limit. The JavaScript files of `dist/assets` may add up to 120 kB compressed with Brotli and the CSS files to 10 kB, as set in `.size-limit.json`. Raise a limit in the pull request that needs it and say why |
+| `performance.yaml` | Lighthouse CI | Builds the app and runs Lighthouse three times on the built files in `dist`. It fails when the median score of performance is under 0.9, accessibility under 0.95 or best practices under 0.9, as set in `.lighthouserc.json`. The SEO category is not asserted because the page is `noindex` on purpose. The HTML and JSON reports are an artifact of the run that is kept for 7 days and are not uploaded anywhere else |
 | `docker.yaml` | Docker build | Builds the image with the public placeholder `VITE_API_BASE_URL=https://api.example.com`, runs it read only with no capabilities, and checks 200 on `/`, `/healthz` and an unknown path, 404 on a missing asset and on `/_headers`, the cache headers (a 404 is not immutable), the five security headers on six paths and that the process is not root. Then Trivy scans the image and fails on a fixed CRITICAL or HIGH vulnerability |
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
 | `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature of every installed package and the provenance attestations of the packages that provide them |
@@ -66,6 +69,8 @@ Every check below is required. All of them are reported by GitHub Actions except
 | Dotenv lint | GitHub Actions | yes |
 | Compose config | GitHub Actions | yes |
 | ShellCheck | GitHub Actions | yes |
+| Bundle size | GitHub Actions | yes |
+| Lighthouse CI | GitHub Actions | yes |
 | codecov/patch | Codecov | yes |
 
 Each check was added to the ruleset after it had reported once on a pull request, because GitHub only offers a check that it has seen. Every check is pinned to the app that reports it, so another app cannot post a check with the same name. Add a new check to the ruleset in the same change that introduces it, and update this page in that change too.
