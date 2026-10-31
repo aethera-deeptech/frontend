@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "ignorePaths": [
+    "package-lock.json",
+    ".git",
+    "public/_headers"
+  ],
+  "files": [
+    "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh}"
+  ],
+  "words": []
+}
