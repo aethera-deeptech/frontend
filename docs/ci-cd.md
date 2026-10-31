@@ -48,7 +48,12 @@ Each check was added to the ruleset after it had reported once on a pull request
 
 ## Coverage
 
-The `Unit tests` job uploads `coverage/lcov.info` to Codecov, which comments on pull requests that change the coverage. The thresholds are in `codecov.yml`. `codecov/patch` is required, so new code needs tests. Codecov does not report `codecov/project` here, so it cannot be required. The `Unit tests` job has a coverage floor of 70 percent in `vite.config.ts` instead. Raise the floor when the coverage has grown and never lower it to let a change in. A failed upload fails the job on `main` only, so a Codecov outage never blocks a pull request.
+The `Unit tests` job uploads `coverage/lcov.info` to Codecov, which comments on pull requests that change the coverage. The thresholds are in `codecov.yml`.
+
+- `codecov/patch` is required. It compares the coverage of the changed lines with the base and tolerates a drop of 5 percentage points, so it catches code that is added without tests, but it does not demand that every changed line is covered.
+- `codecov/project` is set up in `codecov.yml` with a tolerance of 1 percentage point, but it is not required. It needs a base report from `main`, which does not exist before the first upload.
+- The `Unit tests` job has a coverage floor of 70 percent in `vite.config.ts`. Raise the floor when the coverage has grown and never lower it to let a change in.
+- A failed upload fails the job on `main` only. On a pull request it fails nothing in the job, but `codecov/patch` then never arrives and blocks the merge until the upload works again or the check is taken out of the ruleset.
 
 ## Dependency updates
 
