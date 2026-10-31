@@ -36,9 +36,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      # msedge is only needed for the Desktop Edge devices of the full list
       - name: Install the browsers
-        run: npx playwright install --with-deps chromium firefox webkit msedge
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Build
         run: npm run build
