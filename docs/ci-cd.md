@@ -31,7 +31,7 @@
 | `security.yaml` | CodeQL | Static analysis of the JavaScript and TypeScript source with CodeQL, reported to code scanning |
 | `security.yaml` | npm audit | `npm audit` fails on a high or critical advisory in any package, tools included. `npm audit signatures` checks the registry signature of every installed package and the provenance attestations of the packages that provide them |
 | `security.yaml` | Secret scan (gitleaks) | Runs the gitleaks CLI over the whole history and reports to code scanning. The CLI runs directly because the gitleaks action needs a license for some accounts |
-| `security.yaml` | Trivy filesystem scan | Trivy over the lockfile, the workflows and the repository files for vulnerabilities, secrets and misconfiguration. It fails on a fixed critical or high finding and reports to code scanning |
+| `security.yaml` | Trivy filesystem scan | Trivy over the lockfile, the Dockerfile and the repository files for vulnerabilities, secrets and misconfiguration. It fails on a fixed critical or high finding and reports to code scanning |
 | `security.yaml` | OSSF Scorecard | Runs on `main` and on the schedule only, because Scorecard rejects pull requests. It reports to code scanning and is never required |
 
 ## Required checks
@@ -100,7 +100,7 @@ To set up the login, create a read-only access token in the Docker Hub account s
 
 ## Security
 
-`security.yaml` has the jobs of the table above. The results of CodeQL, gitleaks and Trivy are uploaded to code scanning, so they show up in the security tab of the repository. A pull request from a fork cannot upload, so its jobs skip that step and still fail on a finding. The jobs that read a secret, `DOCKERHUB_PULL_TOKEN`, only use it for the image pulls.
+`security.yaml` has the jobs of the table above. The results of CodeQL, gitleaks and Trivy are uploaded to code scanning, so they show up in the security tab of the repository. A pull request from a fork cannot upload, so its jobs skip that step. The gitleaks and Trivy steps still fail on a finding. The CodeQL job passes whatever it finds, because the code scanning rule of the ruleset is what gates it, and a fork cannot upload results for that rule to read. The jobs that read a secret, `DOCKERHUB_PULL_TOKEN`, only use it for the image pulls.
 
 ## Ignore lists
 
