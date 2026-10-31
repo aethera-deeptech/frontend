@@ -13,6 +13,7 @@ What exists now:
 - React 19 and TypeScript, built with Vite
 - Tailwind CSS 4
 - Vitest and Testing Library for unit tests
+- Playwright with axe for end to end and accessibility tests on 14 devices
 - ESLint and Prettier
 - npm, with exact versions in `package-lock.json`
 
@@ -20,7 +21,7 @@ What is planned and not built yet:
 
 - shadcn/ui components and Tailwind driven by the Figma tokens
 - React Router, TanStack Query and Recharts
-- Playwright with axe, Lighthouse CI and Storybook
+- Lighthouse CI and Storybook
 - A Docker image, built in CI
 
 ## Run it
