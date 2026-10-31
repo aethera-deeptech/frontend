@@ -4,17 +4,38 @@ Frontend of an energy audit dashboard for small businesses (UMKM) in Indonesia, 
 
 ## Status
 
-This repository has no application code yet. It holds the repository setup and the documentation of the checks. The sections below describe what is planned and not what exists.
+The app is a bare scaffold. It builds and has tests, but it shows only the product name. The screens come from the Figma design in later pull requests, and the backend does not exist yet, so nothing in the app uses sample data.
 
-## Planned stack
+## Stack
 
-- React and TypeScript, built with Vite
-- Tailwind CSS driven by CSS variables, with shadcn/ui components
-- TanStack Query for data fetching
-- Recharts for charts
-- Vitest for unit tests and Playwright for end to end tests
+What exists now:
 
-The package manager is not chosen yet.
+- React 19 and TypeScript, built with Vite
+- Tailwind CSS 4
+- Vitest and Testing Library for unit tests
+- ESLint and Prettier
+- npm, with exact versions in `package-lock.json`
+
+What is planned and not built yet:
+
+- shadcn/ui components and Tailwind driven by the Figma tokens
+- React Router, TanStack Query and Recharts
+- Playwright with axe, Lighthouse CI and Storybook
+- A Docker image, built in CI
+
+## Run it
+
+```sh
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+The app needs Node.js 24. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
+
+## Hosting
+
+The site is static files. Cloudflare Pages builds `main` with `npm run build` and serves `dist`. `public/_redirects` sends every path to the single page app, and `public/_headers` sets the security headers and the content security policy. The API address is a build setting (`VITE_API_BASE_URL`), so a change needs a new build.
 
 ## Design
 
