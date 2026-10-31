@@ -4,7 +4,8 @@
   "language": "en",
   "useGitignore": true,
   "ignorePaths": [
-    "package-lock.json"
+    "package-lock.json",
+    ".git/**"
   ],
   "files": [
     "**/*.{md,ts,tsx,js,mjs,json,yaml,yml,html,css,sh,conf}",
@@ -14,11 +15,13 @@
     "aethera",
     "deeptech",
     "energi",
+    "geolocation",
     "hackathon",
     "hadyan",
     "halaman",
     "healthz",
     "lighthouserc",
+    "nosniff",
     "ossf",
     "perkiraan",
     "prformat",
@@ -33,5 +36,6 @@
     "vite",
     "wcag",
     "zizmor"
-  ]
+  ],
+  "enableGlobDot": true
 }
