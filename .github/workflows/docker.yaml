@@ -92,8 +92,8 @@ jobs:
           expect "an unknown path serves the app" "$(curl -s -o /dev/null -w '%{http_code}' "$base/halaman-yang-tidak-ada")" 200
           expect "a missing asset is a 404" "$(curl -s -o /dev/null -w '%{http_code}' "$base/assets/does-not-exist.js")" 404
           expect "the health check answers 200" "$(curl -s -o /dev/null -w '%{http_code}' "$base/healthz")" 200
-          expect "an asset is cached as immutable" "$(curl -sI "$base$asset" | tr -d '\r' | grep -i '^cache-control:' | tr 'A-Z' 'a-z')" "cache-control: public, max-age=31536000, immutable"
-          expect "the home page is revalidated" "$(curl -sI "$base/" | tr -d '\r' | grep -i '^cache-control:' | tr 'A-Z' 'a-z')" "cache-control: public, max-age=0, must-revalidate"
+          expect "an asset is cached as immutable" "$(curl -sI "$base$asset" | tr -d '\r' | grep -i '^cache-control:' | tr '[:upper:]' '[:lower:]')" "cache-control: public, max-age=31536000, immutable"
+          expect "the home page is revalidated" "$(curl -sI "$base/" | tr -d '\r' | grep -i '^cache-control:' | tr '[:upper:]' '[:lower:]')" "cache-control: public, max-age=0, must-revalidate"
 
           for path in / "$asset" /healthz /halaman-yang-tidak-ada; do
             expect "the security headers are on $path" "$(curl -sI "$base$path" | tr -d '\r' | grep -c -i -E '^(content-security-policy|x-content-type-options|referrer-policy|permissions-policy|strict-transport-security):')" 5
