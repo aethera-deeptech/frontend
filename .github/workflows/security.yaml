@@ -96,11 +96,12 @@ jobs:
 
       - name: Gitleaks
         run: |
-          docker run --rm -v "$PWD:/repo" "$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh gitleaks)")" \
-            detect --source /repo --no-banner --report-format sarif --report-path /repo/gitleaks-results.sarif -v
+          image="$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh gitleaks)")"
+          docker run --rm -v "$PWD:/repo" "$image" \
+            detect --source /repo --no-banner --redact --report-format sarif --report-path /repo/gitleaks-results.sarif -v
 
       - name: Upload gitleaks results to code scanning
-        if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ !cancelled() && hashFiles('gitleaks-results.sarif') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: gitleaks-results.sarif
@@ -119,7 +120,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # Looks at the lockfile, the workflows and the repository files, the built image is scanned in the Docker workflow
+      # Looks at the lockfile, the Dockerfile and the repository files, the built image is scanned in the Docker workflow
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:

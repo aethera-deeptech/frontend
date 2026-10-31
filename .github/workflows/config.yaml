@@ -35,7 +35,8 @@ jobs:
       # The image is the actionlint stage of .github/tools/Dockerfile, which the update bot keeps current
       - name: Lint workflows
         run: |
-          docker run --rm -v "$PWD:/repo" -w /repo "$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh actionlint)")" -color
+          image="$(bash ./.github/actions/pull-images/pull.sh "$(bash ./.github/tools/image.sh actionlint)")"
+          docker run --rm -v "$PWD:/repo" -w /repo "$image" -color
 
   zizmor:
     name: Zizmor
