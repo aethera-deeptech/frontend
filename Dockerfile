@@ -20,6 +20,11 @@ RUN npx vite build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine3.24@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
 
+# The base image is rebuilt every few weeks, so a package can have a fix that the image does not have yet. Trivy fails the
+# build on a fixed CRITICAL or HIGH vulnerability, and the upgrade below takes the fixes from the Alpine repository.
+USER root
+RUN apk upgrade --no-cache
+
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /src/dist /usr/share/nginx/html
