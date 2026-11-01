@@ -7,6 +7,7 @@ import { AlatRenamePage } from '@/pages/alat/alat-rename-page';
 import { BerandaPage } from '@/pages/beranda/beranda-page';
 import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { NotFoundPage } from '@/pages/not-found-page';
+import { ProduksiPage } from '@/pages/produksi/produksi-page';
 import { SaranCancelPage } from '@/pages/saran/saran-cancel-page';
 import { SaranDetailPage } from '@/pages/saran/saran-detail-page';
 import { SaranLayout } from '@/pages/saran/saran-layout';
@@ -33,6 +34,7 @@ export const routes: RouteObject[] = [
         ],
       },
       { path: 'laporan', element: <LaporanPage /> },
+      { path: 'lainnya/produksi', element: <ProduksiPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
