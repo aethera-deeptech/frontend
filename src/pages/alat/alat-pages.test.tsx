@@ -45,7 +45,8 @@ describe('the list of devices', () => {
     stubApi({ 'GET /v1/devices': { body: { items: [] } } });
     renderAt('/alat');
 
-    await screen.findAllByRole('link', { name: 'Tambah alat' });
+    // The header does not repeat the button that the empty state holds
+    expect(await screen.findAllByRole('link', { name: 'Tambah alat' })).toHaveLength(1);
 
     expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
   });
