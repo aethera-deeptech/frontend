@@ -64,7 +64,7 @@ export function AppShell() {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
-            className="text-label-strong flex min-h-[46px] flex-1 flex-col items-center gap-0.5 rounded-lg py-0.5"
+            className="text-label-strong flex min-h-[46px] flex-1 flex-col items-center gap-0.5 rounded-md py-0.5"
           >
             {({ isActive }) => (
               <>

@@ -169,8 +169,8 @@ jobs:
         with:
           node-version-file: .node-version
 
-      # English only. The files and the extra words are in cspell.json. The Indonesian text of the screens is not spell checked, so
-      # the few Indonesian words that sit in the code and the tests are listed there as words
+      # English only. The files, the extra words and the skipped text are in cspell.json. The Indonesian text of the screens sits in
+      # strings and JSX text, which cspell.json skips for the code and the tests
       - name: Check the spelling
         env:
           # renovate: datasource=npm depName=cspell

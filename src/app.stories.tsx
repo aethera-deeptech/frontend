@@ -17,6 +17,6 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Beranda: Story = { args: { path: '/' } };
+export const Home: Story = { args: { path: '/' } };
 
-export const HalamanTidakDitemukan: Story = { args: { path: '/halaman-yang-tidak-ada' } };
+export const NotFound: Story = { args: { path: '/halaman-yang-tidak-ada' } };
