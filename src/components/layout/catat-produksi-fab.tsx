@@ -2,8 +2,8 @@ import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 
-// A button that floats at the bottom right, over the content and above the bottom bar of a phone. The screens that
-// show it keep 6rem free at the end (see scroll-padding in index.css), so it does not hide the last row.
+// A button that floats at the bottom right, over the content and above the bottom bar of a phone. The main area of the
+// shell ends with enough padding (see app-shell.tsx) so that the button does not hide the last row.
 export function CatatProduksiFab() {
   return (
     <Button

@@ -91,7 +91,6 @@ export function BerandaView({
           action={<AddDeviceButton />}
         />
       ) : null}
-      {data.phase !== 'no-devices' ? <CatatProduksiFab /> : null}
       {data.phase === 'collecting' ? <Collecting data={data} /> : null}
       {data.phase === 'ready' ? (
         <Ready
@@ -103,6 +102,8 @@ export function BerandaView({
           now={now}
         />
       ) : null}
+      {/* After the content, so the tab order follows what the eye sees */}
+      {data.phase !== 'no-devices' ? <CatatProduksiFab /> : null}
     </div>
   );
 }

@@ -40,10 +40,14 @@ export function AlatLayout() {
         <PageHeader
           title="Alat"
           subtitle="Alat yang terpasang di usaha Anda"
-          actions={<AddDeviceButton className={id ? 'hidden lg:inline-flex' : undefined} />}
+          // With no device the empty state below already holds the same button
+          actions={
+            data?.items.length === 0 ? undefined : (
+              <AddDeviceButton className={id ? 'hidden lg:inline-flex' : undefined} />
+            )
+          }
         />
       </div>
-      {!id && data && data.items.length > 0 ? <CatatProduksiFab /> : null}
       <div className="mt-3 lg:mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
         <div className={id ? 'hidden lg:block' : undefined}>
           {data ? (
@@ -79,6 +83,8 @@ export function AlatLayout() {
           <Outlet />
         </div>
       </div>
+      {/* After the content, so the tab order follows what the eye sees */}
+      {!id && data && data.items.length > 0 ? <CatatProduksiFab /> : null}
     </>
   );
 }
