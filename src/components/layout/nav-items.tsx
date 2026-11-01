@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from 'react';
 
 import { BulbIcon } from '@/components/icons/bulb-icon';
 import { HomeIcon } from '@/components/icons/home-icon';
+import { MoreIcon } from '@/components/icons/more-icon';
 import { PlugIcon } from '@/components/icons/plug-icon';
 import { ReportIcon } from '@/components/icons/report-icon';
 
@@ -17,4 +18,5 @@ export const navItems: NavItem[] = [
   { to: '/saran', label: 'Saran', icon: BulbIcon },
   { to: '/alat', label: 'Alat', icon: PlugIcon },
   { to: '/laporan', label: 'Laporan', icon: ReportIcon },
+  { to: '/lainnya', label: 'Lainnya', icon: MoreIcon },
 ];
