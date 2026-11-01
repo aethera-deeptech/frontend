@@ -140,7 +140,7 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
         xLabels={['00:00', '12:00', '24:00']}
         yLabels={['0 W', formatWatts(pattern.yMaxW / 2), formatWatts(pattern.yMaxW)]}
         legend={
-          hasAnomaly
+          shownAnomaly
             ? 'Abu-abu berarti kisaran biasa. Merah berarti anomali.'
             : 'Abu-abu berarti kisaran biasa.'
         }
