@@ -58,6 +58,8 @@
   summary,
   select:not(:disabled),
   label[for],
+  label:has(> [role='checkbox']),
+  [role='option'],
   [role='button'],
   [role='tab'],
   [role='switch'] {
