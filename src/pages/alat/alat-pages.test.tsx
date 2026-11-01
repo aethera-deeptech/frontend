@@ -39,6 +39,25 @@ describe('the list of devices', () => {
     expect(router.state.location.search).toBe('?status=mati');
   });
 
+  it('keeps the chosen status in the address when a device opens', async () => {
+    stubApi({
+      'GET /v1/devices': { body: sampleDevices() },
+      'GET /v1/devices/d6': {
+        body: sampleNormal({ id: 'd6', name: 'Mesin obras', status: 'mati' }),
+      },
+    });
+    const router = renderAt('/alat?status=mati');
+
+    await userEvent.click(await screen.findByRole('link', { name: /Mesin obras/ }));
+
+    expect(router.state.location.pathname).toBe('/alat/d6');
+    expect(router.state.location.search).toBe('?status=mati');
+    expect(await screen.findByRole('link', { name: 'Kembali' })).toHaveAttribute(
+      'href',
+      '/alat?status=mati',
+    );
+  });
+
   it('says that the list could not be loaded and tries again on request', async () => {
     let calls = 0;
     stubApi({
@@ -87,6 +106,10 @@ describe('the detail of a device', () => {
     renderAt('/alat/zzz');
 
     expect(await screen.findByRole('status')).toHaveTextContent('Alat tidak ditemukan');
+    expect(screen.getByRole('link', { name: 'Kembali ke daftar' })).toHaveAttribute(
+      'href',
+      '/alat',
+    );
   });
 
   it('says that the device could not be loaded for any other failure', async () => {
@@ -141,11 +164,26 @@ describe('the form to rename a device', () => {
     expect(await screen.findByText('Nama alat paling panjang 40 huruf.')).toBeInTheDocument();
   });
 
-  it('saves the new name and goes back to the device', async () => {
+  it('saves the new name, goes back to the device and shows the new name in the detail and the list', async () => {
+    let saved = false;
     const fetchMock = stubApi({
-      ...answers(),
-      'PATCH /v1/devices/d4': { status: 204 },
-      'GET /v1/beranda': { status: 503 },
+      'GET /v1/devices': () => ({
+        body: saved
+          ? {
+              ...sampleDevices(),
+              items: sampleDevices().items.map((item) =>
+                item.id === 'd4' ? { ...item, name: 'Mesin jahit utama' } : item,
+              ),
+            }
+          : sampleDevices(),
+      }),
+      'GET /v1/devices/d4': () => ({
+        body: sampleNormal(saved ? { name: 'Mesin jahit utama' } : {}),
+      }),
+      'PATCH /v1/devices/d4': () => {
+        saved = true;
+        return { status: 204 };
+      },
     });
     const router = renderAt('/alat/d4/ganti-nama');
 
@@ -161,6 +199,27 @@ describe('the form to rename a device', () => {
       'https://api.example.com/v1/devices/d4',
       expect.objectContaining({ method: 'PATCH', body: '{"name":"Mesin jahit utama"}' }),
     );
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Mesin jahit utama' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /Mesin jahit utama/ })).toBeInTheDocument();
+    expect(screen.queryByText('Mesin jahit 1')).not.toBeInTheDocument();
+  });
+
+  it('refuses a name of only spaces', async () => {
+    const fetchMock = stubApi(answers());
+    renderAt('/alat/d4/ganti-nama');
+
+    const field = await screen.findByLabelText('Nama alat');
+    await userEvent.clear(field);
+    await userEvent.type(field, '   ');
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Isi nama alat.')).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.stringContaining('/v1/devices/d4'),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
   });
 
   it('stays on the form when the name could not be saved', async () => {
@@ -170,6 +229,12 @@ describe('the form to rename a device', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Simpan' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Nama belum tersimpan');
+    expect(screen.getByLabelText('Nama alat')).toHaveFocus();
+
+    await userEvent.type(screen.getByLabelText('Nama alat'), 'x');
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Simpan' })).toBeEnabled();
   });
 
   it('goes back without saving when the user cancels', async () => {
