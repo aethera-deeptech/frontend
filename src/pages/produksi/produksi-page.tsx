@@ -46,11 +46,16 @@ function ProduksiForm({ data }: { data: Production }) {
   const entry = data.recent.find((item) => item.date === date);
   const quantity = typedQuantity ?? entry?.quantity ?? data.recent[0]?.quantity ?? 0;
   const unit = chosenUnit ?? data.unit;
+  // The result belongs to what was sent. If the user changed a value while the save was on its way, the screen does not
+  // confirm the new values as saved.
+  const sent = save.variables;
+  const sameAsSent =
+    sent !== undefined && sent.date === date && sent.quantity === quantity && sent.unit === unit;
   const saveState: SaveState = save.isPending
     ? 'saving'
     : save.isError
       ? 'failed'
-      : save.isSuccess
+      : save.isSuccess && sameAsSent
         ? 'saved'
         : 'idle';
 

@@ -87,7 +87,11 @@ export function NumberStepper({
             setDraft(typed);
             const number = Number(typed);
             if (typed !== '' && typed !== '.' && Number.isFinite(number)) {
-              const clamped = Math.min(max, Math.max(min, number));
+              // A number below the minimum waits for the next digit (50 starts with 5) and is lifted when the field is left
+              if (number < min) {
+                return;
+              }
+              const clamped = Math.min(max, number);
               // A number above the limit shows the limit at once, so the field never shows what is not saved
               if (clamped !== number) {
                 setDraft(clamped.toString());
@@ -100,6 +104,9 @@ export function NumberStepper({
             event.currentTarget.select();
           }}
           onBlur={() => {
+            if (draft !== null && draft !== '' && Number(draft) < min) {
+              onValueChange(min);
+            }
             setDraft(null);
           }}
         />
