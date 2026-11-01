@@ -1,5 +1,6 @@
 import { cva } from 'class-variance-authority';
 
+import { scale } from '@/components/charts/chart-math';
 import { cn } from '@/lib/cn';
 
 export type BarSeries = 'blurple' | 'indigo' | 'pink' | 'orange';
@@ -34,17 +35,19 @@ export function BarChart({
   className?: string;
   'aria-label'?: string;
 }) {
-  const max = Math.max(0, ...items.map((item) => item.value));
+  const max = Math.max(0, ...items.map((item) => (Number.isFinite(item.value) ? item.value : 0)));
 
   return (
-    <ul className={cn('flex flex-col gap-2', className)} {...props}>
-      {items.map((item) => (
-        <li key={item.label} className="flex items-center gap-2">
+    // The list style is reset by the base styles, and Safari then drops the list role, so the role is set again
+    // eslint-disable-next-line jsx-a11y/no-redundant-roles
+    <ul role="list" className={cn('flex flex-col gap-2', className)} {...props}>
+      {items.map((item, index) => (
+        <li key={`${item.label}-${index.toString()}`} className="flex items-center gap-2">
           <span className="text-body text-text-2 w-24 shrink-0">{item.label}</span>
           <span aria-hidden="true" className="bg-bg-3 h-2.5 flex-1 rounded-[5px]">
             <span
               className={barVariants({ series: item.series })}
-              style={{ width: max > 0 ? `${((item.value / max) * 100).toString()}%` : '0%' }}
+              style={{ width: `${scale(item.value, max, 100).toString()}%` }}
             />
           </span>
           <span className="text-body text-text-1 w-14 shrink-0 text-right">
