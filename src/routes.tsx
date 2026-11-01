@@ -12,7 +12,13 @@ import { EditTariffPage } from '@/pages/pengaturan/edit-tariff-page';
 import { LainnyaPage } from '@/pages/lainnya/lainnya-page';
 import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { NotFoundPage } from '@/pages/not-found-page';
+import { BeriNamaPage } from '@/pages/pasang-alat/beri-nama-page';
+import { MencariPage } from '@/pages/pasang-alat/mencari-page';
 import { PengaturanPage } from '@/pages/pengaturan/pengaturan-page';
+import { PersetujuanPage } from '@/pages/pasang-alat/persetujuan-page';
+import { PeringatanPage } from '@/pages/pasang-alat/peringatan-page';
+import { PilihJenisPage } from '@/pages/pasang-alat/pilih-jenis-page';
+import { TambahAlatLayout } from '@/pages/pasang-alat/wizard';
 import { ProduksiPage } from '@/pages/produksi/produksi-page';
 import { SaranCancelPage } from '@/pages/saran/saran-cancel-page';
 import { SaranDetailPage } from '@/pages/saran/saran-detail-page';
@@ -29,6 +35,17 @@ export const routes: RouteObject[] = [
         children: [
           { path: ':id', element: <SaranDetailPage /> },
           { path: ':id/batalkan', element: <SaranCancelPage /> },
+        ],
+      },
+      {
+        path: 'alat/tambah',
+        element: <TambahAlatLayout />,
+        children: [
+          { index: true, element: <PilihJenisPage /> },
+          { path: 'peringatan', element: <PeringatanPage /> },
+          { path: 'persetujuan', element: <PersetujuanPage /> },
+          { path: 'nama', element: <BeriNamaPage /> },
+          { path: 'mencari/:id', element: <MencariPage /> },
         ],
       },
       {
