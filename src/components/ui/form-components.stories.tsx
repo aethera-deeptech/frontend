@@ -34,7 +34,7 @@ export const TextInputs: Story = {
 };
 
 function SelectDemo() {
-  const [value, setValue] = useState<string>();
+  const [value, setValue] = useState('');
 
   return (
     <Select

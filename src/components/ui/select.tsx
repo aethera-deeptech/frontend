@@ -15,6 +15,7 @@ interface SelectProps {
   label: string;
   options: SelectOption[];
   value?: string;
+  defaultValue?: string;
   onValueChange?: (value: string) => void;
   placeholder?: string;
   helper?: string;
@@ -28,6 +29,7 @@ export function Select({
   label,
   options,
   value,
+  defaultValue,
   onValueChange,
   placeholder = 'Pilih satu',
   helper,
@@ -48,6 +50,7 @@ export function Select({
       </label>
       <SelectPrimitive.Root
         value={value}
+        defaultValue={defaultValue}
         onValueChange={onValueChange}
         disabled={disabled}
         name={name}
@@ -71,14 +74,14 @@ export function Select({
           <SelectPrimitive.Content
             position="popper"
             sideOffset={4}
-            className="bg-bg-overlay border-border-1 z-50 w-(--radix-select-trigger-width) rounded-md border p-1"
+            className="bg-bg-overlay border-border-1 z-50 max-h-(--radix-select-content-available-height) w-(--radix-select-trigger-width) overflow-y-auto rounded-md border p-1"
           >
             <SelectPrimitive.Viewport>
               {options.map((option) => (
                 <SelectPrimitive.Item
                   key={option.value}
                   value={option.value}
-                  className="text-body text-text-1 data-[highlighted]:bg-bg-3 data-[state=checked]:bg-bg-accent-muted data-[state=checked]:text-text-accent flex h-11 items-center justify-between gap-2 rounded-md px-3 outline-none"
+                  className="text-body text-text-1 data-[highlighted]:bg-bg-3 data-[state=checked]:bg-bg-accent-muted data-[state=checked]:text-text-accent flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 outline-none"
                 >
                   <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
                   <SelectPrimitive.ItemIndicator>
@@ -91,7 +94,11 @@ export function Select({
         </SelectPrimitive.Portal>
       </SelectPrimitive.Root>
       {message ? (
-        <p id={messageId} className={cn('text-label', error ? 'text-text-danger' : 'text-text-2')}>
+        <p
+          id={messageId}
+          role={error ? 'alert' : undefined}
+          className={cn('text-label', error ? 'text-text-danger' : 'text-text-2')}
+        >
           {message}
         </p>
       ) : null}

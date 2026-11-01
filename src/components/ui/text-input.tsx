@@ -10,7 +10,15 @@ type TextInputProps = ComponentProps<'input'> & {
   error?: string;
 };
 
-export function TextInput({ label, helper, error, id, className, ...props }: TextInputProps) {
+export function TextInput({
+  label,
+  helper,
+  error,
+  id,
+  className,
+  'aria-describedby': describedBy,
+  ...props
+}: TextInputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const messageId = `${inputId}-message`;
@@ -24,12 +32,18 @@ export function TextInput({ label, helper, error, id, className, ...props }: Tex
       <input
         id={inputId}
         aria-invalid={error ? true : undefined}
-        aria-describedby={message ? messageId : undefined}
+        aria-describedby={
+          [describedBy, message ? messageId : undefined].filter(Boolean).join(' ') || undefined
+        }
         className={cn(fieldStyles(Boolean(error)), className)}
         {...props}
       />
       {message ? (
-        <p id={messageId} className={cn('text-label', error ? 'text-text-danger' : 'text-text-2')}>
+        <p
+          id={messageId}
+          role={error ? 'alert' : undefined}
+          className={cn('text-label', error ? 'text-text-danger' : 'text-text-2')}
+        >
           {message}
         </p>
       ) : null}

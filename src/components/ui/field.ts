@@ -7,7 +7,8 @@ export function fieldStyles(invalid: boolean): string {
     'text-body text-text-1 h-11 w-full rounded-md border bg-bg-3 px-3 outline-none',
     'placeholder:text-text-2',
     invalid
-      ? 'border-focus-invalid shadow-[inset_0_0_0_1px_var(--focus-invalid)]'
+      ? // The stroke is the same with or without focus, so focus adds an outline that keeps the field findable by keyboard
+        'border-focus-invalid shadow-[inset_0_0_0_1px_var(--focus-invalid)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-invalid'
       : 'border-border-field focus:border-focus focus:shadow-[inset_0_0_0_1px_var(--focus)]',
     'disabled:border-border-1 disabled:opacity-(--disabled-opacity)',
   );

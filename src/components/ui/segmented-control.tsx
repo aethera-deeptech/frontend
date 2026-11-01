@@ -26,7 +26,7 @@ export function SegmentedControl({ label, segments, value, onValueChange }: Segm
         <RadioGroup.Item
           key={segment.value}
           value={segment.value}
-          className="text-button text-text-2 data-[state=checked]:bg-bg-1 data-[state=checked]:border-border-1 data-[state=checked]:text-text-heading h-11 flex-1 rounded-md border border-transparent px-3"
+          className="text-button text-text-2 data-[state=checked]:bg-bg-1 data-[state=checked]:border-border-1 data-[state=checked]:text-text-heading min-h-11 flex-1 py-2 rounded-md border border-transparent px-3"
         >
           {segment.label}
         </RadioGroup.Item>
