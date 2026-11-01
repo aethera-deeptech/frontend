@@ -35,6 +35,14 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+// An abort is known by its name. An instanceof check fails for an error from another realm, for example in a test
+// environment or from an iframe.
+function isAbort(error: unknown): boolean {
+  return (
+    typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError'
+  );
+}
+
 // Every call to the API goes through here. The session is a cookie that the API sets, so the cookie is always sent.
 export async function apiRequest<T>(
   path: string,
@@ -71,7 +79,7 @@ export async function apiRequest<T>(
     // An answer without a body, for example 204, is read as null
     text = await response.text();
   } catch (error) {
-    if (error instanceof ApiError || (error instanceof Error && error.name === 'AbortError')) {
+    if (error instanceof ApiError || isAbort(error)) {
       throw error;
     }
     throw new NetworkError();
