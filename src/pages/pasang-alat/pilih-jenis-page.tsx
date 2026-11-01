@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import type { DeviceKind } from '@/api/pairing';
 import { ChevronRightIcon } from '@/components/icons/chevron-right-icon';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
-import { useWizard } from '@/pages/pasang-alat/wizard';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
 const choices: { kind: DeviceKind; title: string; hint: string; next: string }[] = [
   {

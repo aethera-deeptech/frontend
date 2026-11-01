@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
-import { useWizard } from '@/pages/pasang-alat/wizard';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
 // The warning that only the clamp has, because it is fitted inside the electrical panel.
 export function PeringatanPage() {
