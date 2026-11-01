@@ -10,6 +10,7 @@ import { SectionCard } from '@/components/ui/section-card';
 import { StatTile } from '@/components/ui/stat-tile';
 import { StatusDot } from '@/components/ui/status-dot';
 import {
+  businessNow,
   formatDate,
   formatDateTime,
   formatFixed,
@@ -23,13 +24,13 @@ import { signalLabels } from '@/pages/alat/device-status';
 
 interface AlatDetailViewProps {
   detail: DeviceDetail;
-  // The moment on which the screen is read, to tell whether an anomaly is from today. Tests set it.
+  // The moment on which the screen is read, by the clock of the business, to tell whether an anomaly is from today. Tests set it.
   now?: Date;
 }
 
 const dash = '-';
 
-export function AlatDetailView({ detail, now = new Date() }: AlatDetailViewProps) {
+export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewProps) {
   const lastSeen = parseMoment(detail.lastSeenAt);
   const { search } = useLocation();
 

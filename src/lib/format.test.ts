@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  businessNow,
   daysInMonth,
   formatDate,
   formatDateTime,
@@ -128,5 +129,25 @@ describe('parseMoment', () => {
 
   it('falls back to the date parser for another format', () => {
     expect(parseMoment('2026-10-29').getFullYear()).toBe(2026);
+  });
+});
+
+describe('businessNow', () => {
+  it('shows the wall time of the business whatever the time zone of the device is', () => {
+    const now = businessNow(new Date('2026-10-28T19:30:00Z'));
+
+    expect([
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      now.getHours(),
+      now.getMinutes(),
+    ]).toEqual([2026, 9, 29, 2, 30]);
+  });
+
+  it('reads midnight of the business as hour 0 and not 24', () => {
+    const now = businessNow(new Date('2026-10-28T17:05:00Z'));
+
+    expect([now.getDate(), now.getHours(), now.getMinutes()]).toEqual([29, 0, 5]);
   });
 });
