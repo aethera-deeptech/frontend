@@ -92,6 +92,25 @@ describe('Tambah alat, the warning and the consent', () => {
     expect(screen.getByText('Yang tidak dilakukan sistem')).toBeInTheDocument();
   });
 
+  it('tells a plug user to keep the machine under the rating of the plug, and not a clamp user', async () => {
+    renderAt('/alat/tambah');
+    await userEvent.click(await screen.findByRole('button', { name: /Colokan pintar/ }));
+
+    expect(screen.getByRole('heading', { name: 'Yang perlu Anda cek' })).toBeInTheDocument();
+    expect(screen.getByText(/tidak boleh melebihi batas yang tertulis pada colokan/)).toBeVisible();
+  });
+
+  it('shows no rating check for a clamp, which has the warning before', async () => {
+    renderAt('/alat/tambah');
+    await userEvent.click(await screen.findByRole('button', { name: /Penjepit arus/ }));
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Lanjut' }));
+
+    expect(screen.queryByRole('heading', { name: 'Yang perlu Anda cek' })).not.toBeInTheDocument();
+  });
+
   it('sends a visit that skipped a step back to the first one', async () => {
     stubApi({});
     const router = renderAt('/alat/tambah/nama');
