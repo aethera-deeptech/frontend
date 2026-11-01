@@ -195,8 +195,8 @@ describe('SkeletonCard', () => {
   it('tells assistive technology that data is loading', () => {
     render(<SkeletonCard />);
 
-    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
-    expect(screen.getByText('Memuat data Anda')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Memuat data Anda');
+    expect(screen.getByRole('status')).not.toHaveAttribute('aria-busy');
   });
 
   it('can say what is loading', () => {

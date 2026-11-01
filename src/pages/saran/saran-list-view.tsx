@@ -9,18 +9,8 @@ import { DecisionButtons, RecommendationCard } from '@/components/ui/recommendat
 import { Select } from '@/components/ui/select';
 import { Tag } from '@/components/ui/tag';
 import { formatPercent, formatRupiah } from '@/lib/format';
-import { statusLabels, statusTones, waitsForDecision } from '@/pages/saran/recommendation-status';
-
-export type StatusFilter = 'all' | RecommendationStatus;
-
-export const filterOptions: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'Semua status' },
-  { value: 'pending', label: statusLabels.pending },
-  { value: 'deferred', label: statusLabels.deferred },
-  { value: 'applied', label: statusLabels.applied },
-  { value: 'verified', label: statusLabels.verified },
-  { value: 'rejected', label: statusLabels.rejected },
-];
+import { statusLabels, statusTones } from '@/pages/saran/recommendation-status';
+import { visibleItems, type StatusFilter } from '@/pages/saran/saran-filter';
 
 interface SaranListViewProps {
   data: RecommendationList;
@@ -34,23 +24,6 @@ interface SaranListViewProps {
 }
 
 const noTipsYet = 'Saran pertama muncul setelah alat terpasang dan 7 hari data terkumpul.';
-
-// The tips that wait for the user come first, and a deferred tip stays behind the new ones
-export function visibleItems(
-  items: RecommendationListItem[],
-  filter: StatusFilter,
-): { waiting: RecommendationListItem[]; handled: RecommendationListItem[] } {
-  const shown = filter === 'all' ? items : items.filter((item) => item.status === filter);
-  const waiting = shown.filter((item) => waitsForDecision(item.status));
-
-  return {
-    waiting: [
-      ...waiting.filter((item) => item.status === 'pending'),
-      ...waiting.filter((item) => item.status === 'deferred'),
-    ],
-    handled: shown.filter((item) => !waitsForDecision(item.status)),
-  };
-}
 
 export function SaranListView({
   data,
