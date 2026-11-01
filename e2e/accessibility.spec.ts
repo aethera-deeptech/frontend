@@ -46,14 +46,14 @@ async function expectLoaded(page: Page, link?: string) {
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   // The error page has a heading of its own, so a route that throws would be scanned in place of the screen
   await expect(page.getByRole('heading', { level: 1, name: 'Terjadi kesalahan' })).toHaveCount(0);
+  if (link) {
+    // The link comes first, because a wide screen opens a detail after it and that detail loads on its own
+    await expect(page.getByRole('link', { name: link }).first()).toBeVisible();
+  }
   await expect(page.getByRole('status').filter({ hasText: /^Memuat/ })).toHaveCount(0);
   await expect(
     page.getByRole('alert').filter({ hasText: /tidak bisa dimuat|belum bisa dimuat/ }),
   ).toHaveCount(0);
-
-  if (link) {
-    await expect(page.getByRole('link', { name: link }).first()).toBeVisible();
-  }
 }
 
 // The home screen runs on every device, as it did before. The other screens and the steps to add a device run on three, because the
