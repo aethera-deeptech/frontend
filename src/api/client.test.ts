@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
-import { ApiError, apiRequest, ContractError, NetworkError } from '@/api/client';
+import { ApiError, apiDownload, apiRequest, ContractError, NetworkError } from '@/api/client';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
@@ -139,5 +139,28 @@ describe('apiRequest', () => {
 
     expect(failure).toBeInstanceOf(TypeError);
     expect(failure).not.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe('apiDownload', () => {
+  it('asks for a PDF with the cookie and returns the file', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('%PDF-1.7'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const blob = await apiDownload('/v1/reports/2026-10/pdf');
+
+    expect(await blob.text()).toBe('%PDF-1.7');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/reports/2026-10/pdf',
+      expect.objectContaining({ credentials: 'include', headers: { Accept: 'application/pdf' } }),
+    );
+  });
+
+  it('fails like apiRequest does', async () => {
+    vi.stubGlobal('fetch', answer('', 404));
+    await expect(apiDownload('/v1/reports/2020-01/pdf')).rejects.toBeInstanceOf(ApiError);
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(NetworkError);
   });
 });
