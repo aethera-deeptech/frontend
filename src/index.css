@@ -40,9 +40,10 @@
 }
 
 @layer base {
-  /* The bottom bar is 63 px high and fixed, so a focused control must not stop under it */
+  /* The bottom bar is 63 px high and the floating button sits above it up to 123 px, so a focused control must not
+     stop under them */
   html {
-    scroll-padding-bottom: 6rem;
+    scroll-padding-bottom: 8rem;
   }
 
   body {

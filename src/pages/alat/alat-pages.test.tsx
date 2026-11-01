@@ -25,6 +25,49 @@ describe('the list of devices', () => {
     expect(document.title).toBe('Alat · Audit Energi UMKM');
   });
 
+  it('offers to add a device and to record the production', async () => {
+    stubApi({ 'GET /v1/devices': { body: sampleDevices() } });
+    renderAt('/alat');
+
+    await screen.findByText('6 alat terpasang, 1 anomali, 1 offline');
+
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
+    expect(screen.getByRole('link', { name: 'Catat produksi' })).toHaveAttribute(
+      'href',
+      '/lainnya/produksi',
+    );
+  });
+
+  it('hides the production button on a phone and keeps it on a wide screen when a device is open', async () => {
+    matchWideScreen();
+    stubApi({
+      'GET /v1/devices': { body: sampleDevices() },
+      'GET /v1/devices/d4': { body: sampleNormal() },
+    });
+    renderAt('/alat/d4');
+
+    await screen.findByRole('heading', { name: 'Info alat' });
+
+    // jsdom has no layout, so the class says what a phone hides and a wide screen shows
+    expect(screen.getByRole('link', { name: 'Catat produksi' })).toHaveClass(
+      'hidden',
+      'lg:inline-flex',
+    );
+  });
+
+  it('does not offer the production while no device is installed', async () => {
+    stubApi({ 'GET /v1/devices': { body: { items: [] } } });
+    renderAt('/alat');
+
+    // The header does not repeat the button that the empty state holds
+    expect(await screen.findAllByRole('link', { name: 'Tambah alat' })).toHaveLength(1);
+
+    expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
+  });
+
   it('shows only the chosen status and keeps it in the address', async () => {
     stubApi({ 'GET /v1/devices': { body: sampleDevices() } });
     const router = renderAt('/alat');

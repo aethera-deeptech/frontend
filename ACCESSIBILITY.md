@@ -1,6 +1,6 @@
 # Accessibility statement
 
-The app only has its shell (a menu, a skip link and a not found page) and no screens yet, so there is little interface to audit. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that are not built.
+The app has its screens, but the automated axe check in the end to end tests only covers the home screen. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that were not tested.
 
 ## What the design aims for
 
@@ -16,6 +16,7 @@ The app only has its shell (a menu, a skip link and a not found page) and no scr
 - A few color pairs are below the contrast target and are accepted for now. They are the disabled text in the Light theme, the focus ring and a few chart parts in the Dark theme, and one danger tag on the gray page. Disabled buttons and disabled calendar dates are exempt.
 - Some buttons and sidebar items on the Desktop screens are smaller than 44 px by design.
 - Hover states are designed for buttons, sidebar items and menu options only. The other controls have none yet.
+- The floating Catat produksi button stays over the lower right corner on Beranda and Alat. At 200 percent zoom or with a large system font it covers more of the screen, and this was not tested.
 - Nothing has been tested with assistive technology, and no conformance claim is made for any standard such as WCAG.
 - The wording of the safety warning for the clamp sensor is a draft that a licensed electrician must confirm.
 

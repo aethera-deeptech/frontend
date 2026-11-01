@@ -66,7 +66,12 @@ export function AppShell() {
         </nav>
       </div>
 
-      <main ref={mainRef} id="konten" tabIndex={-1} className="p-4 pb-20 outline-none lg:p-6">
+      <main
+        ref={mainRef}
+        id="konten"
+        tabIndex={-1}
+        className="p-4 pb-34 outline-none lg:p-6 lg:pb-24"
+      >
         <Outlet />
       </main>
 

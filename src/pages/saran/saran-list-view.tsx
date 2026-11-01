@@ -6,6 +6,7 @@ import type {
   RecommendationStatus,
 } from '@/api/recommendations';
 import { Button } from '@/components/ui/button';
+import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DecisionButtons, RecommendationCard } from '@/components/ui/recommendation-card';
 import { Select } from '@/components/ui/select';
@@ -44,7 +45,13 @@ export function SaranListView({
     );
   }
 
-  if (data.phase === 'no-devices' || data.items.length === 0) {
+  if (data.phase === 'no-devices') {
+    return (
+      <EmptyState headline="Belum ada saran" message={noTipsYet} action={<AddDeviceButton />} />
+    );
+  }
+
+  if (data.items.length === 0) {
     return <EmptyState headline="Belum ada saran" message={noTipsYet} />;
   }
 

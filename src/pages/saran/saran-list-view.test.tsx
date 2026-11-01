@@ -129,6 +129,17 @@ describe('SaranListView', () => {
     expect(
       screen.getByText('Saran pertama muncul setelah alat terpasang dan 7 hari data terkumpul.'),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
+  });
+
+  it('has no button to add a device when devices exist but no tip does', () => {
+    renderList({ data: { ...sampleList(), phase: 'ready', items: [] } });
+
+    expect(screen.getByRole('heading', { name: 'Belum ada saran' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tambah alat' })).not.toBeInTheDocument();
   });
 
   it('explains the empty list while the first days are collected', () => {
