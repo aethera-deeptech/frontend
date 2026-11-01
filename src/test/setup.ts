@@ -19,8 +19,6 @@ if (typeof window !== 'undefined') {
       onchange: null,
       addEventListener: () => undefined,
       removeEventListener: () => undefined,
-      addListener: () => undefined,
-      removeListener: () => undefined,
       dispatchEvent: () => false,
     }),
   });
