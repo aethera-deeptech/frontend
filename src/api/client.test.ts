@@ -47,6 +47,34 @@ describe('apiRequest', () => {
     );
   });
 
+  it('marks every request that changes data with the header that the API asks for', async () => {
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE'] as const) {
+      const fetchMock = answer('', 204);
+      vi.stubGlobal('fetch', fetchMock);
+
+      await apiRequest('/v1/usaha', z.null(), { method });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.example.com/v1/usaha',
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'X-Requested-With': 'aethera' }) as unknown,
+        }),
+      );
+    }
+  });
+
+  it('adds no header to a request that only reads, so it needs no preflight', async () => {
+    const fetchMock = answer('{"name":"Maju"}');
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiRequest('/v1/usaha', schema);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/usaha',
+      expect.objectContaining({ headers: { Accept: 'application/json' } }),
+    );
+  });
+
   it('reads an empty answer as null', async () => {
     vi.stubGlobal('fetch', answer('', 204));
 

@@ -51,6 +51,11 @@ function toNetworkError(error: unknown): Error {
   return new NetworkError();
 }
 
+// The API asks for this header with this value on a request that changes data. A page of another site cannot add the
+// header without a preflight, and the CORS rules of the API refuse that, which stops a forged request with the cookie.
+const requestedWith = 'aethera';
+const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
+
 async function send(path: string, accept: string, options: RequestOptions): Promise<Response> {
   const { method = 'GET', body, signal } = options;
 
@@ -61,6 +66,7 @@ async function send(path: string, accept: string, options: RequestOptions): Prom
   // These two can fail because of a wrong build setting or a body that cannot be written, which is a bug and not a lost
   // connection, so they stay outside the try below.
   const url = `${getEnv().apiBaseUrl}${path}`;
+  const changesData = !safeMethods.has(method.toUpperCase());
   const payloadText = body === undefined ? undefined : JSON.stringify(body);
   let response: Response;
 
@@ -71,6 +77,7 @@ async function send(path: string, accept: string, options: RequestOptions): Prom
       headers: {
         Accept: accept,
         ...(payloadText === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(changesData ? { 'X-Requested-With': requestedWith } : {}),
       },
       body: payloadText,
       signal,

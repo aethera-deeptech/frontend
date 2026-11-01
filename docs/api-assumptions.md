@@ -1,6 +1,6 @@
 # API contract that the frontend assumes
 
-The backend does not publish a contract yet. The frontend reads and writes the paths below, so the two sides can compare them. Every path sits under the API base URL that the build sets in `VITE_API_BASE_URL`. A request carries the session cookie, so the API must allow credentials for the exact origin of the app.
+The backend publishes its contract as `openapi.yaml` in the [backend repository](https://github.com/aethera-deeptech/backend), and that file wins when it differs from this page. This page lists what the frontend reads and writes, so the two sides can compare them. Every path sits under the API base URL that the build sets in `VITE_API_BASE_URL`. A request that changes data (any method except GET, HEAD and OPTIONS) also carries the header `X-Requested-With: aethera`, which the contract of the backend asks for. A request carries the session cookie, so the API must allow credentials for the exact origin of the app.
 
 Only the files in `src/api` know these paths and shapes. When the backend differs, change those files and this page. A response that does not match its schema is shown to the user like a failed request.
 
