@@ -195,6 +195,17 @@ describe('NumberStepper, limits and decimals', () => {
     expect(onValueChange).toHaveBeenCalledWith(2.25);
   });
 
+  it('keeps the digits of a step that is written with an exponent', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={0} step={1e-7} max={1} onValueChange={onValueChange} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tambah' }));
+
+    expect(onValueChange).toHaveBeenCalledWith(1e-7);
+  });
+
   it('keeps the digits of the step', async () => {
     const onValueChange = vi.fn();
     render(
