@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { act, render, screen, within } from '@testing-library/react';
+import { createMemoryRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
 import { App } from '@/app';
@@ -41,6 +42,17 @@ describe('the app shell', () => {
         'page',
       );
     }
+  });
+
+  it('moves the focus to the main content after a navigation and not on the first render', async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ['/'] });
+    render(<RouterProvider router={router} />);
+
+    expect(screen.getByRole('main')).not.toHaveFocus();
+
+    await act(() => router.navigate('/halaman-yang-tidak-ada'));
+
+    expect(screen.getByRole('main')).toHaveFocus();
   });
 
   it('sets the page title', () => {

@@ -36,6 +36,11 @@
 }
 
 @layer base {
+  /* The bottom bar is 63 px high and fixed, so a focused control must not stop under it */
+  html {
+    scroll-padding-bottom: 6rem;
+  }
+
   body {
     background-color: var(--bg-2);
     color: var(--text-1);

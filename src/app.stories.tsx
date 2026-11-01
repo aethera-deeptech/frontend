@@ -1,10 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { useState } from 'react';
+import { createMemoryRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 import { routes } from '@/routes';
 
 function AppAt({ path }: { path: string }) {
-  return <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />;
+  const [router] = useState(() => createMemoryRouter(routes, { initialEntries: [path] }));
+
+  return <RouterProvider router={router} />;
 }
 
 const meta = {
