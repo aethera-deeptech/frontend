@@ -43,12 +43,17 @@ function isAbort(error: unknown): boolean {
   );
 }
 
-// Every call to the API goes through here. The session is a cookie that the API sets, so the cookie is always sent.
-export async function apiRequest<T>(
-  path: string,
-  schema: z.ZodType<T>,
-  { method = 'GET', body, signal }: RequestOptions = {},
-): Promise<T> {
+// A failure while the request or its body is in flight is a lost connection, unless the caller aborted or the server answered
+function toNetworkError(error: unknown): Error {
+  if (error instanceof ApiError || isAbort(error)) {
+    return error as Error;
+  }
+  return new NetworkError();
+}
+
+async function send(path: string, accept: string, options: RequestOptions): Promise<Response> {
+  const { method = 'GET', body, signal } = options;
+
   // A path always starts with one slash, so it can never change the host of the address
   if (!/^\/(?!\/)/.test(path)) {
     throw new Error(`The API path must start with one slash, got "${path}".`);
@@ -58,31 +63,44 @@ export async function apiRequest<T>(
   const url = `${getEnv().apiBaseUrl}${path}`;
   const payloadText = body === undefined ? undefined : JSON.stringify(body);
   let response: Response;
-  let text: string;
 
   try {
     response = await fetch(url, {
       method,
       credentials: 'include',
       headers: {
-        Accept: 'application/json',
+        Accept: accept,
         ...(payloadText === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       body: payloadText,
       signal,
     });
+  } catch (error) {
+    throw toNetworkError(error);
+  }
 
-    if (!response.ok) {
-      throw new ApiError(response.status);
-    }
+  if (!response.ok) {
+    throw new ApiError(response.status);
+  }
+
+  return response;
+}
+
+// Every call to the API goes through here. The session is a cookie that the API sets, so the cookie is always sent.
+export async function apiRequest<T>(
+  path: string,
+  schema: z.ZodType<T>,
+  options: RequestOptions = {},
+): Promise<T> {
+  const response = await send(path, 'application/json', options);
+  let text: string;
+
+  try {
     // A body that is cut off halfway fails here, like a lost connection
     // An answer without a body, for example 204, is read as null
     text = await response.text();
   } catch (error) {
-    if (error instanceof ApiError || isAbort(error)) {
-      throw error;
-    }
-    throw new NetworkError();
+    throw toNetworkError(error);
   }
   let payload: unknown = null;
 
@@ -101,4 +119,30 @@ export async function apiRequest<T>(
   }
 
   return parsed.data;
+}
+
+// A call whose answer is a file, for example the PDF of a report
+export async function apiDownload(
+  path: string,
+  options: { signal?: AbortSignal } = {},
+): Promise<Blob> {
+  const response = await send(path, 'application/pdf', options);
+
+  let blob: Blob;
+
+  try {
+    blob = await response.blob();
+  } catch (error) {
+    throw toNetworkError(error);
+  }
+
+  // An empty answer, or a page that a proxy or the app fallback sends with status 200, is not a report. The type of the
+  // answer can be missing or wrong, so the first bytes of the file have to say PDF as well.
+  if (blob.size === 0 || (blob.type !== '' && !blob.type.startsWith('application/pdf'))) {
+    throw new ContractError();
+  }
+  if ((await blob.slice(0, 4).text()) !== '%PDF') {
+    throw new ContractError();
+  }
+  return blob.type === '' ? new Blob([blob], { type: 'application/pdf' }) : blob;
 }

@@ -76,6 +76,28 @@ export function formatPercent(value: number): string {
   return `${formatNumber(value, 1)}%`;
 }
 
+const longMonths = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
+
+// A month written as YYYY-MM, for example "Oktober 2026". Anything else comes back as it was.
+export function formatMonthYear(month: string): string {
+  const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(month);
+  const name = match?.[2] ? longMonths[Number(match[2]) - 1] : undefined;
+  return match && name ? `${name} ${match[1] ?? ''}` : month;
+}
+
 export function formatDate(date: Date): string {
   return `${date.getDate().toString()} ${months[date.getMonth()] ?? ''}`;
 }

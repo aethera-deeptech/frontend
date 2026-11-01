@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
-import { ApiError, apiRequest, ContractError, NetworkError } from '@/api/client';
+import { ApiError, apiDownload, apiRequest, ContractError, NetworkError } from '@/api/client';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
@@ -139,5 +139,81 @@ describe('apiRequest', () => {
 
     expect(failure).toBeInstanceOf(TypeError);
     expect(failure).not.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe('apiDownload', () => {
+  it('asks for a PDF with the cookie and returns the file', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response('%PDF-1.7', { headers: { 'Content-Type': 'application/pdf' } }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const blob = await apiDownload('/v1/reports/2026-10/pdf');
+
+    expect(await blob.text()).toBe('%PDF-1.7');
+    expect(blob.type).toBe('application/pdf');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/reports/2026-10/pdf',
+      expect.objectContaining({ credentials: 'include', headers: { Accept: 'application/pdf' } }),
+    );
+  });
+
+  it('refuses an empty answer and an answer that is not a PDF', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(new Response('', { headers: { 'Content-Type': 'application/pdf' } })),
+    );
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(ContractError);
+
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response('<html></html>', { headers: { 'Content-Type': 'text/html' } }),
+        ),
+    );
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(ContractError);
+  });
+
+  it('refuses a page that has no type or a PDF type but is not a PDF', async () => {
+    const page = {
+      ok: true,
+      status: 200,
+      blob: () => Promise.resolve(new Blob(['<html></html>'])),
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(page));
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(ContractError);
+
+    const labeled = {
+      ok: true,
+      status: 200,
+      blob: () => Promise.resolve(new Blob(['<html></html>'], { type: 'application/pdf' })),
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(labeled));
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(ContractError);
+  });
+
+  it('gives the file the PDF type when the server sent none', async () => {
+    // A response without a content type, which a test Response cannot build from a Blob of another realm
+    const untyped = { ok: true, status: 200, blob: () => Promise.resolve(new Blob(['%PDF-1.7'])) };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(untyped));
+
+    const blob = await apiDownload('/v1/reports/2026-10/pdf');
+
+    expect(blob.type).toBe('application/pdf');
+  });
+
+  it('fails like apiRequest does', async () => {
+    vi.stubGlobal('fetch', answer('', 404));
+    await expect(apiDownload('/v1/reports/2020-01/pdf')).rejects.toBeInstanceOf(ApiError);
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
+    await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(NetworkError);
   });
 });

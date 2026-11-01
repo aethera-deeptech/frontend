@@ -8,11 +8,11 @@ Only the files in `src/api` know these paths and shapes. When the backend differ
 
 `GET /v1/beranda` returns the data of the home screen. The field `phase` tells which shape follows.
 
-| Phase | Meaning | Fields besides `businessName` and `asOf` |
-| --- | --- | --- |
-| `no-devices` | No device is installed yet | none |
-| `collecting` | The system is collecting the first days of data | `collectedDays`, `neededDays`, `topDevices` |
-| `ready` | Tips and forecasts are available | `savingPerMonthRp`, `statusCounts`, `recommendations`, `bill`, `topDevices`, `energyPerPiece` |
+| Phase        | Meaning                                         | Fields besides `businessName` and `asOf`                                                      |
+| ------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `no-devices` | No device is installed yet                      | none                                                                                          |
+| `collecting` | The system is collecting the first days of data | `collectedDays`, `neededDays`, `topDevices`                                                   |
+| `ready`      | Tips and forecasts are available                | `savingPerMonthRp`, `statusCounts`, `recommendations`, `bill`, `topDevices`, `energyPerPiece` |
 
 - `asOf` is the moment of the data, as an ISO 8601 date and time with an offset.
 - `statusCounts` has the whole numbers `anomali`, `offline`, `siaga`, `nyala` and `mati`.
@@ -30,11 +30,11 @@ Only the files in `src/api` know these paths and shapes. When the backend differ
 
 `GET /v1/recommendations` returns the list of tips. The field `phase` tells which shape follows.
 
-| Phase | Meaning | Fields besides `businessName` |
-| --- | --- | --- |
-| `no-devices` | No device is installed yet | none |
-| `collecting` | The first days of data are still collected | `neededDays` |
-| `ready` | The tips can be shown | `items` |
+| Phase        | Meaning                                    | Fields besides `businessName` |
+| ------------ | ------------------------------------------ | ----------------------------- |
+| `no-devices` | No device is installed yet                 | none                          |
+| `collecting` | The first days of data are still collected | `neededDays`                  |
+| `ready`      | The tips can be shown                      | `items`                       |
 
 Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pending`, `deferred`, `applied`, `verified` or `rejected`. An applied tip also has `progress` with `collectedDays` and `neededDays`. A verified tip also has `resultPercent`, the drop of the energy for each piece in percent.
 
@@ -59,3 +59,23 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
 `PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
+
+## Laporan
+
+`GET /v1/reports` returns the report of the running month. `GET /v1/reports?period=2026-09` returns the report of another month, written as `YYYY-MM`. The API answers 404 for a month that has no report. The field `phase` tells which shape follows. Every shape has `periods`, the months that have a report with the newest first (empty when no report exists yet, never empty for `ready`), and `period`, the month of the answer.
+
+| Phase        | Meaning                                    | Fields besides `periods` and `period` |
+| ------------ | ------------------------------------------ | ------------------------------------- |
+| `no-devices` | No device is installed yet                 | none                                  |
+| `collecting` | The first days of data are still collected | `collectedDays` and `neededDays`      |
+| `ready`      | The report can be shown                    | see below                             |
+
+A `ready` report has the fields below.
+
+- `through` is a moment in ISO 8601 with an offset. It is only there while the month is the running month, and it is the moment of the newest data.
+- `saving` has three parts that are counted apart. `verified` has `rp`, `count` and `checkedDays`. `applied` has `rp`, `count`, `day` and `neededDays`, the day of the check that the tip is on. `estimate` has `rp` and `count`.
+- `topDevices` is a list of `name` and `kwh`, the devices that used the most energy in the month.
+- `billRp` is the bill of the month, or the bill until `through` for the running month.
+- `energyPerPiece` has the same shape as on the home screen. Only the running month has it.
+
+`GET /v1/reports/{period}/pdf` returns the report of that month as a PDF. The frontend sends the session cookie, saves the file as `Laporan-<Month>-<Year>.pdf` and offers a link to open it.

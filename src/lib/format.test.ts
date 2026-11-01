@@ -10,6 +10,7 @@ import {
   formatTime,
   formatWatts,
   formatDateWithYear,
+  formatMonthYear,
   formatNumber,
   formatPercent,
   formatRupiah,
@@ -69,6 +70,18 @@ describe('formatPercent', () => {
   it('shows one decimal at most', () => {
     expect(formatPercent(9.756)).toBe('9,8%');
     expect(formatPercent(10)).toBe('10%');
+  });
+});
+
+describe('formatMonthYear', () => {
+  it('writes the month in full with the year', () => {
+    expect(formatMonthYear('2026-10')).toBe('Oktober 2026');
+    expect(formatMonthYear('2026-01')).toBe('Januari 2026');
+  });
+
+  it('returns text that is not a month as it was', () => {
+    expect(formatMonthYear('2026-13')).toBe('2026-13');
+    expect(formatMonthYear('')).toBe('');
   });
 });
 

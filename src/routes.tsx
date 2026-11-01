@@ -5,6 +5,7 @@ import { AlatDetailPage } from '@/pages/alat/alat-detail-page';
 import { AlatLayout } from '@/pages/alat/alat-layout';
 import { AlatRenamePage } from '@/pages/alat/alat-rename-page';
 import { BerandaPage } from '@/pages/beranda/beranda-page';
+import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { SaranCancelPage } from '@/pages/saran/saran-cancel-page';
 import { SaranDetailPage } from '@/pages/saran/saran-detail-page';
@@ -31,6 +32,7 @@ export const routes: RouteObject[] = [
           { path: ':id/ganti-nama', element: <AlatRenamePage /> },
         ],
       },
+      { path: 'laporan', element: <LaporanPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
