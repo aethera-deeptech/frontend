@@ -1,6 +1,6 @@
 # Frontend
 
-Frontend of an energy audit dashboard for small businesses (UMKM) in Indonesia, built for the UNS Innovation Hackathon 2026. The interface is in Indonesian.
+Frontend of WATTLINK, an energy audit dashboard for small businesses (UMKM) in Indonesia, built for the UNS Innovation Hackathon 2026. The interface is in Indonesian. WATTLINK is the name of the app that users see, and Aethera is the name of the organization, so it stays in the repository names, the domain and the settings.
 
 ## Status
 
