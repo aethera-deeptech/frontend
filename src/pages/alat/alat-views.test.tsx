@@ -4,7 +4,8 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
-import { AlatListView, summarize } from '@/pages/alat/alat-list-view';
+import { summarize } from '@/pages/alat/device-filters';
+import { AlatListView } from '@/pages/alat/alat-list-view';
 import {
   sampleAnomaly,
   sampleDevices,
