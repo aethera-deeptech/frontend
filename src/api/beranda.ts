@@ -35,7 +35,7 @@ const bill = z.object({
   potentialTotalRp: rupiah,
 });
 
-const energyPerPiece = z.discriminatedUnion('status', [
+export const energyPerPiece = z.discriminatedUnion('status', [
   z.object({ status: z.literal('verified'), beforeKwh: kwh, afterKwh: kwh }),
   z.object({ status: z.literal('estimate'), beforeKwh: kwh, afterKwh: kwh }),
   z.object({ status: z.literal('collecting'), collectedDays: count, neededDays: count }),
