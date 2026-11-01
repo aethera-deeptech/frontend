@@ -267,6 +267,29 @@ describe('NumberStepper', () => {
     expect(input).toHaveValue('999');
   });
 
+  it('takes a comma as the decimal point when the step has decimals and ignores it for whole steps', async () => {
+    const decimal = vi.fn();
+    const { unmount } = render(
+      <NumberStepper label="Tarif" value={1} step={0.1} onValueChange={decimal} />,
+    );
+    const field = screen.getByRole('textbox', { name: 'Angka' });
+    await userEvent.clear(field);
+    await userEvent.type(field, '1,57');
+
+    expect(field).toHaveValue('1.5');
+    expect(decimal).toHaveBeenLastCalledWith(1.5);
+    unmount();
+
+    const whole = vi.fn();
+    render(<NumberStepper label="Potong" value={24} onValueChange={whole} />);
+    const count = screen.getByRole('textbox', { name: 'Angka' });
+    await userEvent.clear(count);
+    await userEvent.type(count, '2,5');
+
+    expect(count).toHaveValue('25');
+    expect(whole).toHaveBeenLastCalledWith(25);
+  });
+
   it('shows the value again when the user leaves an empty field', async () => {
     render(<NumberStepper label="Potong per hari" value={24} onValueChange={vi.fn()} />);
     const input = screen.getByRole('textbox', { name: 'Angka' });
