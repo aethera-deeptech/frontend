@@ -12,7 +12,10 @@ vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
 }));
 
-type Answer = { status?: number; body?: unknown };
+interface Answer {
+  status?: number;
+  body?: unknown;
+}
 
 // Answers each call to the API by its path. A path that is not listed fails like a lost connection.
 function stubApi(answers: Record<string, Answer | (() => Answer)>) {
@@ -64,7 +67,7 @@ describe('the list of tips', () => {
     stubApi({ 'GET /v1/recommendations': { body: sampleList() } });
     renderAt('/saran');
 
-    expect(screen.getByRole('status')).toHaveTextContent('Memuat saran');
+    expect(await screen.findByRole('status')).toHaveTextContent('Memuat saran');
     expect(
       await screen.findByRole('heading', { name: 'Menunggu keputusan Anda' }),
     ).toBeInTheDocument();
