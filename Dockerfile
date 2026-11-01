@@ -17,6 +17,7 @@ COPY . .
 ARG VITE_API_BASE_URL
 ARG VITE_GOOGLE_CLIENT_ID=""
 ARG VITE_SENTRY_DSN=""
+ARG VITE_SENTRY_ENVIRONMENT=""
 RUN npx vite build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine3.24@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
