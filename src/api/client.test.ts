@@ -86,4 +86,57 @@ describe('apiRequest', () => {
 
     await expect(apiRequest('/v1/usaha', schema)).rejects.toBe(abort);
   });
+
+  it('lets an abort pass that comes from another realm, which is known by its name', async () => {
+    const abort = Object.assign(new Error('aborted'), { name: 'AbortError' });
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(abort));
+
+    await expect(apiRequest('/v1/usaha', schema)).rejects.toBe(abort);
+  });
+
+  it('passes the signal of the caller to fetch', async () => {
+    const fetchMock = answer('{"name":"Maju"}');
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+
+    await apiRequest('/v1/usaha', schema, { signal: controller.signal });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it('treats a body that is cut off like a lost connection', async () => {
+    const broken = new Response('{"name":"Maju"}');
+    vi.spyOn(broken, 'text').mockRejectedValue(new TypeError('network error'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(broken));
+
+    await expect(apiRequest('/v1/usaha', schema)).rejects.toBeInstanceOf(NetworkError);
+  });
+
+  it('refuses a path that does not start with one slash', async () => {
+    vi.stubGlobal('fetch', answer('{}'));
+
+    await expect(apiRequest('v1/usaha', schema)).rejects.toThrow('must start with one slash');
+    await expect(apiRequest('//evil.example/x', schema)).rejects.toThrow(
+      'must start with one slash',
+    );
+    await expect(apiRequest('@evil.example/x', schema)).rejects.toThrow(
+      'must start with one slash',
+    );
+  });
+
+  it('reports a body that cannot be written as a bug and not as a lost connection', async () => {
+    vi.stubGlobal('fetch', answer('{}'));
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+
+    const failure = await apiRequest('/v1/usaha', schema, { method: 'PUT', body: circular }).catch(
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(TypeError);
+    expect(failure).not.toBeInstanceOf(NetworkError);
+  });
 });
