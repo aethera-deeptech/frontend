@@ -24,6 +24,15 @@ export function PersetujuanPage() {
       subtitle="Baca dulu data apa yang sistem baca, dan apa yang tidak sistem lakukan."
       backTo={wizard.kind === 'clamp' ? `${addPath}/peringatan` : addPath}
     >
+      {wizard.kind === 'plug' ? (
+        <Card title="Yang perlu Anda cek">
+          <p className="text-body text-text-1">
+            Daya mesin tidak boleh melebihi batas yang tertulis pada colokan pintar. Lihat label di
+            colokan dan di mesin. Jika ragu, jangan pasang di mesin itu. Colokan yang kepanasan atau
+            berbau gosong harus dicabut.
+          </p>
+        </Card>
+      ) : null}
       <Card title="Yang dibaca sistem">
         <p className="text-body text-text-1">
           Daya listrik alat dan waktu pemakaiannya, setiap beberapa menit. Data ini dipakai untuk
