@@ -1,4 +1,4 @@
-import type { FormEvent, ReactNode } from 'react';
+import type { ReactNode, SyntheticEvent } from 'react';
 import { Link } from 'react-router';
 
 import { Banner } from '@/components/ui/banner';
@@ -9,7 +9,7 @@ export const settingsPath = '/lainnya/pengaturan';
 interface EditFormProps {
   title: string;
   subtitle: string;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
   saving: boolean;
   failed: boolean;
   // A second action next to Simpan, for example to go back to the default tariff

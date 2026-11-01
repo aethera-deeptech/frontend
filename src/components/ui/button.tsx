@@ -11,8 +11,8 @@ const buttonVariants = cva(
     'text-button inline-flex items-center justify-center gap-1.5 border whitespace-nowrap select-none',
     'transition-[margin,box-shadow] duration-100',
     'mt-(--lift-inset-rest) mb-(--lift-rest) shadow-[0_var(--lift-rest)_0_0_var(--chonk)]',
-    'enabled:hover:mt-(--lift-inset-hover) enabled:hover:mb-(--lift-hover) enabled:hover:shadow-[0_var(--lift-hover)_0_0_var(--chonk)]',
-    'enabled:active:mt-(--lift-inset-pressed) enabled:active:mb-0 enabled:active:shadow-none',
+    'not-disabled:hover:mt-(--lift-inset-hover) not-disabled:hover:mb-(--lift-hover) not-disabled:hover:shadow-[0_var(--lift-hover)_0_0_var(--chonk)]',
+    'not-disabled:active:mt-(--lift-inset-pressed) not-disabled:active:mb-0 not-disabled:active:shadow-none',
     'disabled:mt-(--lift-inset-pressed) disabled:mb-0 disabled:opacity-(--disabled-opacity) disabled:shadow-none',
   ],
   {
@@ -39,11 +39,19 @@ const buttonVariants = cva(
   },
 );
 
-type ButtonProps = ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants> & {
-    // Render the child element, for example a Link, with the button look
-    asChild?: boolean;
-  };
+// A link cannot be disabled and has no type, so asChild goes with neither. The child keeps its own type.
+type ButtonProps = VariantProps<typeof buttonVariants> &
+  (
+    | (ComponentProps<'button'> & {
+        asChild?: false;
+      })
+    | (Omit<ComponentProps<'button'>, 'disabled' | 'type'> & {
+        // Render the child element, for example a Link, with the button look
+        asChild: true;
+        disabled?: never;
+        type?: never;
+      })
+  );
 
 export function Button({
   kind,

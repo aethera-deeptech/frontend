@@ -4,7 +4,8 @@ import type { ComponentProps } from 'react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SaranListView, visibleItems } from '@/pages/saran/saran-list-view';
+import { visibleItems } from '@/pages/saran/saran-filter';
+import { SaranListView } from '@/pages/saran/saran-list-view';
 import { sampleList } from '@/pages/saran/sample-saran';
 
 function renderList(props: Partial<ComponentProps<typeof SaranListView>> = {}) {

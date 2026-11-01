@@ -15,7 +15,8 @@ afterEach(() => {
 
 function patchBody(fetchMock: ReturnType<typeof stubApi>): unknown {
   const call = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH');
-  return JSON.parse(String(call?.[1]?.body));
+  const body = call?.[1]?.body;
+  return typeof body === 'string' ? JSON.parse(body) : undefined;
 }
 
 describe('Lainnya', () => {

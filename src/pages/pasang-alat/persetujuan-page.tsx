@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
-import { useWizard } from '@/pages/pasang-alat/wizard';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
 export function PersetujuanPage() {
   const navigate = useNavigate();

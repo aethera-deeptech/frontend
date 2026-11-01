@@ -14,7 +14,7 @@ function readSaved(state: unknown): SavedSetting | undefined {
 }
 
 export function PengaturanPage() {
-  const { state }: { state: unknown } = useLocation();
+  const state: unknown = useLocation().state;
   const saved = readSaved(state);
 
   return (
