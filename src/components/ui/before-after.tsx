@@ -15,7 +15,9 @@ export type BeforeAfterProps =
       status: 'collecting';
       collectedDays: number;
       neededDays: number;
-      message: string;
+      // The line above the progress bar
+      headline?: string;
+      message?: string;
     };
 
 // Energy for each piece before and after the tips were applied, or the progress of the first days of data.
@@ -25,7 +27,9 @@ export function BeforeAfter(props: BeforeAfterProps) {
 
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-h2 text-text-heading">Data awal sedang dikumpulkan</p>
+        <p className="text-h2 text-text-heading">
+          {props.headline ?? 'Data awal sedang dikumpulkan'}
+        </p>
         <span aria-hidden="true" className="bg-bg-3 h-2.5 rounded-[5px]">
           <span
             className="bg-chart-blurple block h-full rounded-[5px]"
@@ -35,7 +39,7 @@ export function BeforeAfter(props: BeforeAfterProps) {
         <p className="text-label text-text-2">
           Hari ke-{props.collectedDays} dari {props.neededDays}
         </p>
-        <p className="text-body text-text-2">{props.message}</p>
+        {props.message ? <p className="text-body text-text-2">{props.message}</p> : null}
       </div>
     );
   }
