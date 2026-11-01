@@ -264,7 +264,8 @@ describe('NumberStepper', () => {
 
     expect(onValueChange).toHaveBeenLastCalledWith(500);
     expect(onValueChange).toHaveBeenNthCalledWith(1, 9);
-    expect(input).toHaveValue('999');
+    // The field shows the limit as soon as the typed number goes past it
+    expect(input).toHaveValue('500');
   });
 
   it('takes a comma as the decimal point when the step has decimals and ignores it for whole steps', async () => {
@@ -284,10 +285,19 @@ describe('NumberStepper', () => {
     render(<NumberStepper label="Potong" value={24} onValueChange={whole} />);
     const count = screen.getByRole('textbox', { name: 'Angka' });
     await userEvent.clear(count);
-    await userEvent.type(count, '2,5');
+    await userEvent.click(count);
+    await userEvent.paste('12,5');
 
-    expect(count).toHaveValue('25');
-    expect(whole).toHaveBeenLastCalledWith(25);
+    expect(count).toHaveValue('12');
+    expect(whole).toHaveBeenLastCalledWith(12);
+  });
+
+  it('reads the new value out after a tap on a button', () => {
+    const { container } = render(
+      <NumberStepper label="Potong per hari" value={24} unit="potong" onValueChange={vi.fn()} />,
+    );
+
+    expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('24 potong');
   });
 
   it('shows the value again when the user leaves an empty field', async () => {

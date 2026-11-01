@@ -27,6 +27,12 @@ async function openSheet() {
 }
 
 describe('DatePicker', () => {
+  it('names the field with its label and the chosen day', () => {
+    render(<Demo />);
+
+    expect(screen.getByRole('button', { name: 'Tanggal 29 Okt 2026' })).toBeInTheDocument();
+  });
+
   it('shows the day in the field and the month of the day when it opens', async () => {
     render(<Demo />);
 
