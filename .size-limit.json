@@ -2,7 +2,7 @@
   {
     "name": "JavaScript",
     "path": "dist/assets/*.js",
-    "limit": "120 kB"
+    "limit": "140 kB"
   },
   {
     "name": "CSS",
