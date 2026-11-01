@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/select';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { TextInput } from '@/components/ui/text-input';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
-import { useWizard } from '@/pages/pasang-alat/wizard';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
 const schema = z.object({
   name: z.string().trim().min(1, 'Isi nama alat.').max(40, 'Nama alat paling panjang 40 huruf.'),

@@ -5,7 +5,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
-import { useWizard } from '@/pages/pasang-alat/wizard';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
 export function MencariPage() {
   const { id = '' } = useParams();
