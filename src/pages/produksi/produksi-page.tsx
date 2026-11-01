@@ -17,21 +17,25 @@ export function ProduksiPage() {
       ) : query.isPending ? (
         <SkeletonCard label="Memuat catatan produksi" />
       ) : (
-        <Banner
-          tone="danger"
-          title="Catatan produksi tidak bisa dimuat"
-          message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
-          action={
-            <Button
-              size="lg"
-              onClick={() => {
-                void query.refetch();
-              }}
-            >
-              Coba lagi
-            </Button>
-          }
-        />
+        <div className="flex flex-col gap-3 lg:max-w-lg">
+          {/* The form has the heading, so the error needs its own, or the page has none */}
+          <h1 className="text-h2 text-text-heading lg:text-title">Catat produksi</h1>
+          <Banner
+            tone="danger"
+            title="Catatan produksi tidak bisa dimuat"
+            message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
+            action={
+              <Button
+                size="lg"
+                onClick={() => {
+                  void query.refetch();
+                }}
+              >
+                Coba lagi
+              </Button>
+            }
+          />
+        </div>
       )}
     </>
   );

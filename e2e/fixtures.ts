@@ -118,8 +118,15 @@ function answer(method: string, pathname: string): unknown {
   return undefined;
 }
 
-export const test = base.extend({
-  page: async ({ page }, provide) => {
+export interface Override {
+  status?: number;
+  body?: unknown;
+}
+
+// A test changes the answer of one endpoint with test.use({ apiOverrides: { 'GET /v1/beranda': { body: ... } } })
+export const test = base.extend<{ apiOverrides: Record<string, Override> }>({
+  apiOverrides: [{}, { option: true }],
+  page: async ({ page, apiOverrides }, provide) => {
     await page.route(`${apiOrigin}/**`, async (route) => {
       const request = route.request();
       const origin = request.headers().origin ?? '';
@@ -134,6 +141,14 @@ export const test = base.extend({
 
       if (request.method() === 'OPTIONS') {
         await route.fulfill({ status: 204, headers });
+        return;
+      }
+
+      const override = apiOverrides[`${request.method()} ${pathname}`];
+
+      if (override) {
+        const { status = 200, body = {} } = override;
+        await route.fulfill({ status, headers, body: JSON.stringify(body) });
         return;
       }
 

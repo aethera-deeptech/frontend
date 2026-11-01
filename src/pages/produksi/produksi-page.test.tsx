@@ -60,6 +60,7 @@ describe('ProduksiPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Catatan produksi tidak bisa dimuat',
     );
+    expect(screen.getByRole('heading', { level: 1, name: 'Catat produksi' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
 
     expect(await screen.findByRole('textbox', { name: 'Angka' })).toBeInTheDocument();
