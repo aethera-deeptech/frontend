@@ -6,7 +6,7 @@ export function sampleReady(overrides: Partial<ReadyReport> = {}): ReadyReport {
     phase: 'ready',
     periods: ['2026-10', '2026-09', '2026-08', '2026-07'],
     period: '2026-10',
-    through: new Date(2026, 9, 29, 9, 30).toISOString(),
+    through: '2026-10-29T09:30:00+07:00',
     saving: {
       verified: { rp: 64_000, count: 1, checkedDays: 14 },
       applied: { rp: 46_000, count: 1, day: 9, neededDays: 14 },

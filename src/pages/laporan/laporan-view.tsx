@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Select } from '@/components/ui/select';
 import { Tag } from '@/components/ui/tag';
-import { formatDate, formatMonthYear, formatNumber, formatRupiah } from '@/lib/format';
+import { formatDate, formatMonthYear, formatNumber, formatRupiah, parseMoment } from '@/lib/format';
 import type { ReportDownload } from '@/pages/laporan/use-report-download';
 
 interface LaporanViewProps {
@@ -100,7 +100,7 @@ function PeriodSelect({
         value,
         label:
           value === data.period && data.through
-            ? `${formatMonthYear(value)}, sampai ${formatDate(new Date(data.through))}`
+            ? `${formatMonthYear(value)}, sampai ${formatDate(parseMoment(data.through))}`
             : formatMonthYear(value),
       }))}
     />
@@ -118,7 +118,7 @@ function Ready({
 }) {
   const bill = formatRupiah(data.billRp);
   const billLabel = data.through
-    ? `Tagihan sampai ${formatDate(new Date(data.through))} ${bill}`
+    ? `Tagihan sampai ${formatDate(parseMoment(data.through))} ${bill}`
     : `Tagihan ${formatMonthYear(data.period)} ${bill}`;
 
   return (

@@ -56,6 +56,14 @@ describe('LaporanView, ready', () => {
     ).toBeVisible();
   });
 
+  it('names the last day by the clock of the business and not by the clock of the device', () => {
+    renderView({ data: { ...sampleReady(), through: '2026-10-28T23:30:00+07:00' } });
+
+    expect(screen.getByRole('combobox', { name: 'Periode' })).toHaveTextContent(
+      'Oktober 2026, sampai 28 Okt',
+    );
+  });
+
   it('says that nothing was checked in a month without tips', () => {
     renderView({ data: sampleSeptember(), period: '2026-09' });
 
