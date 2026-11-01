@@ -54,23 +54,31 @@ function ProduksiForm({ data }: { data: Production }) {
         ? 'saved'
         : 'idle';
 
+  // A second save must not start while the first one is on its way, so the result of a save in flight is not reset.
+  // Otherwise Simpan would turn on again and two saves for the same day could finish in the wrong order.
+  const resetUnlessSaving = () => {
+    if (!save.isPending) {
+      save.reset();
+    }
+  };
+
   return (
     <ProduksiView
       data={data}
       date={date}
       onDateChange={(next) => {
-        save.reset();
+        resetUnlessSaving();
         setDate(next);
         setTypedQuantity(null);
       }}
       quantity={quantity}
       onQuantityChange={(next) => {
-        save.reset();
+        resetUnlessSaving();
         setTypedQuantity(next);
       }}
       unit={unit}
       onUnitChange={(next) => {
-        save.reset();
+        resetUnlessSaving();
         setChosenUnit(next);
       }}
       saveState={saveState}

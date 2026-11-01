@@ -100,7 +100,7 @@ export function ProduksiView({
           disabled={quantity <= 0 || saveState === 'saving'}
           onClick={onSave}
         >
-          {exists ? 'Ubah catatan' : 'Simpan'}
+          {saveState === 'saving' ? 'Menyimpan' : exists ? 'Ubah catatan' : 'Simpan'}
         </Button>
       </Card>
       {data.recent.length > 0 ? (

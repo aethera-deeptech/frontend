@@ -47,7 +47,8 @@ export function NumberStepper({
   const typedDecimals = decimalsOf(step);
   const clean = (typed: string) => {
     if (typedDecimals === 0) {
-      return typed.replace(/\D/g, '').slice(0, 9);
+      // A pasted 12,5 or 1e5 is cut at the separator, so it becomes 12 or 1 and not 125 or 15
+      return (typed.split(/[.,eE]/)[0] ?? '').replace(/\D/g, '').slice(0, 9);
     }
     const [whole = '', ...rest] = typed
       .replace(',', '.')
@@ -86,14 +87,27 @@ export function NumberStepper({
             setDraft(typed);
             const number = Number(typed);
             if (typed !== '' && typed !== '.' && Number.isFinite(number)) {
-              onValueChange(Math.min(max, Math.max(min, number)));
+              const clamped = Math.min(max, Math.max(min, number));
+              // A number above the limit shows the limit at once, so the field never shows what is not saved
+              if (clamped !== number) {
+                setDraft(clamped.toString());
+              }
+              onValueChange(clamped);
             }
+          }}
+          onFocus={(event) => {
+            // So that typing replaces a 0 and does not become 05
+            event.currentTarget.select();
           }}
           onBlur={() => {
             setDraft(null);
           }}
         />
         {unit ? <span className="text-body text-text-2">{unit}</span> : null}
+        {/* The buttons keep the focus, so the new value is read out from here */}
+        <span aria-live="polite" className="sr-only">
+          {value} {unit}
+        </span>
       </span>
       <Button
         size="lg"

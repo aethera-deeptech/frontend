@@ -28,26 +28,27 @@ export function DatePicker({ label, value, onValueChange, max }: DatePickerProps
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={triggerId} className="text-label text-text-1">
+      <label id={`${triggerId}-label`} htmlFor={triggerId} className="text-label text-text-1">
         {label}
       </label>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger
           id={triggerId}
+          aria-labelledby={`${triggerId}-label ${triggerId}-value`}
           className={cn(
             fieldStyles(false),
             'flex items-center justify-between gap-2 text-left',
             'data-[state=open]:border-focus data-[state=open]:shadow-[inset_0_0_0_1px_var(--focus)]',
           )}
         >
-          <span>{formatDateWithYear(parseDay(value))}</span>
+          <span id={`${triggerId}-value`}>{formatDateWithYear(parseDay(value))}</span>
           <ChevronDownIcon className="text-text-2 shrink-0" />
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="bg-bg-scrim fixed inset-0 z-40" />
           <Dialog.Content
             aria-describedby={undefined}
-            className="bg-bg-overlay fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-97.5 flex-col gap-3 rounded-t-xl p-4 outline-none lg:inset-auto lg:top-1/2 lg:left-1/2 lg:w-97.5 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-xl"
+            className="bg-bg-overlay fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[calc(100dvh-1rem)] max-w-97.5 flex-col gap-3 overflow-y-auto rounded-t-xl p-4 outline-none lg:inset-auto lg:top-1/2 lg:left-1/2 lg:w-97.5 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-xl"
           >
             <Sheet
               value={value}
@@ -135,7 +136,9 @@ function Sheet({
               }}
               className={cn(
                 'text-body h-11 rounded-md',
-                selected ? 'bg-btn-accent-face text-btn-accent-ink' : 'text-text-1 hover:bg-bg-3',
+                selected
+                  ? 'bg-btn-accent-face text-btn-accent-ink font-bold'
+                  : 'text-text-1 hover:bg-bg-3',
                 later && 'text-text-disabled hover:bg-transparent',
               )}
             >
