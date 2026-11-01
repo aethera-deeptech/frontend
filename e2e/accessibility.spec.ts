@@ -8,7 +8,7 @@ import { expect, test } from './fixtures';
 const axeDevices = ['iPhone SE', 'iPhone 13', 'Desktop Chrome'];
 
 const screens = [
-  { name: 'Beranda', path: '/' },
+  { name: 'Beranda', path: '/', everyDevice: true },
   { name: 'Saran', path: '/saran' },
   { name: 'Saran, a tip that waits', path: '/saran/r1' },
   { name: 'Saran, cancel an applied tip', path: '/saran/r3/batalkan' },
@@ -30,14 +30,6 @@ const screens = [
   { name: 'Halaman tidak ditemukan', path: '/halaman-yang-tidak-ada' },
 ];
 
-test.beforeEach(({}, testInfo) => {
-  // eslint-disable-next-line playwright/no-skipped-test -- a device that is not listed has nothing to scan, and the skip says so
-  test.skip(
-    !axeDevices.includes(testInfo.project.name),
-    'The accessibility scan of every screen runs on three devices',
-  );
-});
-
 async function expectNoViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
@@ -46,19 +38,30 @@ async function expectNoViolations(page: Page) {
   expect(results.violations).toEqual([]);
 }
 
-// The page counts as ready when its heading shows, no skeleton is left and no load error shows, because a scan of a loading or an
-// error state would pass while the real screen is never checked. A banner with a notice is part of some screens, so it is not a sign.
+// The page counts as ready when its heading shows, it is not the error page, no skeleton is left and no load error shows.
+// Without this a scan of a loading or an error state would pass while the real screen is never checked. A banner with a
+// notice is part of some screens, so a banner alone is not a sign.
 async function expectLoaded(page: Page) {
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+  // The error page has a heading of its own, so a route that throws would be scanned in place of the screen
+  await expect(page.getByRole('heading', { level: 1, name: 'Terjadi kesalahan' })).toHaveCount(0);
   await expect(page.getByRole('status').filter({ hasText: /^Memuat/ })).toHaveCount(0);
   await expect(
     page.getByRole('alert').filter({ hasText: /tidak bisa dimuat|belum bisa dimuat/ }),
   ).toHaveCount(0);
 }
 
+// The home screen runs on every device, as it did before. The other screens and the steps to add a device run on three, because the
+// layout only changes with the width and a scan of 20 screens on 14 devices would repeat the same findings.
+function onlyOnAxeDevices(projectName: string, everyDevice = false) {
+  // eslint-disable-next-line playwright/no-skipped-test -- a device that is not listed has nothing to scan, and the skip says so
+  test.skip(!everyDevice && !axeDevices.includes(projectName), 'This scan runs on three devices');
+}
+
 for (const screen of screens) {
   // eslint-disable-next-line playwright/expect-expect -- expectNoViolations holds the assertion
-  test(`${screen.name} has no accessibility violations`, async ({ page }) => {
+  test(`${screen.name} has no accessibility violations`, async ({ page }, testInfo) => {
+    onlyOnAxeDevices(testInfo.project.name, screen.everyDevice);
     await page.goto(screen.path);
     await expectLoaded(page);
 
@@ -66,7 +69,8 @@ for (const screen of screens) {
   });
 }
 
-test('the steps to add a plug have no accessibility violations', async ({ page }) => {
+test('the steps to add a plug have no accessibility violations', async ({ page }, testInfo) => {
+  onlyOnAxeDevices(testInfo.project.name);
   await page.goto('/alat/tambah');
   await expectLoaded(page);
   await expectNoViolations(page);
@@ -90,7 +94,8 @@ test('the steps to add a plug have no accessibility violations', async ({ page }
   await expectNoViolations(page);
 });
 
-test('the warning for a clamp has no accessibility violations', async ({ page }) => {
+test('the warning for a clamp has no accessibility violations', async ({ page }, testInfo) => {
+  onlyOnAxeDevices(testInfo.project.name);
   await page.goto('/alat/tambah');
   await page.getByRole('button', { name: /Penjepit arus/ }).click();
 
