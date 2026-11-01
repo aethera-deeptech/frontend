@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useParams, useSearchParams } from 'react-router';
+import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router';
 
 import { useDevices } from '@/api/devices';
 import { PageHeader } from '@/components/layout/page-header';
@@ -16,6 +16,7 @@ function readFilter(value: string | null): DeviceFilter {
 // The list of devices and, next to it on a wide screen, the device that is open. On a phone the open device replaces the list.
 export function AlatLayout() {
   const { id } = useParams();
+  const { search } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = readFilter(searchParams.get('status'));
   const query = useDevices();
@@ -26,7 +27,7 @@ export function AlatLayout() {
   const shown = data ? data.items.filter((item) => filter === 'all' || item.status === filter) : [];
   const firstId = shown[0]?.id;
   if (wide && !id && firstId) {
-    return <Navigate to={`/alat/${encodeURIComponent(firstId)}`} replace />;
+    return <Navigate to={{ pathname: `/alat/${encodeURIComponent(firstId)}`, search }} replace />;
   }
 
   return (

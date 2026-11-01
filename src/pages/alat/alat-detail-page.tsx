@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { Link, useLocation, useParams } from 'react-router';
 
 import { ApiError } from '@/api/client';
 import { useDevice } from '@/api/devices';
@@ -10,6 +10,7 @@ import { AlatDetailView } from '@/pages/alat/alat-detail-view';
 export function AlatDetailPage() {
   const { id = '' } = useParams();
   const query = useDevice(id);
+  const { search } = useLocation();
 
   if (query.data) {
     return <AlatDetailView detail={query.data} />;
@@ -25,6 +26,11 @@ export function AlatDetailPage() {
         tone="warning"
         title="Alat tidak ditemukan"
         message="Alat ini sudah tidak ada. Pilih alat lain dari daftar."
+        action={
+          <Button asChild size="lg">
+            <Link to={`/alat${search}`}>Kembali ke daftar</Link>
+          </Button>
+        }
       />
     );
   }

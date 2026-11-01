@@ -1,3 +1,5 @@
+import { useLocation } from 'react-router';
+
 import type { DeviceList, DeviceListItem } from '@/api/devices';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,6 +18,9 @@ interface AlatListViewProps {
 }
 
 export function AlatListView({ data, filter, onFilterChange, selectedId }: AlatListViewProps) {
+  // The chosen filter stays in the address when a device opens, so the list does not jump back to all devices
+  const { search } = useLocation();
+
   if (data.items.length === 0) {
     return (
       <EmptyState
@@ -71,7 +76,7 @@ export function AlatListView({ data, filter, onFilterChange, selectedId }: AlatL
                   ? 'Menunggu data'
                   : `${formatFixed(item.todayKwh, 1)} kWh hari ini`
               }
-              to={`/alat/${encodeURIComponent(item.id)}`}
+              to={`/alat/${encodeURIComponent(item.id)}${search}`}
               selected={selectedId === item.id}
             />
           ))}

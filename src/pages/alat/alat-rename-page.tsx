@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
 import { useDevice, useRenameDevice } from '@/api/devices';
@@ -17,6 +17,7 @@ type Values = z.infer<typeof schema>;
 
 export function AlatRenamePage() {
   const { id = '' } = useParams();
+  const { search } = useLocation();
   const query = useDevice(id);
 
   if (!query.data) {
@@ -27,6 +28,11 @@ export function AlatRenamePage() {
         tone="danger"
         title="Alat tidak bisa dimuat"
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
+        action={
+          <Button asChild size="lg">
+            <Link to={`/alat${search}`}>Kembali ke daftar</Link>
+          </Button>
+        }
       />
     );
   }
@@ -37,10 +43,12 @@ export function AlatRenamePage() {
 function RenameForm({ id, name }: { id: string; name: string }) {
   const navigate = useNavigate();
   const rename = useRenameDevice();
-  const back = `/alat/${encodeURIComponent(id)}`;
+  const { search } = useLocation();
+  const back = `/alat/${encodeURIComponent(id)}${search}`;
   const {
     register,
     handleSubmit,
+    setFocus,
     formState: { errors },
   } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name } });
 
@@ -55,6 +63,10 @@ function RenameForm({ id, name }: { id: string; name: string }) {
             {
               onSuccess: () => {
                 void navigate(back);
+              },
+              // The button disables itself while it sends, so the focus goes back to the field when the save fails
+              onError: () => {
+                setFocus('name');
               },
             },
           );
@@ -75,7 +87,12 @@ function RenameForm({ id, name }: { id: string; name: string }) {
         helper="Pakai nama yang mudah Anda kenali."
         error={errors.name?.message}
         autoComplete="off"
-        {...register('name')}
+        {...register('name', {
+          // An old save error does not stay on the screen while the user types a new name
+          onChange: () => {
+            rename.reset();
+          },
+        })}
       />
       {rename.isError ? (
         <Banner

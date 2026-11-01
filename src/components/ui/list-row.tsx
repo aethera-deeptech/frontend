@@ -32,7 +32,7 @@ export function ListRow({
   const content: ReactNode = (
     <>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body text-text-heading">{title}</span>
+        <span className="text-body text-text-heading break-words">{title}</span>
         {status || secondary ? (
           <span className="flex items-center gap-2">
             {status ? <StatusDot status={status} /> : null}

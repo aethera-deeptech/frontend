@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import type { DeviceDetail } from '@/api/devices';
 import { PowerChart } from '@/components/charts/power-chart';
@@ -31,18 +31,19 @@ const dash = '-';
 
 export function AlatDetailView({ detail, now = new Date() }: AlatDetailViewProps) {
   const lastSeen = parseMoment(detail.lastSeenAt);
+  const { search } = useLocation();
 
   return (
     <div className="flex flex-col gap-3">
       <div className="lg:hidden">
         <Button asChild size="lg">
-          <Link to="/alat">Kembali</Link>
+          <Link to={`/alat${search}`}>Kembali</Link>
         </Button>
       </div>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-h2 text-text-heading">{detail.name}</h2>
+          <h2 className="text-h2 text-text-heading min-w-0 break-words">{detail.name}</h2>
           <StatusDot status={detail.status} />
         </div>
         <p className="text-label text-text-2">{detail.room}</p>
@@ -97,7 +98,7 @@ export function AlatDetailView({ detail, now = new Date() }: AlatDetailViewProps
           <KeyValueRow label="Kualitas sinyal" value={signalLabels[detail.signal]} />
         </dl>
         <Button asChild size="lg" className="self-start">
-          <Link to={`/alat/${encodeURIComponent(detail.id)}/ganti-nama`}>Ganti nama</Link>
+          <Link to={`/alat/${encodeURIComponent(detail.id)}/ganti-nama${search}`}>Ganti nama</Link>
         </Button>
       </SectionCard>
     </div>
