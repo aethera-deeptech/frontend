@@ -85,3 +85,14 @@ A `ready` report has the fields below.
 `GET /v1/production` returns the production records of the business. It has `unit`, the unit that the business counts in, `units`, the units that it can choose from, `today`, the day of the business now, and `recent`, the newest records first. A record has `date`, written `YYYY-MM-DD`, and `quantity`, a whole number above 0. The day `today` is the last day that the form lets the user pick.
 
 `PUT /v1/production/{date}` with the body `{ "quantity": 124, "unit": "potong" }` saves the record of that day. A day has one record, so saving a day that has one replaces it. The answer may have any body. After a save the frontend loads the records, the home screen and the report again.
+
+## Pengaturan
+
+`GET /v1/settings` returns the settings of the business with the fields below.
+
+- `businessName`, the name that shows at the top of the home screen.
+- `workHours` with `days`, which is `mon-fri`, `mon-sat` or `daily`, and `start` and `end`, written `HH:MM`.
+- `tariff` with `rpPerKwh`, `isDefault` and `defaultRpPerKwh`. `isDefault` is true while the user has not filled in a tariff, and then `rpPerKwh` is the default.
+- `anomalySensitivity`, which is `rendah`, `sedang` or `tinggi`.
+
+`PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh` and `anomalySensitivity`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices and the report again, because the tariff and the sensitivity change their numbers.
