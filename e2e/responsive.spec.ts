@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('the page does not scroll sideways', async ({ page }) => {
   await page.goto('/');
   // wait for React to render, because an empty page cannot overflow and the test would pass without checking anything
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Konveksi Maju Jaya' })).toBeVisible();
 
   const overflow = await page.evaluate(() => {
     return document.documentElement.scrollWidth - window.innerWidth;

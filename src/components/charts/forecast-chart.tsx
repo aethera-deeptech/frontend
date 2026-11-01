@@ -51,7 +51,7 @@ export function ForecastChart({
 
   return (
     <div ref={ref} className="flex w-full min-w-0 flex-col gap-3">
-      <svg role="img" aria-label={label} width={width} height={HEIGHT} className="block">
+      <svg role="img" aria-label={label} width={width} height={HEIGHT} className="block max-w-full">
         {ticks.map((y, index) => (
           <g key={y}>
             <line
