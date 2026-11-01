@@ -8,7 +8,8 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { AlatListView, deviceFilterOptions, type DeviceFilter } from '@/pages/alat/alat-list-view';
+import { deviceFilterOptions, type DeviceFilter } from '@/pages/alat/device-filters';
+import { AlatListView } from '@/pages/alat/alat-list-view';
 
 function readFilter(value: string | null): DeviceFilter {
   return deviceFilterOptions.find((option) => option.value === value)?.value ?? 'all';

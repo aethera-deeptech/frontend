@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -59,7 +59,7 @@ describe('the list of devices', () => {
     await userEvent.click(await screen.findByRole('option', { name: 'Mati' }));
 
     await waitFor(() => {
-      expect(screen.getAllByRole('listitem')).toHaveLength(1);
+      expect(within(screen.getByRole('main')).getAllByRole('listitem')).toHaveLength(1);
     });
     expect(router.state.location.search).toBe('?status=mati');
   });
@@ -100,7 +100,8 @@ describe('the detail of a device', () => {
     renderAt('/alat/d4');
 
     expect(await screen.findByRole('heading', { name: 'Info alat' })).toBeInTheDocument();
-    expect(screen.getByText('780 W')).toBeInTheDocument();
+    // The list next to the detail shows the power of the open device as well
+    expect(screen.getAllByText('780 W')).toHaveLength(2);
   });
 
   it('says that the device does not exist when the API says 404', async () => {

@@ -169,7 +169,8 @@ describe('Tambah alat, the search', () => {
       '/alat',
     );
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
-    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+    const body = post?.[1]?.body;
+    expect(typeof body === 'string' ? JSON.parse(body) : undefined).toEqual({
       kind: 'clamp',
       name: 'Mesin jahit 2',
       roomId: 'produksi',

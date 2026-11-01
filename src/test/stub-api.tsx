@@ -41,7 +41,8 @@ export function renderAt(path: string) {
   return router;
 }
 
-const originalMatchMedia = typeof window === 'undefined' ? undefined : window.matchMedia;
+const originalMatchMedia =
+  typeof window === 'undefined' ? undefined : window.matchMedia.bind(window);
 
 // Makes (min-width: 1024px) and every other query match, like a wide screen
 export function matchWideScreen() {
