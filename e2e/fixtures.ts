@@ -46,7 +46,7 @@ function beranda() {
 }
 
 export const test = base.extend({
-  page: async ({ page }, use) => {
+  page: async ({ page }, provide) => {
     await page.route(`${apiOrigin}/**`, async (route) => {
       const origin = route.request().headers().origin ?? '';
       const headers = {
@@ -62,7 +62,7 @@ export const test = base.extend({
         await route.fulfill({ status: 404, headers, body: '{}' });
       }
     });
-    await use(page);
+    await provide(page);
   },
 });
 

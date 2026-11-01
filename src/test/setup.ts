@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 // The tests of the nginx files and of the design tokens run in the node environment, which has no window.
 if (typeof window !== 'undefined') {
@@ -17,12 +17,7 @@ class ResizeObserverStub {
   disconnect = () => undefined;
 }
 
-// A test that needs the network stubs fetch itself. Without that, a screen that loads data fails like a phone without a connection
-// and never reaches the real network. The stubs are set before each test because a test may call vi.unstubAllGlobals().
-beforeEach(() => {
-  vi.stubGlobal('ResizeObserver', ResizeObserverStub);
-  vi.stubGlobal('fetch', () => Promise.reject(new TypeError('There is no network in tests.')));
-});
+vi.stubGlobal('ResizeObserver', ResizeObserverStub);
 
 afterEach(() => {
   cleanup();

@@ -48,16 +48,13 @@ describe('BerandaView, ready', () => {
     renderView({ onDecision });
 
     expect(screen.getByRole('heading', { level: 2, name: 'Saran' })).toBeInTheDocument();
-    const tip = screen
-      .getByRole('heading', { name: 'Kurangi waktu pemanasan setrika uap' })
-      .closest('section');
-    expect(tip).not.toBeNull();
-    expect(
-      within(tip as HTMLElement).getByText('Hemat sekitar Rp104.000 per bulan'),
-    ).toBeInTheDocument();
+    const tip = within(
+      screen.getByRole('article', { name: 'Kurangi waktu pemanasan setrika uap' }),
+    );
+    expect(tip.getByText('Hemat sekitar Rp104.000 per bulan')).toBeInTheDocument();
 
-    await userEvent.click(within(tip as HTMLElement).getByRole('button', { name: 'Terapkan' }));
-    await userEvent.click(within(tip as HTMLElement).getByRole('button', { name: 'Nanti' }));
+    await userEvent.click(tip.getByRole('button', { name: 'Terapkan' }));
+    await userEvent.click(tip.getByRole('button', { name: 'Nanti' }));
 
     expect(onDecision).toHaveBeenNthCalledWith(1, 'r2', 'apply');
     expect(onDecision).toHaveBeenNthCalledWith(2, 'r2', 'defer');
