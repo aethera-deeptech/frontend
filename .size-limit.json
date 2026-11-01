@@ -1,8 +1,13 @@
 [
   {
-    "name": "JavaScript",
+    "name": "JavaScript, entry",
+    "path": "dist/assets/index-*.js",
+    "limit": "100 kB"
+  },
+  {
+    "name": "JavaScript, all chunks",
     "path": "dist/assets/*.js",
-    "limit": "190 kB"
+    "limit": "230 kB"
   },
   {
     "name": "CSS",

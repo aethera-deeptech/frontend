@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from '@/app';
 import '@/index.css';
+import { reloadOnPreloadError } from '@/lib/reload-on-preload-error';
+
+reloadOnPreloadError();
 
 const root = document.getElementById('root');
 

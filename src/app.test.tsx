@@ -4,8 +4,12 @@ import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
-import { App } from '@/app';
 import { routes } from '@/routes';
+import { resolveLazyRoutes } from '@/test/resolve-routes';
+
+// The pages load on demand, so they are loaded before the app builds its router
+await resolveLazyRoutes(routes);
+const { App } = await import('@/app');
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });

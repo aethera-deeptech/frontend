@@ -5,6 +5,9 @@ import { RouterProvider } from 'react-router/dom';
 import { vi } from 'vitest';
 
 import { routes } from '@/routes';
+import { resolveLazyRoutes } from '@/test/resolve-routes';
+
+await resolveLazyRoutes(routes);
 
 interface Answer {
   status?: number;
