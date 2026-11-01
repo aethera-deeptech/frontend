@@ -1,7 +1,9 @@
 import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router';
 
 import { useDevices } from '@/api/devices';
+import { CatatProduksiFab } from '@/components/layout/catat-produksi-fab';
 import { PageHeader } from '@/components/layout/page-header';
+import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
@@ -35,8 +37,13 @@ export function AlatLayout() {
       <title>Alat · Audit Energi UMKM</title>
       {/* On a phone the open device has its own top bar, so the title only stays for assistive technology */}
       <div className={id ? 'sr-only lg:not-sr-only' : undefined}>
-        <PageHeader title="Alat" subtitle="Alat yang terpasang di usaha Anda" />
+        <PageHeader
+          title="Alat"
+          subtitle="Alat yang terpasang di usaha Anda"
+          actions={<AddDeviceButton className={id ? 'hidden lg:inline-flex' : undefined} />}
+        />
       </div>
+      {!id && data && data.items.length > 0 ? <CatatProduksiFab /> : null}
       <div className="mt-3 lg:mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
         <div className={id ? 'hidden lg:block' : undefined}>
           {data ? (

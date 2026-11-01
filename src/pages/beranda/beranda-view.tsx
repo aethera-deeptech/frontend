@@ -1,7 +1,9 @@
 import type { BerandaData, CollectingBeranda, ReadyBeranda } from '@/api/beranda';
 import type { RecommendationDecision } from '@/api/recommendations';
 import { BarChart } from '@/components/charts/bar-chart';
+import { CatatProduksiFab } from '@/components/layout/catat-produksi-fab';
 import { PageHeader } from '@/components/layout/page-header';
+import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { Banner } from '@/components/ui/banner';
 import { BeforeAfter } from '@/components/ui/before-after';
 import { Card } from '@/components/ui/card';
@@ -86,8 +88,10 @@ export function BerandaView({
         <EmptyState
           headline="Belum ada alat terpasang"
           message="Pasang colokan pintar atau penjepit arus agar sistem bisa menghitung energi dan menyarankan penghematan dalam rupiah."
+          action={<AddDeviceButton />}
         />
       ) : null}
+      {data.phase !== 'no-devices' ? <CatatProduksiFab /> : null}
       {data.phase === 'collecting' ? <Collecting data={data} /> : null}
       {data.phase === 'ready' ? (
         <Ready

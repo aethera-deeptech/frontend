@@ -69,6 +69,11 @@ export function SaranDetailView({ detail, onDecision, busy = false }: SaranDetai
             {detail.tariffIsDefault ? 'Tarif bawaan, belum Anda isi' : 'Tarif Anda'}
           </Tag>
         </div>
+        {detail.tariffIsDefault ? (
+          <Button asChild size="lg">
+            <Link to="/lainnya/pengaturan/tarif">Isi tarif</Link>
+          </Button>
+        ) : null}
       </SectionCard>
 
       {status === 'applied' ? (

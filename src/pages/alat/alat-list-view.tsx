@@ -2,6 +2,7 @@ import { useLocation } from 'react-router';
 
 import type { DeviceList, DeviceListItem } from '@/api/devices';
 import { Button } from '@/components/ui/button';
+import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
 import { Select } from '@/components/ui/select';
@@ -26,6 +27,7 @@ export function AlatListView({ data, filter, onFilterChange, selectedId }: AlatL
       <EmptyState
         headline="Belum ada alat terpasang"
         message="Pasang colokan pintar atau penjepit arus agar sistem bisa menghitung energi dan menyarankan penghematan dalam rupiah."
+        action={<AddDeviceButton />}
       />
     );
   }
