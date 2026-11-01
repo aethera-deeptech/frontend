@@ -4,7 +4,7 @@ Frontend of an energy audit dashboard for small businesses (UMKM) in Indonesia, 
 
 ## Status
 
-The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and a not found page. The screens come from the Figma design in later pull requests, and the backend does not exist yet, so nothing in the app uses sample data.
+The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and the screens of the Mobile design. They are Beranda, Saran, Alat, Laporan, the Lainnya menu with Catat produksi and Pengaturan, the steps to add a device, and Masuk and Daftar, whose forms stay disabled until the login exists. The backend does not exist yet, so the screens read a contract that the frontend assumes (see `docs/api-assumptions.md`), and nothing in the app uses sample data. Until the API answers, the screens show their loading, error and empty states.
 
 ## Stack
 
