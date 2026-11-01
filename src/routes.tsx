@@ -1,85 +1,210 @@
+import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router';
 
+import { AppLoading } from '@/components/layout/app-loading';
 import { AppShell } from '@/components/layout/app-shell';
-import { AlatDetailPage } from '@/pages/alat/alat-detail-page';
-import { AlatLayout } from '@/pages/alat/alat-layout';
-import { AlatRenamePage } from '@/pages/alat/alat-rename-page';
-import { BerandaPage } from '@/pages/beranda/beranda-page';
-import { EditHoursPage } from '@/pages/pengaturan/edit-hours-page';
-import { EditNamePage } from '@/pages/pengaturan/edit-name-page';
-import { EditSensitivityPage } from '@/pages/pengaturan/edit-sensitivity-page';
-import { EditTariffPage } from '@/pages/pengaturan/edit-tariff-page';
-import { LainnyaPage } from '@/pages/lainnya/lainnya-page';
-import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { NotFoundPage } from '@/pages/not-found-page';
-import { DaftarPage } from '@/pages/auth/daftar-page';
-import { MasukPage } from '@/pages/auth/masuk-page';
-import { BeriNamaPage } from '@/pages/pasang-alat/beri-nama-page';
-import { MencariPage } from '@/pages/pasang-alat/mencari-page';
-import { PengaturanPage } from '@/pages/pengaturan/pengaturan-page';
-import { PersetujuanPage } from '@/pages/pasang-alat/persetujuan-page';
-import { PeringatanPage } from '@/pages/pasang-alat/peringatan-page';
-import { PilihJenisPage } from '@/pages/pasang-alat/pilih-jenis-page';
-import { TambahAlatLayout } from '@/pages/pasang-alat/wizard';
-import { ProduksiPage } from '@/pages/produksi/produksi-page';
-import { SaranCancelPage } from '@/pages/saran/saran-cancel-page';
-import { SaranDetailPage } from '@/pages/saran/saran-detail-page';
-import { SaranLayout } from '@/pages/saran/saran-layout';
+
+// Each page is its own chunk that loads when its address opens, so the first visit downloads the shell and one page and not
+// every screen. The shell and the not found page stay in the entry because every address needs them.
+function lazyPage<Module>(
+  load: () => Promise<Module>,
+  pick: (module: Module) => ComponentType,
+): Pick<RouteObject, 'lazy'> {
+  return {
+    lazy: async () => ({ Component: pick(await load()) }),
+  };
+}
 
 export const routes: RouteObject[] = [
-  // The screens before the login have no menu, so they sit outside the shell
-  { path: 'masuk', element: <MasukPage /> },
-  { path: 'daftar', element: <DaftarPage /> },
   {
-    element: <AppShell />,
+    // Shown while the chunk of the first page loads
+    HydrateFallback: AppLoading,
     children: [
-      { index: true, element: <BerandaPage /> },
+      // The screens before the login have no menu, so they sit outside the shell
       {
-        path: 'saran',
-        element: <SaranLayout />,
-        children: [
-          { path: ':id', element: <SaranDetailPage /> },
-          { path: ':id/batalkan', element: <SaranCancelPage /> },
-        ],
+        path: 'masuk',
+        ...lazyPage(
+          () => import('@/pages/auth/masuk-page'),
+          (module) => module.MasukPage,
+        ),
       },
       {
-        path: 'alat/tambah',
-        element: <TambahAlatLayout />,
-        children: [
-          { index: true, element: <PilihJenisPage /> },
-          { path: 'peringatan', element: <PeringatanPage /> },
-          { path: 'persetujuan', element: <PersetujuanPage /> },
-          { path: 'nama', element: <BeriNamaPage /> },
-          { path: 'mencari/:id', element: <MencariPage /> },
-        ],
+        path: 'daftar',
+        ...lazyPage(
+          () => import('@/pages/auth/daftar-page'),
+          (module) => module.DaftarPage,
+        ),
       },
       {
-        path: 'alat',
-        element: <AlatLayout />,
+        element: <AppShell />,
         children: [
-          { path: ':id', element: <AlatDetailPage /> },
-          { path: ':id/ganti-nama', element: <AlatRenamePage /> },
-        ],
-      },
-      { path: 'laporan', element: <LaporanPage /> },
-      {
-        path: 'lainnya',
-        children: [
-          { index: true, element: <LainnyaPage /> },
-          { path: 'produksi', element: <ProduksiPage /> },
           {
-            path: 'pengaturan',
+            index: true,
+            ...lazyPage(
+              () => import('@/pages/beranda/beranda-page'),
+              (module) => module.BerandaPage,
+            ),
+          },
+          {
+            path: 'saran',
+            ...lazyPage(
+              () => import('@/pages/saran/saran-layout'),
+              (module) => module.SaranLayout,
+            ),
             children: [
-              { index: true, element: <PengaturanPage /> },
-              { path: 'nama', element: <EditNamePage /> },
-              { path: 'tarif', element: <EditTariffPage /> },
-              { path: 'jam-kerja', element: <EditHoursPage /> },
-              { path: 'kepekaan', element: <EditSensitivityPage /> },
+              {
+                path: ':id',
+                ...lazyPage(
+                  () => import('@/pages/saran/saran-detail-page'),
+                  (module) => module.SaranDetailPage,
+                ),
+              },
+              {
+                path: ':id/batalkan',
+                ...lazyPage(
+                  () => import('@/pages/saran/saran-cancel-page'),
+                  (module) => module.SaranCancelPage,
+                ),
+              },
             ],
           },
+          {
+            path: 'alat/tambah',
+            ...lazyPage(
+              () => import('@/pages/pasang-alat/wizard'),
+              (module) => module.TambahAlatLayout,
+            ),
+            children: [
+              {
+                index: true,
+                ...lazyPage(
+                  () => import('@/pages/pasang-alat/pilih-jenis-page'),
+                  (module) => module.PilihJenisPage,
+                ),
+              },
+              {
+                path: 'peringatan',
+                ...lazyPage(
+                  () => import('@/pages/pasang-alat/peringatan-page'),
+                  (module) => module.PeringatanPage,
+                ),
+              },
+              {
+                path: 'persetujuan',
+                ...lazyPage(
+                  () => import('@/pages/pasang-alat/persetujuan-page'),
+                  (module) => module.PersetujuanPage,
+                ),
+              },
+              {
+                path: 'nama',
+                ...lazyPage(
+                  () => import('@/pages/pasang-alat/beri-nama-page'),
+                  (module) => module.BeriNamaPage,
+                ),
+              },
+              {
+                path: 'mencari/:id',
+                ...lazyPage(
+                  () => import('@/pages/pasang-alat/mencari-page'),
+                  (module) => module.MencariPage,
+                ),
+              },
+            ],
+          },
+          {
+            path: 'alat',
+            ...lazyPage(
+              () => import('@/pages/alat/alat-layout'),
+              (module) => module.AlatLayout,
+            ),
+            children: [
+              {
+                path: ':id',
+                ...lazyPage(
+                  () => import('@/pages/alat/alat-detail-page'),
+                  (module) => module.AlatDetailPage,
+                ),
+              },
+              {
+                path: ':id/ganti-nama',
+                ...lazyPage(
+                  () => import('@/pages/alat/alat-rename-page'),
+                  (module) => module.AlatRenamePage,
+                ),
+              },
+            ],
+          },
+          {
+            path: 'laporan',
+            ...lazyPage(
+              () => import('@/pages/laporan/laporan-page'),
+              (module) => module.LaporanPage,
+            ),
+          },
+          {
+            path: 'lainnya',
+            children: [
+              {
+                index: true,
+                ...lazyPage(
+                  () => import('@/pages/lainnya/lainnya-page'),
+                  (module) => module.LainnyaPage,
+                ),
+              },
+              {
+                path: 'produksi',
+                ...lazyPage(
+                  () => import('@/pages/produksi/produksi-page'),
+                  (module) => module.ProduksiPage,
+                ),
+              },
+              {
+                path: 'pengaturan',
+                children: [
+                  {
+                    index: true,
+                    ...lazyPage(
+                      () => import('@/pages/pengaturan/pengaturan-page'),
+                      (module) => module.PengaturanPage,
+                    ),
+                  },
+                  {
+                    path: 'nama',
+                    ...lazyPage(
+                      () => import('@/pages/pengaturan/edit-name-page'),
+                      (module) => module.EditNamePage,
+                    ),
+                  },
+                  {
+                    path: 'tarif',
+                    ...lazyPage(
+                      () => import('@/pages/pengaturan/edit-tariff-page'),
+                      (module) => module.EditTariffPage,
+                    ),
+                  },
+                  {
+                    path: 'jam-kerja',
+                    ...lazyPage(
+                      () => import('@/pages/pengaturan/edit-hours-page'),
+                      (module) => module.EditHoursPage,
+                    ),
+                  },
+                  {
+                    path: 'kepekaan',
+                    ...lazyPage(
+                      () => import('@/pages/pengaturan/edit-sensitivity-page'),
+                      (module) => module.EditSensitivityPage,
+                    ),
+                  },
+                ],
+              },
+            ],
+          },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
-      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ];
