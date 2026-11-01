@@ -9,10 +9,11 @@ const axeDevices = ['iPhone SE', 'iPhone 13', 'Desktop Chrome'];
 
 const screens = [
   { name: 'Beranda', path: '/', everyDevice: true },
-  { name: 'Saran', path: '/saran' },
+  // On a wide screen the list opens its first tip once it has loaded, so these two wait for a link that stays on both layouts
+  { name: 'Saran', path: '/saran', link: 'Matikan mesin jahit 3 di luar jam kerja' },
   { name: 'Saran, a tip that waits', path: '/saran/r1' },
   { name: 'Saran, cancel an applied tip', path: '/saran/r3/batalkan' },
-  { name: 'Alat', path: '/alat' },
+  { name: 'Alat', path: '/alat', link: 'Mesin jahit 1' },
   { name: 'Alat, a device that runs', path: '/alat/d4' },
   { name: 'Alat, a device with an anomaly', path: '/alat/d1' },
   { name: 'Alat, a device that is offline', path: '/alat/d2' },
@@ -41,7 +42,7 @@ async function expectNoViolations(page: Page) {
 // The page counts as ready when its heading shows, it is not the error page, no skeleton is left and no load error shows.
 // Without this a scan of a loading or an error state would pass while the real screen is never checked. A banner with a
 // notice is part of some screens, so a banner alone is not a sign.
-async function expectLoaded(page: Page) {
+async function expectLoaded(page: Page, link?: string) {
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   // The error page has a heading of its own, so a route that throws would be scanned in place of the screen
   await expect(page.getByRole('heading', { level: 1, name: 'Terjadi kesalahan' })).toHaveCount(0);
@@ -49,6 +50,10 @@ async function expectLoaded(page: Page) {
   await expect(
     page.getByRole('alert').filter({ hasText: /tidak bisa dimuat|belum bisa dimuat/ }),
   ).toHaveCount(0);
+
+  if (link) {
+    await expect(page.getByRole('link', { name: link }).first()).toBeVisible();
+  }
 }
 
 // The home screen runs on every device, as it did before. The other screens and the steps to add a device run on three, because the
@@ -63,7 +68,7 @@ for (const screen of screens) {
   test(`${screen.name} has no accessibility violations`, async ({ page }, testInfo) => {
     onlyOnAxeDevices(testInfo.project.name, screen.everyDevice);
     await page.goto(screen.path);
-    await expectLoaded(page);
+    await expectLoaded(page, screen.link);
 
     await expectNoViolations(page);
   });
