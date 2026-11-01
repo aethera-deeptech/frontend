@@ -7,13 +7,16 @@ const envSchema = z.object({
     error: 'VITE_API_BASE_URL must be a full URL, for example https://api.example.com',
   }),
   VITE_GOOGLE_CLIENT_ID: z.string().default(''),
-  VITE_SENTRY_DSN: z.string().default(''),
+  VITE_SENTRY_DSN: z.string().trim().default(''),
+  VITE_SENTRY_ENVIRONMENT: z.string().trim().default(''),
 });
 
 export interface Env {
   apiBaseUrl: string;
   googleClientId: string;
   sentryDsn: string;
+  // The name that Sentry files the errors under, so a preview build stays apart from production
+  sentryEnvironment: string;
 }
 
 export function parseEnv(raw: Record<string, unknown>): Env {
@@ -29,6 +32,7 @@ export function parseEnv(raw: Record<string, unknown>): Env {
     apiBaseUrl: parsed.data.VITE_API_BASE_URL.replace(/\/+$/, ''),
     googleClientId: parsed.data.VITE_GOOGLE_CLIENT_ID,
     sentryDsn: parsed.data.VITE_SENTRY_DSN,
+    sentryEnvironment: parsed.data.VITE_SENTRY_ENVIRONMENT || 'production',
   };
 }
 

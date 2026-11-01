@@ -25,7 +25,6 @@ What exists now:
 What is planned and not built yet:
 
 - Lazy loading of the routes
-- Sentry error reporting, which needs a DSN
 - The Desktop variants of the master-detail screens
 - The other sign-in screens (email check, forgotten password, new password and business name after Google), which need the login
 
@@ -50,6 +49,10 @@ This builds the image and serves it on http://localhost:3000. The published imag
 ## Hosting
 
 The site is static files. Cloudflare Pages builds `main` with `npm run build` and serves `dist`. The repository has no `404.html`, so Pages serves `index.html` for every unknown path, which is what a single page app needs. `public/_headers` sets the security headers and the content security policy. The API address is a build setting (`VITE_API_BASE_URL`), so a change needs a new build.
+
+## Error reporting
+
+Errors reach Sentry when the build has a `VITE_SENTRY_DSN`. The SDK loads as its own chunk after the entry, so a build with no DSN never downloads it, and an uncaught error that happens before the chunk has loaded is not reported. A route error that the error page catches in that time is queued and sent once the chunk has loaded. Nothing is sent when the chunk fails to load. `VITE_SENTRY_ENVIRONMENT` names the environment, for example `production` or `preview`, so the errors of a preview stay apart from production. The SDK is started with `dataCollection` turned off for the user info (so no IP address), the cookies, the headers, the bodies and the query string, and without its session reports, and the app sets up no tracing and no replay. The page address, the browser and the console and click breadcrumbs still go with an error. A page that throws shows the error page and reports the error. The content security policy allows only the EU ingest hosts of Sentry, `*.ingest.de.sentry.io`, so a DSN in another region needs a change of the policy. The published image is built without a DSN, so only the Cloudflare Pages builds report.
 
 ## Design
 

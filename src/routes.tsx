@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router';
 
 import { AppLoading } from '@/components/layout/app-loading';
 import { AppShell } from '@/components/layout/app-shell';
+import { ErrorPage } from '@/pages/error-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 
 // Each page is its own chunk that loads when its address opens, so the first visit downloads the shell and one page and not
@@ -20,6 +21,8 @@ export const routes: RouteObject[] = [
   {
     // Shown while the chunk of the first page loads
     HydrateFallback: AppLoading,
+    // A page that throws shows this instead of a blank screen
+    ErrorBoundary: ErrorPage,
     children: [
       // The screens before the login have no menu, so they sit outside the shell
       {
