@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useParams, useSearchParams } from 'react-router';
+import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router';
 
 import { useRecommendationDecision, useRecommendations } from '@/api/recommendations';
 import { PageHeader } from '@/components/layout/page-header';
@@ -16,6 +16,7 @@ function readFilter(value: string | null): StatusFilter {
 // The list of tips and, next to it on a wide screen, the tip that is open. On a phone the open tip replaces the list.
 export function SaranLayout() {
   const { id } = useParams();
+  const { search } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = readFilter(searchParams.get('status'));
   const query = useRecommendations();
@@ -27,7 +28,7 @@ export function SaranLayout() {
   const first = data?.phase === 'ready' ? visibleItems(data.items, filter) : undefined;
   const firstId = first ? [...first.waiting, ...first.handled][0]?.id : undefined;
   if (wide && !id && firstId) {
-    return <Navigate to={`/saran/${encodeURIComponent(firstId)}`} replace />;
+    return <Navigate to={{ pathname: `/saran/${encodeURIComponent(firstId)}`, search }} replace />;
   }
 
   return (
@@ -42,6 +43,14 @@ export function SaranLayout() {
       </div>
       <div className="mt-3 lg:mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
         <div className={id ? 'hidden lg:block' : undefined}>
+          {decision.isError ? (
+            <Banner
+              className="mb-3"
+              tone="danger"
+              title="Pilihan belum tersimpan"
+              message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
+            />
+          ) : null}
           {data ? (
             <SaranListView
               data={data}

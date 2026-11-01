@@ -1,3 +1,5 @@
+import { useLocation } from 'react-router';
+
 import type {
   RecommendationList,
   RecommendationListItem,
@@ -121,6 +123,8 @@ function Row({
   busy: boolean;
   selected: boolean;
 }) {
+  // The filter stays in the address when a tip opens
+  const { search } = useLocation();
   const note =
     item.status === 'applied' && item.progress
       ? `Hari ke-${item.progress.collectedDays.toString()} dari ${item.progress.neededDays.toString()}`
@@ -132,7 +136,7 @@ function Row({
     <RecommendationCard
       title={item.title}
       saving={`Perkiraan hemat sekitar ${formatRupiah(item.savingPerMonthRp)} per bulan`}
-      to={`/saran/${encodeURIComponent(item.id)}`}
+      to={`/saran/${encodeURIComponent(item.id)}${search}`}
       selected={selected}
       meta={
         item.status === 'pending' ? undefined : (
@@ -145,6 +149,7 @@ function Row({
       actions={
         item.status === 'pending' ? (
           <DecisionButtons
+            subject={item.title}
             busy={busy}
             onApply={() => {
               onDecision(item.id, 'apply');

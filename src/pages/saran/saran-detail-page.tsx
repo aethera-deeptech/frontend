@@ -14,13 +14,22 @@ export function SaranDetailPage() {
 
   if (query.data) {
     return (
-      <SaranDetailView
-        detail={query.data}
-        busy={decision.isPending}
-        onDecision={(choice) => {
-          decision.mutate({ id, decision: choice });
-        }}
-      />
+      <div className="flex flex-col gap-3">
+        {decision.isError ? (
+          <Banner
+            tone="danger"
+            title="Pilihan belum tersimpan"
+            message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
+          />
+        ) : null}
+        <SaranDetailView
+          detail={query.data}
+          busy={decision.isPending}
+          onDecision={(choice) => {
+            decision.mutate({ id, decision: choice });
+          }}
+        />
+      </div>
     );
   }
 
