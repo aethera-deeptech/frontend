@@ -4,6 +4,18 @@
 
 /* The text styles of the Figma file. Each name is a utility, for example text-body or text-kpi. */
 @theme {
+  /* The bar that shows a page is loading. It stays hidden for 150 ms, so a fast page shows no flicker. */
+  --animate-pending: pending-in 150ms linear 150ms both;
+
+  @keyframes pending-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   --font-sans: 'Rubik Variable', ui-sans-serif, system-ui, sans-serif;
 
   --text-kpi: 1.75rem;
