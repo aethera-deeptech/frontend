@@ -127,7 +127,7 @@ describe('LaporanView, download', () => {
     });
 
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Berkas Laporan-Oktober-2026.pdf sudah disimpan di perangkat Anda.',
+      'Berkas Laporan-Oktober-2026.pdf sudah diunduh.',
     );
     expect(screen.getByRole('link', { name: 'Buka laporan' })).toHaveAttribute(
       'href',

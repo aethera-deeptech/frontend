@@ -63,6 +63,47 @@ describe('LaporanPage', () => {
     );
   });
 
+  it('asks for the running month when the address has no month or a month that is not valid', async () => {
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(json(sampleReady())));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderPage('/laporan');
+    await screen.findByText('Rp312.000');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.example.com/v1/reports');
+
+    fetchMock.mockClear();
+    renderPage('/laporan?periode=');
+    renderPage('/laporan?periode=bukan-bulan');
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'https://api.example.com/v1/reports',
+      'https://api.example.com/v1/reports',
+    ]);
+  });
+
+  it('offers the running month when the asked month has no report', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 404)));
+    renderPage('/laporan?periode=2026-01');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Laporan tidak bisa dimuat');
+    expect(screen.getByRole('link', { name: 'Lihat bulan berjalan' })).toHaveAttribute(
+      'href',
+      '/laporan',
+    );
+  });
+
+  it('shows the empty state for a user with no device and no month with a report', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(json({ phase: 'no-devices', periods: [], period: '2026-10' })),
+    );
+    renderPage();
+
+    expect(await screen.findByText('Laporan belum tersedia')).toBeInTheDocument();
+  });
+
   it('loads the month that the user picks', async () => {
     const fetchMock = vi
       .fn()
@@ -119,12 +160,40 @@ describe('LaporanPage', () => {
     );
   });
 
+  it('does not save the file of a month that the user left while it was loading', async () => {
+    let finish: (response: Response) => void = () => undefined;
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(json(sampleReady()))
+      .mockReturnValueOnce(
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(json(sampleSeptember()));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Unduh laporan (PDF)' }));
+    await userEvent.click(screen.getByRole('combobox', { name: 'Periode' }));
+    await userEvent.click(screen.getByRole('option', { name: 'September 2026' }));
+    await screen.findByText('Belum ada saran yang dicek');
+    finish(new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } }));
+
+    await waitFor(() => {
+      expect(HTMLAnchorElement.prototype.click).not.toHaveBeenCalled();
+    });
+    expect(screen.queryByText('Laporan diunduh')).not.toBeInTheDocument();
+  });
+
   it('says that the download failed and lets the user try again', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(json(sampleReady()))
       .mockResolvedValueOnce(json({}, 500))
-      .mockResolvedValueOnce(new Response('%PDF'));
+      .mockResolvedValueOnce(
+        new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } }),
+      );
     vi.stubGlobal('fetch', fetchMock);
     renderPage();
 
