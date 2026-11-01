@@ -128,9 +128,17 @@ export async function apiDownload(
 ): Promise<Blob> {
   const response = await send(path, 'application/pdf', options);
 
+  let blob: Blob;
+
   try {
-    return await response.blob();
+    blob = await response.blob();
   } catch (error) {
     throw toNetworkError(error);
   }
+
+  // An empty answer, or a page that a proxy or the app fallback sends with status 200, is not a report
+  if (blob.size === 0 || (blob.type !== '' && !blob.type.startsWith('application/pdf'))) {
+    throw new ContractError();
+  }
+  return blob.type === '' ? new Blob([blob], { type: 'application/pdf' }) : blob;
 }

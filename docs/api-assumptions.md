@@ -8,11 +8,11 @@ Only the files in `src/api` know these paths and shapes. When the backend differ
 
 `GET /v1/beranda` returns the data of the home screen. The field `phase` tells which shape follows.
 
-| Phase | Meaning | Fields besides `businessName` and `asOf` |
-| --- | --- | --- |
-| `no-devices` | No device is installed yet | none |
-| `collecting` | The system is collecting the first days of data | `collectedDays`, `neededDays`, `topDevices` |
-| `ready` | Tips and forecasts are available | `savingPerMonthRp`, `statusCounts`, `recommendations`, `bill`, `topDevices`, `energyPerPiece` |
+| Phase        | Meaning                                         | Fields besides `businessName` and `asOf`                                                      |
+| ------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `no-devices` | No device is installed yet                      | none                                                                                          |
+| `collecting` | The system is collecting the first days of data | `collectedDays`, `neededDays`, `topDevices`                                                   |
+| `ready`      | Tips and forecasts are available                | `savingPerMonthRp`, `statusCounts`, `recommendations`, `bill`, `topDevices`, `energyPerPiece` |
 
 - `asOf` is the moment of the data, as an ISO 8601 date and time with an offset.
 - `statusCounts` has the whole numbers `anomali`, `offline`, `siaga`, `nyala` and `mati`.
@@ -30,11 +30,11 @@ Only the files in `src/api` know these paths and shapes. When the backend differ
 
 `GET /v1/recommendations` returns the list of tips. The field `phase` tells which shape follows.
 
-| Phase | Meaning | Fields besides `businessName` |
-| --- | --- | --- |
-| `no-devices` | No device is installed yet | none |
-| `collecting` | The first days of data are still collected | `neededDays` |
-| `ready` | The tips can be shown | `items` |
+| Phase        | Meaning                                    | Fields besides `businessName` |
+| ------------ | ------------------------------------------ | ----------------------------- |
+| `no-devices` | No device is installed yet                 | none                          |
+| `collecting` | The first days of data are still collected | `neededDays`                  |
+| `ready`      | The tips can be shown                      | `items`                       |
 
 Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pending`, `deferred`, `applied`, `verified` or `rejected`. An applied tip also has `progress` with `collectedDays` and `neededDays`. A verified tip also has `resultPercent`, the drop of the energy for each piece in percent.
 
@@ -62,7 +62,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 ## Laporan
 
-`GET /v1/reports` returns the report of the running month. `GET /v1/reports?period=2026-09` returns the report of another month, written as `YYYY-MM`. The API answers 404 for a month that has no report. The field `phase` tells which shape follows. Every shape has `periods`, the months that have a report with the newest first, and `period`, the month of the answer.
+`GET /v1/reports` returns the report of the running month. `GET /v1/reports?period=2026-09` returns the report of another month, written as `YYYY-MM`. The API answers 404 for a month that has no report. The field `phase` tells which shape follows. Every shape has `periods`, the months that have a report with the newest first (empty when no report exists yet, never empty for `ready`), and `period`, the month of the answer.
 
 | Phase        | Meaning                                    | Fields besides `periods` and `period` |
 | ------------ | ------------------------------------------ | ------------------------------------- |

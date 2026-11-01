@@ -36,7 +36,7 @@ export function LaporanView({
         <Banner
           tone="info"
           title="Laporan diunduh"
-          message={`Berkas ${download.fileName} sudah disimpan di perangkat Anda.`}
+          message={`Berkas ${download.fileName} sudah diunduh.`}
           action={
             <Button size="lg" asChild>
               <a href={download.url} target="_blank" rel="noreferrer">
@@ -50,7 +50,7 @@ export function LaporanView({
         <Banner
           tone="danger"
           title="Laporan belum terunduh"
-          message="Pastikan ruang penyimpanan di perangkat Anda cukup."
+          message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
           action={
             <Button size="lg" onClick={onDownload}>
               Coba lagi
@@ -74,7 +74,7 @@ export function LaporanView({
         <div aria-busy={loading} className={loading ? 'opacity-60' : undefined}>
           <div className="flex flex-col gap-3 lg:gap-6">
             <PeriodSelect data={data} period={period} onChange={onPeriodChange} />
-            <Ready data={data} download={download} onDownload={onDownload} />
+            <Ready data={data} download={download} onDownload={onDownload} loading={loading} />
           </div>
         </div>
       ) : null}
@@ -111,10 +111,13 @@ function Ready({
   data,
   download,
   onDownload,
+  loading,
 }: {
   data: ReadyReport;
   download: ReportDownload;
   onDownload: () => void;
+  // The old month stays on the screen while the next one loads, so the file of the new month must wait
+  loading: boolean;
 }) {
   const bill = formatRupiah(data.billRp);
   const billLabel = data.through
@@ -166,7 +169,7 @@ function Ready({
             }))}
           />
         </Card>
-        <Button size="lg" onClick={onDownload} disabled={download.status === 'busy'}>
+        <Button size="lg" onClick={onDownload} disabled={download.status === 'busy' || loading}>
           {download.status === 'busy' ? 'Menyiapkan laporan' : 'Unduh laporan (PDF)'}
         </Button>
         <p className="text-label text-text-2">

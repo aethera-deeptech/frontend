@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { useReport } from '@/api/reports';
 import { PageHeader } from '@/components/layout/page-header';
@@ -11,7 +11,9 @@ import { useReportDownload } from '@/pages/laporan/use-report-download';
 // The month lives in the address (?periode=2026-09), so the back button and a shared link keep it.
 export function LaporanPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const requested = searchParams.get('periode') ?? undefined;
+  const asked = searchParams.get('periode');
+  // A month that is not written as YYYY-MM, for example from an old or a typed link, is the same as no month
+  const requested = asked !== null && /^\d{4}-(0[1-9]|1[0-2])$/.test(asked) ? asked : undefined;
   const query = useReport(requested);
   const download = useReportDownload();
   const data = query.data;
@@ -44,14 +46,21 @@ export function LaporanPage() {
               title="Laporan tidak bisa dimuat"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
               action={
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    void query.refetch();
-                  }}
-                >
-                  Coba lagi
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      void query.refetch();
+                    }}
+                  >
+                    Coba lagi
+                  </Button>
+                  {requested ? (
+                    <Button asChild size="lg">
+                      <Link to="/laporan">Lihat bulan berjalan</Link>
+                    </Button>
+                  ) : null}
+                </div>
               }
             />
           )}

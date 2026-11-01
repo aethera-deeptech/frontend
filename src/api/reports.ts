@@ -12,7 +12,7 @@ const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 
 const base = {
   // The months that have a report, the newest first
-  periods: z.array(month).min(1),
+  periods: z.array(month),
   period: month,
   // Set while the period is the running month, the moment of the newest data
   through: z.iso.datetime({ offset: true }).optional(),
@@ -36,6 +36,8 @@ export const reportSchema = z.discriminatedUnion('phase', [
   z.object({
     phase: z.literal('ready'),
     ...base,
+    // A report that is ready is one of the months that have a report
+    periods: z.array(month).min(1),
     saving,
     topDevices: z.array(z.object({ name: z.string(), kwh: z.number().nonnegative() })),
     billRp: rupiah,
