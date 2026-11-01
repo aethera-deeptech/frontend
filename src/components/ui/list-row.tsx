@@ -41,7 +41,7 @@ export function ListRow({
         ) : null}
       </span>
       {value ? (
-        <span className="flex shrink-0 flex-col items-end gap-1">
+        <span className="flex max-w-[60%] shrink-0 flex-col items-end gap-1 text-right break-words">
           <span className="text-body text-text-1">{value}</span>
           {valueNote ? <span className="text-label text-text-2">{valueNote}</span> : null}
         </span>

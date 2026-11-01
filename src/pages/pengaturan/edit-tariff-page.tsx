@@ -10,7 +10,11 @@ import { formatNumber, formatRupiah } from '@/lib/format';
 import { EditForm, settingsPath } from '@/pages/pengaturan/edit-form';
 import { SettingsGate } from '@/pages/pengaturan/settings-gate';
 
-// The user may type the dots of the thousands, as the field shows them
+// The user may type the dots of the thousands, as the field shows them, but only in groups of three digits. A dot or a
+// comma that stands for decimals (1444.7 or 1.444,70) is refused, because the tariff is in whole rupiah and a decimal dot
+// read as a thousands dot would make the tariff 10 times too high.
+const wholeRupiah = /^(\d+|\d{1,3}(\.\d{3})+)$/;
+
 function toNumber(text: string): number {
   return Number(text.replace(/\./g, ''));
 }
@@ -20,8 +24,8 @@ const schema = z.object({
     .string()
     .trim()
     .refine(
-      (text) => /^[\d.]+$/.test(text) && toNumber(text) > 0,
-      'Isi tarif dengan angka lebih dari 0.',
+      (text) => wholeRupiah.test(text) && toNumber(text) > 0,
+      'Isi tarif dengan angka bulat lebih dari 0, misalnya 1444 atau 1.444.',
     )
     .refine((text) => toNumber(text) <= 100_000, 'Tarif paling tinggi Rp100.000 per kWh.'),
 });
@@ -64,7 +68,13 @@ function TariffForm({ settings }: { settings: Settings }) {
       failed={update.isError}
       onSubmit={(event) => {
         void handleSubmit((values) => {
-          save(toNumber(values.tariff));
+          const typed = toNumber(values.tariff);
+          // The field starts with the default tariff. Saving it unchanged must not turn it into a tariff of the user.
+          if (tariff.isDefault && typed === tariff.rpPerKwh) {
+            void navigate(settingsPath);
+            return;
+          }
+          save(typed);
         })(event);
       }}
       extraAction={

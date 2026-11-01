@@ -29,6 +29,7 @@ function HoursForm({ hours }: { hours: WorkHours }) {
   const {
     control,
     handleSubmit,
+    trigger,
     formState: { errors },
   } = useForm<WorkHours>({ resolver: zodResolver(schema), defaultValues: hours });
   const options = timeOptions([hours.start, hours.end]);
@@ -71,7 +72,13 @@ function HoursForm({ hours }: { hours: WorkHours }) {
           <Select
             label="Jam mulai"
             value={field.value}
-            onValueChange={field.onChange}
+            onValueChange={(next) => {
+              field.onChange(next);
+              // An old error under the end time must follow the new start time
+              if (errors.end) {
+                void trigger('end');
+              }
+            }}
             options={options}
           />
         )}
