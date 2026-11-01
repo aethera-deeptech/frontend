@@ -35,12 +35,8 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
-// Every call to the API goes through here. The session is a cookie that the API sets, so the cookie is always sent.
-export async function apiRequest<T>(
-  path: string,
-  schema: z.ZodType<T>,
-  { method = 'GET', body, signal }: RequestOptions = {},
-): Promise<T> {
+async function send(path: string, accept: string, options: RequestOptions): Promise<Response> {
+  const { method = 'GET', body, signal } = options;
   let response: Response;
 
   try {
@@ -48,7 +44,7 @@ export async function apiRequest<T>(
       method,
       credentials: 'include',
       headers: {
-        Accept: 'application/json',
+        Accept: accept,
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -64,6 +60,17 @@ export async function apiRequest<T>(
   if (!response.ok) {
     throw new ApiError(response.status);
   }
+
+  return response;
+}
+
+// Every call to the API goes through here. The session is a cookie that the API sets, so the cookie is always sent.
+export async function apiRequest<T>(
+  path: string,
+  schema: z.ZodType<T>,
+  options: RequestOptions = {},
+): Promise<T> {
+  const response = await send(path, 'application/json', options);
 
   // An answer without a body, for example 204, is read as null
   const text = await response.text();
@@ -84,4 +91,13 @@ export async function apiRequest<T>(
   }
 
   return parsed.data;
+}
+
+// A call whose answer is a file, for example the PDF of a report
+export async function apiDownload(
+  path: string,
+  options: { signal?: AbortSignal } = {},
+): Promise<Blob> {
+  const response = await send(path, 'application/pdf', options);
+  return response.blob();
 }
