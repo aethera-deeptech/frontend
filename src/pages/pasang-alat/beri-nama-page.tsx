@@ -23,7 +23,8 @@ export function BeriNamaPage() {
   const wizard = useWizard();
   const rooms = useRooms();
 
-  if (!wizard.kind || !wizard.consented) {
+  // A clamp user who went back and took the safety tick away must read the warning again, so the tick counts here too
+  if (!wizard.kind || !wizard.consented || (wizard.kind === 'clamp' && !wizard.safetyRead)) {
     return <Navigate to={addPath} replace />;
   }
 
@@ -88,7 +89,8 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
             { kind, ...values },
             {
               onSuccess: ({ id }) => {
-                void navigate(`${addPath}/mencari/${encodeURIComponent(id)}`);
+                // Replace the step, so Back from the search does not return to a form that starts a second search
+                void navigate(`${addPath}/mencari/${encodeURIComponent(id)}`, { replace: true });
               },
             },
           );

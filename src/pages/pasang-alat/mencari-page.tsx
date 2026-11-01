@@ -64,7 +64,7 @@ export function MencariPage() {
             </Button>
           }
         />
-      ) : query.isError ? (
+      ) : query.isError && !status ? (
         <Banner
           tone="danger"
           title="Status alat tidak bisa dimuat"
@@ -83,6 +83,13 @@ export function MencariPage() {
       ) : (
         <SkeletonCard label="Mencari alat di dekat Anda" />
       )}
+      {start.isError ? (
+        <Banner
+          tone="danger"
+          title="Pencarian belum bisa dimulai"
+          message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
+        />
+      ) : null}
     </StepFrame>
   );
 }
