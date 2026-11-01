@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -31,6 +31,7 @@ describe('AppShell while a page loads', () => {
     const main = screen.getByRole('main');
 
     expect(main).toHaveAttribute('aria-busy', 'false');
+    expect(screen.getByTestId('pending-bar')).toHaveClass('hidden');
 
     await act(async () => {
       void router.navigate('/lambat');
@@ -38,8 +39,13 @@ describe('AppShell while a page loads', () => {
     });
 
     expect(main).toHaveAttribute('aria-busy', 'true');
-    expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('Memuat halaman');
+    expect(screen.getByTestId('pending-bar')).not.toHaveClass('hidden');
     expect(screen.getByText('Halaman awal')).toBeInTheDocument();
+    // The note for a screen reader waits, so a fast page says nothing
+    expect(container.querySelector('[aria-live="polite"]')).toBeEmptyDOMElement();
+    await waitFor(() => {
+      expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('Memuat halaman');
+    });
 
     await act(async () => {
       finish({ Component: () => <p>Halaman lambat</p> });
@@ -48,6 +54,7 @@ describe('AppShell while a page loads', () => {
 
     expect(await screen.findByText('Halaman lambat')).toBeInTheDocument();
     expect(main).toHaveAttribute('aria-busy', 'false');
+    expect(screen.getByTestId('pending-bar')).toHaveClass('hidden');
     expect(container.querySelector('[aria-live="polite"]')).toBeEmptyDOMElement();
   });
 });
