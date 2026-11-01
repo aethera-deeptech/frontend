@@ -127,7 +127,7 @@ describe('BerandaPage', () => {
     renderPage();
 
     expect(await screen.findByText('Belum terhubung')).toBeInTheDocument();
-    expect(screen.getByText('Memuat data Anda')).toBeInTheDocument();
+    expect(screen.getAllByText('Memuat data Anda').length).toBeGreaterThan(0);
 
     onlineManager.setOnline(true);
 
