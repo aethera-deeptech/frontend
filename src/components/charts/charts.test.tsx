@@ -5,6 +5,32 @@ import { BarChart } from '@/components/charts/bar-chart';
 import { ForecastChart } from '@/components/charts/forecast-chart';
 import { PowerChart } from '@/components/charts/power-chart';
 
+describe('BarChart, odd values', () => {
+  it('draws no bar for a value that is negative or not a number', () => {
+    const { container } = render(
+      <BarChart
+        items={[
+          { label: 'A', value: 100 },
+          { label: 'B', value: -20 },
+          { label: 'C', value: Number.NaN },
+        ]}
+      />,
+    );
+
+    const widths = [...container.querySelectorAll<HTMLElement>('li span[style]')].map(
+      (bar) => bar.style.width,
+    );
+
+    expect(widths).toEqual(['100%', '0%', '0%']);
+  });
+
+  it('keeps the list role although the base styles reset the list style', () => {
+    render(<BarChart items={[{ label: 'A', value: 1 }]} />);
+
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
+  });
+});
+
 describe('BarChart', () => {
   it('lists every row with its value as text', () => {
     render(
@@ -78,6 +104,29 @@ describe('PowerChart', () => {
     expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(1);
   });
 
+  it('marks a stretch of one point with a dot', () => {
+    const { container } = render(
+      <PowerChart {...props} anomaly={{ from: 2, to: 2, label: 'Anomali 2.000 W' }} />,
+    );
+
+    expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(0);
+    expect(container.querySelectorAll('circle.fill-chart-anomaly')).toHaveLength(1);
+  });
+
+  it('keeps a stretch with wrong indexes inside the points', () => {
+    const { container } = render(
+      <PowerChart {...props} anomaly={{ from: -3, to: 99, label: 'Anomali 2.000 W' }} />,
+    );
+
+    expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(1);
+  });
+
+  it('ends the label of a stretch that starts near the right edge at the stretch', () => {
+    render(<PowerChart {...props} anomaly={{ from: 4, to: 4, label: 'Anomali 2.000 W' }} />);
+
+    expect(screen.getByText('Anomali 2.000 W')).toHaveAttribute('text-anchor', 'end');
+  });
+
   it('draws the usual range as a band', () => {
     const { container } = render(
       <PowerChart
@@ -92,7 +141,7 @@ describe('PowerChart', () => {
 
 describe('ForecastChart', () => {
   const props = {
-    billPoints: [0, 100_000, 250_000, 400_000],
+    billPoints: Array.from({ length: 20 }, (_, day) => day * 100_000),
     days: 31,
     projectedTotal: 2_000_000,
     yMax: 2_000_000,
@@ -115,6 +164,15 @@ describe('ForecastChart', () => {
     expect(chart).toHaveTextContent('Hari ini');
     expect(screen.getByText('Tagihan sampai hari ini')).toBeInTheDocument();
     expect(screen.getByText('Perkiraan tanpa saran')).toBeInTheDocument();
+  });
+
+  it('leaves out the start label while today is too close to it', () => {
+    render(<ForecastChart {...props} billPoints={[0, 100_000, 250_000]} />);
+
+    const chart = screen.getByRole('img', { name: 'Tagihan bulan ini' });
+
+    expect(chart).not.toHaveTextContent('1 Okt');
+    expect(chart).toHaveTextContent('Hari ini');
   });
 
   it('draws the line that shows the bill if the tips are used only when they are given', () => {
