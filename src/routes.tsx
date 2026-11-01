@@ -1,7 +1,7 @@
 import type { RouteObject } from 'react-router';
 
 import { AppShell } from '@/components/layout/app-shell';
-import { BerandaPage } from '@/pages/beranda-page';
+import { BerandaPage } from '@/pages/beranda/beranda-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 
 export const routes: RouteObject[] = [
