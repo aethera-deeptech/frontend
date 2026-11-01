@@ -9,22 +9,22 @@ if (typeof window !== 'undefined') {
   window.HTMLElement.prototype.setPointerCapture = () => undefined;
   window.HTMLElement.prototype.releasePointerCapture = () => undefined;
   window.HTMLElement.prototype.scrollIntoView = () => undefined;
-}
 
-// jsdom has no matchMedia. By default nothing matches, so a screen is drawn like on a phone.
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: (query: string): MediaQueryList => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-    addListener: () => undefined,
-    removeListener: () => undefined,
-    dispatchEvent: () => false,
-  }),
-});
+  // jsdom has no matchMedia. By default nothing matches, so a screen is drawn like on a phone.
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string): MediaQueryList => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
+}
 
 class ResizeObserverStub {
   observe = () => undefined;
