@@ -53,7 +53,7 @@ interface DecisionButtonsProps {
   // The buttons wait while a decision is being sent
   busy?: boolean;
   // The tip that the buttons act on. A screen reader hears it in the name, so three tips do not give three buttons that
-  // are all named Terapkan.
+  // share one name.
   subject?: string;
 }
 
