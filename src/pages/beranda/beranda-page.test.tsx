@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { BerandaPage } from '@/pages/beranda/beranda-page';
 import { sampleReady } from '@/pages/beranda/sample-beranda';
+import { first } from '@/test/helpers';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
@@ -92,7 +93,7 @@ describe('BerandaPage', () => {
     renderPage();
 
     const buttons = await screen.findAllByRole('button', { name: 'Terapkan' });
-    await userEvent.click(buttons[0] as HTMLElement);
+    await userEvent.click(first(buttons));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(

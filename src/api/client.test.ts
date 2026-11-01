@@ -10,7 +10,8 @@ vi.mock('@/lib/env', () => ({
 const schema = z.object({ name: z.string() });
 
 function answer(body: string, status = 200) {
-  return vi.fn().mockResolvedValue(new Response(body, { status }));
+  // A response with the status 204 must not have a body
+  return vi.fn().mockResolvedValue(new Response(body === '' ? null : body, { status }));
 }
 
 afterEach(() => {

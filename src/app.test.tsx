@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, within } from '@testing-library/react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -8,7 +9,12 @@ import { routes } from '@/routes';
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
-  return render(<RouterProvider router={router} />);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
 
 describe('App', () => {
@@ -46,7 +52,12 @@ describe('the app shell', () => {
 
   it('moves the focus to the main content after a navigation and not on the first render', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
-    render(<RouterProvider router={router} />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
 
     expect(screen.getByRole('main')).not.toHaveFocus();
 
