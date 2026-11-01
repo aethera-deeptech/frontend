@@ -25,6 +25,31 @@ describe('the list of devices', () => {
     expect(document.title).toBe('Alat · Audit Energi UMKM');
   });
 
+  it('offers to add a device and to record the production', async () => {
+    stubApi({ 'GET /v1/devices': { body: sampleDevices() } });
+    renderAt('/alat');
+
+    await screen.findByText('6 alat terpasang, 1 anomali, 1 offline');
+
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
+    expect(screen.getByRole('link', { name: 'Catat produksi' })).toHaveAttribute(
+      'href',
+      '/lainnya/produksi',
+    );
+  });
+
+  it('does not offer the production while no device is installed', async () => {
+    stubApi({ 'GET /v1/devices': { body: { items: [] } } });
+    renderAt('/alat');
+
+    await screen.findAllByRole('link', { name: 'Tambah alat' });
+
+    expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
+  });
+
   it('shows only the chosen status and keeps it in the address', async () => {
     stubApi({ 'GET /v1/devices': { body: sampleDevices() } });
     const router = renderAt('/alat');

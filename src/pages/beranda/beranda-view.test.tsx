@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { BerandaView } from '@/pages/beranda/beranda-view';
@@ -10,13 +11,15 @@ const now = new Date(2026, 9, 29, 12, 0);
 
 function renderView(props: Partial<ComponentProps<typeof BerandaView>> = {}) {
   return render(
-    <BerandaView
-      data={sampleReady()}
-      connection="online"
-      onDecision={vi.fn()}
-      now={now}
-      {...props}
-    />,
+    <MemoryRouter>
+      <BerandaView
+        data={sampleReady()}
+        connection="online"
+        onDecision={vi.fn()}
+        now={now}
+        {...props}
+      />
+    </MemoryRouter>,
   );
 }
 
@@ -170,7 +173,21 @@ describe('BerandaView, the other phases', () => {
     renderView({ data: sampleEmpty() });
 
     expect(screen.getByRole('heading', { name: 'Belum ada alat terpasang' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
+    expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
     expect(screen.queryByText('Perkiraan hemat per bulan')).not.toBeInTheDocument();
+  });
+
+  it('offers to record the production once a device is installed', () => {
+    renderView();
+
+    expect(screen.getByRole('link', { name: 'Catat produksi' })).toHaveAttribute(
+      'href',
+      '/lainnya/produksi',
+    );
   });
 
   it('shows the first days of data while the system is collecting', () => {

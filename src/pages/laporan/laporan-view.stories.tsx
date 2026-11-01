@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { MemoryRouter } from 'react-router';
 import { fn } from 'storybook/test';
 
 import { LaporanView } from '@/pages/laporan/laporan-view';
@@ -16,9 +17,11 @@ const meta = {
   parameters: { layout: 'fullscreen' },
   decorators: [
     (Story) => (
-      <div className="p-4 lg:p-6">
-        <Story />
-      </div>
+      <MemoryRouter>
+        <div className="p-4 lg:p-6">
+          <Story />
+        </div>
+      </MemoryRouter>
     ),
   ],
   args: {

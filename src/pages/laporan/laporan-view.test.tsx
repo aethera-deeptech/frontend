@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { LaporanView } from '@/pages/laporan/laporan-view';
@@ -13,14 +14,16 @@ import {
 
 function renderView(props: Partial<ComponentProps<typeof LaporanView>> = {}) {
   return render(
-    <LaporanView
-      data={sampleReady()}
-      period="2026-10"
-      onPeriodChange={vi.fn()}
-      download={{ status: 'idle' }}
-      onDownload={vi.fn()}
-      {...props}
-    />,
+    <MemoryRouter>
+      <LaporanView
+        data={sampleReady()}
+        period="2026-10"
+        onPeriodChange={vi.fn()}
+        download={{ status: 'idle' }}
+        onDownload={vi.fn()}
+        {...props}
+      />
+    </MemoryRouter>,
   );
 }
 
@@ -152,6 +155,10 @@ describe('LaporanView, not ready', () => {
 
     expect(screen.getByRole('heading', { name: 'Laporan belum tersedia' })).toBeVisible();
     expect(screen.getByText(/Belum ada alat\? Tambah alat dulu\./)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 

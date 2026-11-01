@@ -129,6 +129,10 @@ describe('SaranListView', () => {
     expect(
       screen.getByText('Saran pertama muncul setelah alat terpasang dan 7 hari data terkumpul.'),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
   });
 
   it('explains the empty list while the first days are collected', () => {

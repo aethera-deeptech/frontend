@@ -114,6 +114,10 @@ describe('AlatListView', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Belum ada alat terpasang' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tambah alat' })).toHaveAttribute(
+      'href',
+      '/alat/tambah',
+    );
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });

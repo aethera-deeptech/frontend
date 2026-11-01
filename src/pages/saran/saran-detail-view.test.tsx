@@ -142,5 +142,15 @@ describe('SaranDetailView, the tariff', () => {
 
     expect(screen.getByText('Memakai tarif Anda, belum diverifikasi')).toBeInTheDocument();
     expect(screen.getByText('Tarif Anda')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Isi tarif' })).not.toBeInTheDocument();
+  });
+
+  it('links to the tariff setting while the default tariff is used', () => {
+    renderDetail(sampleDetail({ tariffIsDefault: true }));
+
+    expect(screen.getByRole('link', { name: 'Isi tarif' })).toHaveAttribute(
+      'href',
+      '/lainnya/pengaturan/tarif',
+    );
   });
 });
