@@ -12,6 +12,8 @@ import { EditTariffPage } from '@/pages/pengaturan/edit-tariff-page';
 import { LainnyaPage } from '@/pages/lainnya/lainnya-page';
 import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { NotFoundPage } from '@/pages/not-found-page';
+import { DaftarPage } from '@/pages/auth/daftar-page';
+import { MasukPage } from '@/pages/auth/masuk-page';
 import { BeriNamaPage } from '@/pages/pasang-alat/beri-nama-page';
 import { MencariPage } from '@/pages/pasang-alat/mencari-page';
 import { PengaturanPage } from '@/pages/pengaturan/pengaturan-page';
@@ -25,6 +27,9 @@ import { SaranDetailPage } from '@/pages/saran/saran-detail-page';
 import { SaranLayout } from '@/pages/saran/saran-layout';
 
 export const routes: RouteObject[] = [
+  // The screens before the login have no menu, so they sit outside the shell
+  { path: 'masuk', element: <MasukPage /> },
+  { path: 'daftar', element: <DaftarPage /> },
   {
     element: <AppShell />,
     children: [

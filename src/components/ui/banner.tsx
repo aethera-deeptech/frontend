@@ -20,12 +20,15 @@ type BannerProps = VariantProps<typeof bannerVariants> & {
   // A button or a link, shown under the text
   action?: ReactNode;
   className?: string;
+  // So that another element can point at the banner with aria-describedby
+  id?: string;
 };
 
-export function Banner({ tone, title, message, action, className }: BannerProps) {
+export function Banner({ tone, title, message, action, className, id }: BannerProps) {
   // An error interrupts the reader, the other tones wait to be read
   return (
     <div
+      id={id}
       role={tone === 'danger' ? 'alert' : 'status'}
       className={cn(bannerVariants({ tone }), className)}
     >
