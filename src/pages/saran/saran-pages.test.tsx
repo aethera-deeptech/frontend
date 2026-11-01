@@ -45,7 +45,7 @@ function renderAt(path: string) {
   return router;
 }
 
-const originalMatchMedia = window.matchMedia;
+const originalMatchMedia = window.matchMedia.bind(window);
 
 function matchWideScreen() {
   window.matchMedia = (query: string) =>
@@ -128,13 +128,58 @@ describe('the list of tips', () => {
     });
     renderAt('/saran');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Terapkan' }));
+    await userEvent.click(await screen.findByRole('button', { name: /^Terapkan/ }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.example.com/v1/recommendations/r1/apply',
         expect.objectContaining({ method: 'POST' }),
       );
+    });
+  });
+
+  it('keeps the chosen status in the address when a tip opens', async () => {
+    stubApi({
+      'GET /v1/recommendations': { body: sampleList() },
+      'GET /v1/recommendations/r3': { body: sampleDetail({ id: 'r3', status: 'verified' }) },
+    });
+    const router = renderAt('/saran?status=verified');
+
+    await userEvent.click(
+      await screen.findByRole('link', { name: 'Atur ulang jam nyala kipas gudang' }),
+    );
+
+    expect(router.state.location.pathname).toBe('/saran/r3');
+    expect(router.state.location.search).toBe('?status=verified');
+  });
+
+  it('says that a decision was not saved when sending it fails', async () => {
+    stubApi({
+      'GET /v1/recommendations': { body: sampleList() },
+      'POST /v1/recommendations/r1/apply': { status: 500 },
+    });
+    renderAt('/saran');
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Terapkan/ }));
+
+    expect(await screen.findByText('Pilihan belum tersimpan')).toBeInTheDocument();
+  });
+
+  it('asks for the list again after a decision', async () => {
+    const fetchMock = stubApi({
+      'GET /v1/recommendations': { body: sampleList() },
+      'POST /v1/recommendations/r1/apply': { status: 204 },
+      'GET /v1/beranda': { status: 503 },
+    });
+    renderAt('/saran');
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Terapkan/ }));
+
+    await waitFor(() => {
+      const lists = fetchMock.mock.calls.filter(
+        ([url, init]) => url.endsWith('/v1/recommendations') && (init?.method ?? 'GET') === 'GET',
+      );
+      expect(lists).toHaveLength(2);
     });
   });
 
@@ -268,5 +313,20 @@ describe('the question before a record is removed', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Ya, batalkan catatan' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Catatan belum dibatalkan');
+  });
+});
+
+describe('the question before a record is removed', () => {
+  it('goes back to the tip when the tip is not applied', async () => {
+    stubApi({
+      'GET /v1/recommendations': { body: sampleList() },
+      'GET /v1/recommendations/r1': { body: sampleDetail({ status: 'pending' }) },
+    });
+    const router = renderAt('/saran/r1/batalkan?status=pending');
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/saran/r1');
+    });
+    expect(router.state.location.search).toBe('?status=pending');
   });
 });

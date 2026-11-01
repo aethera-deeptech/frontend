@@ -62,15 +62,15 @@ describe('SaranListView', () => {
   it('shows the decision buttons only for a tip that is new', () => {
     renderList();
 
-    expect(screen.getAllByRole('button', { name: 'Terapkan' })).toHaveLength(1);
-    expect(screen.getAllByRole('button', { name: 'Nanti' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /^Terapkan/ })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /^Nanti/ })).toHaveLength(1);
   });
 
   it('reports the decision for the tip', async () => {
     const onDecision = vi.fn();
     renderList({ onDecision });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Nanti' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Nanti/ }));
 
     expect(onDecision).toHaveBeenCalledWith('r1', 'defer');
   });
