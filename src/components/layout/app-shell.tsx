@@ -29,43 +29,41 @@ export function AppShell() {
       </a>
 
       <div className="bg-bg-1 border-border-1 fixed inset-y-0 left-0 z-10 hidden w-60 border-r lg:block">
-        <div className="flex flex-col gap-4 p-4">
+        <nav aria-label="Menu utama" className="flex flex-col gap-4 p-4">
           <Link to="/" className="text-h2 text-text-heading rounded-md">
             Audit Energi UMKM
           </Link>
-          <nav aria-label="Menu utama">
-            <ul className="flex flex-col gap-1">
-              {navItems.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    end={item.to === '/'}
-                    className={({ isActive }) =>
-                      clsx(
-                        'text-button relative flex h-10 items-center rounded-md px-3',
-                        isActive
-                          ? 'bg-bg-accent-muted text-text-accent'
-                          : 'text-text-1 hover:bg-bg-3',
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        {item.label}
-                        {isActive ? (
-                          <span
-                            aria-hidden="true"
-                            className="bg-text-accent absolute inset-y-0 left-0 w-[3px] rounded-[2px]"
-                          />
-                        ) : null}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
+          <ul className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  className={({ isActive }) =>
+                    clsx(
+                      'text-button relative flex h-10 items-center rounded-md px-3',
+                      isActive
+                        ? 'bg-bg-accent-muted text-text-accent'
+                        : 'text-text-1 hover:bg-bg-3',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {item.label}
+                      {isActive ? (
+                        <span
+                          aria-hidden="true"
+                          className="bg-text-accent absolute inset-y-0 left-0 w-[3px] rounded-[2px]"
+                        />
+                      ) : null}
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       <main ref={mainRef} id="konten" tabIndex={-1} className="p-4 pb-20 outline-none lg:p-6">
