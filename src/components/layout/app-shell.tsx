@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import { navItems } from '@/components/layout/nav-items';
-import { PendingIndicator, useNavigationPending } from '@/components/layout/pending-indicator';
+import { PendingIndicator } from '@/components/layout/pending-indicator';
+import { useNavigationPending } from '@/hooks/use-navigation-pending';
 
 // The menu is a bottom bar on a phone and a sidebar from 1024 px, like the Mobile and Desktop frames.
 export function AppShell() {

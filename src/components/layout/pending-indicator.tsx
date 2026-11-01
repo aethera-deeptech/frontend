@@ -1,11 +1,7 @@
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { useNavigation } from 'react-router';
 
-// A page opens as its own chunk, so after a tap the old page stays until the new one has loaded
-export function useNavigationPending(): boolean {
-  return useNavigation().state === 'loading';
-}
+import { useNavigationPending } from '@/hooks/use-navigation-pending';
 
 // A thin bar for the sighted user and a note for a screen reader, both for the time that the next page loads. The bar
 // fades in after 150 ms and the note comes after 300 ms, so a page that opens at once shows and says nothing. The
