@@ -4,7 +4,7 @@ Frontend of an energy audit dashboard for small businesses (UMKM) in Indonesia, 
 
 ## Status
 
-The app is a bare scaffold. It builds and has tests, but it shows only the product name. The screens come from the Figma design in later pull requests, and the backend does not exist yet, so nothing in the app uses sample data.
+The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and a not found page. The screens come from the Figma design in later pull requests, and the backend does not exist yet, so nothing in the app uses sample data.
 
 ## Stack
 

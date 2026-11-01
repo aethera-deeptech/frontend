@@ -155,7 +155,7 @@ To set up the login, create a read-only access token in the Docker Hub account s
 
 Vale reads `.vale.ini`, which combines the Vale and Google styles with the two rules in `.github/vale/styles/Aethera/`. An em dash or a semicolon in prose fails the job, so split the sentence or use a comma or a connector word. Words such as "and" and "because" work as connectors. The same goes for a semicolon, so a list is written with commas or as bullet points. The Google style is downloaded by `vale sync` at the release that `.vale.ini` names, and Renovate raises that release. The warnings of the Google style are a local hint and do not fail the job. The Contributor Covenant text in `CODE_OF_CONDUCT.md` is not checked, because it is published text.
 
-cspell checks the spelling of English in the code, the comments and the Markdown files. The Indonesian text of the screens is not checked, so the few Indonesian words that sit in the code and the tests are listed under `words` in `cspell.json`. Add a word there only when it is a real name or term, and fix the spelling otherwise.
+cspell checks the spelling of English in the code, the comments and the Markdown files. The Indonesian text of the screens is not checked. For the files in `src` and `e2e`, `cspell.json` skips string literals, template literals, regular expression literals, the text between JSX tags and the lines of plain text inside JSX, so only identifiers and comments are checked there. These patterns work on the raw text of a file and not on its structure, so they are a best effort. Add a word under `words` only when it is a real name or term, and fix the spelling otherwise.
 
 ## Ignore lists
 

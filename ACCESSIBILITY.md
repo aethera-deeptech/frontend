@@ -1,6 +1,6 @@
 # Accessibility statement
 
-The app is a bare scaffold that shows only the product name, so there is no real interface to audit yet. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that are not built.
+The app only has its shell (a menu, a skip link and a not found page) and no screens yet, so there is little interface to audit. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that are not built.
 
 ## What the design aims for
 

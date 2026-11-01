@@ -1,7 +1,11 @@
+import { createBrowserRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
+
+import { routes } from '@/routes';
+
+// The router lives outside the React tree, so a re-render or StrictMode never builds a second one.
+const router = createBrowserRouter(routes);
+
 export function App() {
-  return (
-    <main>
-      <h1>Audit Energi UMKM</h1>
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
