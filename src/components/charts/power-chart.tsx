@@ -49,7 +49,14 @@ export function PowerChart({
 
   return (
     <div ref={ref} className="flex w-full min-w-0 flex-col gap-2">
-      <svg role="img" aria-label={label} width={width} height={HEIGHT} className="block">
+      {/* The dot of a one point anomaly can sit on the first or the last point, so the drawing may pass the edge */}
+      <svg
+        role="img"
+        aria-label={label}
+        width={width}
+        height={HEIGHT}
+        className="block overflow-visible"
+      >
         {ticks.map((y, index) => (
           <g key={y}>
             <line x1="0" x2={width} y1={y} y2={y} className="stroke-border-2" strokeWidth="1" />
