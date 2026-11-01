@@ -15,7 +15,8 @@ interface NumberStepperProps {
 // A number such as 1e-7 is written with an exponent, which moves the point that many places to the right.
 function decimalsOf(number: number): number {
   const [mantissa = '', exponent = '0'] = number.toString().split('e');
-  return Math.max(0, (mantissa.split('.')[1]?.length ?? 0) - Number(exponent));
+  // toFixed accepts at most 100 digits
+  return Math.min(100, Math.max(0, (mantissa.split('.')[1]?.length ?? 0) - Number(exponent)));
 }
 
 export function NumberStepper({
