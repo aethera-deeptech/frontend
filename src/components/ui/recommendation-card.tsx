@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { ChevronRightIcon } from '@/components/icons/chevron-right-icon';
@@ -18,10 +18,15 @@ interface RecommendationCardProps {
 }
 
 export function RecommendationCard({ title, saving, meta, to, actions }: RecommendationCardProps) {
+  const titleId = useId();
+
   return (
-    <section className="border-border-1 bg-bg-1 relative flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-center lg:gap-4">
+    <article
+      aria-labelledby={titleId}
+      className="border-border-1 bg-bg-1 relative flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-center lg:gap-4"
+    >
       <div className={cn('flex min-w-0 flex-1 flex-col gap-1', to && 'pr-6 lg:pr-0')}>
-        <h3 className="text-h2 text-text-heading">
+        <h3 id={titleId} className="text-h2 text-text-heading">
           {to ? (
             // The link covers the whole card. The buttons sit above it, so they keep working.
             <Link to={to} className="rounded-md after:absolute after:inset-0 after:rounded-lg">
@@ -36,7 +41,7 @@ export function RecommendationCard({ title, saving, meta, to, actions }: Recomme
       </div>
       {actions ? <div className="relative z-10 flex gap-2">{actions}</div> : null}
       {to ? <ChevronRightIcon className="text-text-2 absolute top-4 right-4 lg:hidden" /> : null}
-    </section>
+    </article>
   );
 }
 
