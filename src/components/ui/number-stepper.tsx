@@ -11,9 +11,9 @@ interface NumberStepperProps {
   unit?: string;
 }
 
-// A step of 0.1 on 0.2 gives 0.30000000000000004 in floating point, so the result keeps the digits of the step
-function decimalsOf(step: number): number {
-  return step.toString().split('.')[1]?.length ?? 0;
+// A step of 0.1 on 0.2 gives 0.30000000000000004 in floating point, so the result is rounded to the digits it needs
+function decimalsOf(number: number): number {
+  return number.toString().split('.')[1]?.length ?? 0;
 }
 
 export function NumberStepper({
@@ -25,9 +25,10 @@ export function NumberStepper({
   step = 1,
   unit,
 }: NumberStepperProps) {
-  const decimals = decimalsOf(step);
   // A value outside the limits first moves to the nearest limit, so a step never starts from a value that cannot be chosen
   const inRange = Math.min(max, Math.max(min, value));
+  // The result keeps the digits of the value and of the step, so 1.25 plus 1 is 2.25
+  const decimals = Math.max(decimalsOf(step), decimalsOf(inRange));
   const next = (amount: number) =>
     Math.min(max, Math.max(min, Number((inRange + amount).toFixed(decimals))));
 
@@ -37,7 +38,7 @@ export function NumberStepper({
         size="lg"
         className="w-11 px-0"
         aria-label="Kurangi"
-        disabled={inRange - step < min}
+        disabled={inRange <= min}
         onClick={() => {
           onValueChange(next(-step));
         }}
@@ -52,7 +53,7 @@ export function NumberStepper({
         size="lg"
         className="w-11 px-0"
         aria-label="Tambah"
-        disabled={inRange + step > max}
+        disabled={inRange >= max}
         onClick={() => {
           onValueChange(next(step));
         }}
