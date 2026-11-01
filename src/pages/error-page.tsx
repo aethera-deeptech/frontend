@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { isRouteErrorResponse, useLocation, useRouteError } from 'react-router';
+import { useLocation, useRouteError } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,10 +13,7 @@ export function ErrorPage() {
   const main = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // A response such as a 404 is an answer and not a fault of the app
-    if (!isRouteErrorResponse(error)) {
-      reportError(error);
-    }
+    reportError(error);
   }, [error]);
 
   useEffect(() => {

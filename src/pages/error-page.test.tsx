@@ -14,12 +14,15 @@ function BrokenPage(): never {
   throw failure;
 }
 
-function renderBroken(path = '/saran?filter=rejected', Component: () => never = BrokenPage) {
+function renderBroken(path = '/saran?filter=rejected') {
   // React logs the error that the boundary catches, which is expected here
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
-  const router = createMemoryRouter([{ path: '*', Component, ErrorBoundary: ErrorPage }], {
-    initialEntries: [path],
-  });
+  const router = createMemoryRouter(
+    [{ path: '*', Component: BrokenPage, ErrorBoundary: ErrorPage }],
+    {
+      initialEntries: [path],
+    },
+  );
 
   render(<RouterProvider router={router} />);
 }
@@ -62,15 +65,5 @@ describe('ErrorPage', () => {
 
     expect(reportError).toHaveBeenCalledTimes(1);
     expect(reportError).toHaveBeenCalledWith(failure);
-  });
-
-  it('does not report a response such as a 404, which is an answer and not a fault', () => {
-    renderBroken('/gone', () => {
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      throw new Response('Not found', { status: 404 });
-    });
-
-    expect(screen.getByRole('heading', { name: 'Terjadi kesalahan' })).toBeInTheDocument();
-    expect(reportError).not.toHaveBeenCalled();
   });
 });
