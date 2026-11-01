@@ -1,6 +1,6 @@
 # Accessibility statement
 
-The app has its screens, but the automated axe check in the end to end tests only covers the home screen and the not found page. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that were not tested.
+The app has its screens, but the automated axe check in the end to end tests only covers the home screen. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that were not tested.
 
 ## What the design aims for
 
