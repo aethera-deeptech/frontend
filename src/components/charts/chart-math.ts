@@ -1,7 +1,8 @@
 // Small helpers that turn data into SVG coordinates. The charts hold no data of their own.
 
 export function scale(value: number, max: number, size: number): number {
-  if (max <= 0) {
+  // A value or a top that is not a number draws nothing instead of a broken path
+  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) {
     return 0;
   }
   return (Math.min(Math.max(value, 0), max) / max) * size;

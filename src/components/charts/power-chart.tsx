@@ -38,11 +38,17 @@ export function PowerChart({
     [xAt(index, count, width), TOP + PLOT - scale(value, yMax, PLOT)] as const;
   const line = points.map(at);
   const band = expected ? bandPath(expected.low.map(at), expected.high.map(at)) : undefined;
-  const bad = anomaly ? line.slice(anomaly.from, anomaly.to + 1) : [];
+  // The span is kept inside the points, so a wrong index cannot draw outside the chart
+  const from = anomaly ? Math.min(Math.max(anomaly.from, 0), Math.max(count - 1, 0)) : 0;
+  const to = anomaly ? Math.min(Math.max(anomaly.to, from), Math.max(count - 1, 0)) : 0;
+  const bad = anomaly ? line.slice(from, to + 1) : [];
+  const spanStart = at(0, from)[0];
+  // A label that starts near the right edge would be cut off, so it ends at the start of the span instead
+  const labelAtEnd = spanStart > width * 0.6;
   const ticks = [TOP, TOP + PLOT / 2, TOP + PLOT] as const;
 
   return (
-    <div ref={ref} className="flex flex-col gap-2">
+    <div ref={ref} className="flex w-full min-w-0 flex-col gap-2">
       <svg role="img" aria-label={label} width={width} height={HEIGHT} className="block">
         {ticks.map((y, index) => (
           <g key={y}>
@@ -69,8 +75,16 @@ export function PowerChart({
             strokeLinejoin="round"
           />
         ) : null}
+        {bad.length === 1 && bad[0] ? (
+          <circle cx={bad[0][0]} cy={bad[0][1]} r="3.5" className="fill-chart-anomaly" />
+        ) : null}
         {anomaly ? (
-          <text x={at(0, anomaly.from)[0] + 8} y="12" className="fill-text-danger text-label">
+          <text
+            x={labelAtEnd ? spanStart - 8 : spanStart + 8}
+            y="12"
+            textAnchor={labelAtEnd ? 'end' : 'start'}
+            className="fill-text-danger text-label"
+          >
             {anomaly.label}
           </text>
         ) : null}

@@ -25,6 +25,9 @@ const PLOT = 95;
 const LEFT = 44;
 const RIGHT_PAD = 18;
 const FALLBACK_WIDTH = 324;
+// The room that the start label needs before the label of today, and half the width of the label of today
+const START_LABEL_ROOM = 80;
+const TODAY_LABEL_HALF = 26;
 
 export function ForecastChart({
   billPoints,
@@ -47,7 +50,7 @@ export function ForecastChart({
   const ticks = [TOP, TOP + PLOT / 2, TOP + PLOT] as const;
 
   return (
-    <div ref={ref} className="flex flex-col gap-3">
+    <div ref={ref} className="flex w-full min-w-0 flex-col gap-3">
       <svg role="img" aria-label={label} width={width} height={HEIGHT} className="block">
         {ticks.map((y, index) => (
           <g key={y}>
@@ -93,14 +96,17 @@ export function ForecastChart({
           strokeLinejoin="round"
         />
         {today ? <circle cx={today[0]} cy={today[1]} r="4" className="fill-chart-blurple" /> : null}
-        <text x={LEFT} y={TOP + PLOT + 18} className="fill-text-2 text-label">
-          {xLabels.start}
-        </text>
+        {/* Early in the month the two labels would sit on top of each other, so the start label gives way */}
+        {!today || today[0] - LEFT > START_LABEL_ROOM ? (
+          <text x={LEFT} y={TOP + PLOT + 18} className="fill-text-2 text-label">
+            {xLabels.start}
+          </text>
+        ) : null}
         {today ? (
           <text
             x={today[0]}
             y={TOP + PLOT + 18}
-            textAnchor="middle"
+            textAnchor={today[0] > width - TODAY_LABEL_HALF ? 'end' : 'middle'}
             className="fill-text-2 text-label"
           >
             {xLabels.today}
