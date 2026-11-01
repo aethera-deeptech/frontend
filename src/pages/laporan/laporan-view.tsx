@@ -2,6 +2,7 @@ import type { ReadyReport, ReportData, ReportSaving } from '@/api/reports';
 import { BarChart } from '@/components/charts/bar-chart';
 import { PageHeader } from '@/components/layout/page-header';
 import { Banner } from '@/components/ui/banner';
+import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { BeforeAfter } from '@/components/ui/before-after';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -62,6 +63,7 @@ export function LaporanView({
         <EmptyState
           headline="Laporan belum tersedia"
           message="Laporan muncul setelah 7 hari data terkumpul. Belum ada alat? Tambah alat dulu."
+          action={<AddDeviceButton />}
         />
       ) : null}
       {data.phase === 'collecting' ? (
