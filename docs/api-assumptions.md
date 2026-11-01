@@ -79,3 +79,9 @@ A `ready` report has the fields below.
 - `energyPerPiece` has the same shape as on the home screen. Only the running month has it.
 
 `GET /v1/reports/{period}/pdf` returns the report of that month as a PDF. The frontend sends the session cookie, saves the file as `Laporan-<Month>-<Year>.pdf` and offers a link to open it.
+
+## Produksi
+
+`GET /v1/production` returns the production records of the business. It has `unit`, the unit that the business counts in, `units`, the units that it can choose from, `today`, the day of the business now, and `recent`, the newest records first. A record has `date`, written `YYYY-MM-DD`, and `quantity`, a whole number above 0. The day `today` is the last day that the form lets the user pick.
+
+`PUT /v1/production/{date}` with the body `{ "quantity": 124, "unit": "potong" }` saves the record of that day. A day has one record, so saving a day that has one replaces it. The answer may have any body. After a save the frontend loads the records, the home screen and the report again.
