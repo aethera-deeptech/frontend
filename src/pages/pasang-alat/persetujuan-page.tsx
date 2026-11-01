@@ -1,0 +1,61 @@
+import { Link, Navigate, useNavigate } from 'react-router';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
+import { useWizard } from '@/pages/pasang-alat/wizard-context';
+
+export function PersetujuanPage() {
+  const navigate = useNavigate();
+  const wizard = useWizard();
+
+  if (!wizard.kind) {
+    return <Navigate to={addPath} replace />;
+  }
+  // The clamp needs the warning first, so a visit that skipped it goes back to it
+  if (wizard.kind === 'clamp' && !wizard.safetyRead) {
+    return <Navigate to={`${addPath}/peringatan`} replace />;
+  }
+
+  return (
+    <StepFrame
+      title="Sebelum memasang"
+      subtitle="Baca dulu data apa yang sistem baca, dan apa yang tidak sistem lakukan."
+      backTo={wizard.kind === 'clamp' ? `${addPath}/peringatan` : addPath}
+    >
+      <Card title="Yang dibaca sistem">
+        <p className="text-body text-text-1">
+          Daya listrik alat dan waktu pemakaiannya, setiap beberapa menit. Data ini dipakai untuk
+          menghitung saran penghematan.
+        </p>
+      </Card>
+      <Card title="Yang tidak dilakukan sistem">
+        <p className="text-body text-text-1">
+          Sistem tidak menyalakan, mematikan atau mengubah alat Anda. Anda yang memutuskan setiap
+          langkah.
+        </p>
+      </Card>
+      <Checkbox
+        label="Saya setuju data listrik alat ini dibaca"
+        checked={wizard.consented}
+        onCheckedChange={(checked) => {
+          wizard.setConsented(checked === true);
+        }}
+      />
+      <Button
+        kind="accent"
+        size="lg"
+        disabled={!wizard.consented}
+        onClick={() => {
+          void navigate(`${addPath}/nama`);
+        }}
+      >
+        Lanjut
+      </Button>
+      <Button asChild size="lg">
+        <Link to="/alat">Batal</Link>
+      </Button>
+    </StepFrame>
+  );
+}
