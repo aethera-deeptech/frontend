@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 
 interface NumberStepperProps {
@@ -11,6 +13,7 @@ interface NumberStepperProps {
   unit?: string;
 }
 
+// Plus and minus change the value by one step, and a tap on the number lets the user type it.
 export function NumberStepper({
   label,
   value,
@@ -20,6 +23,9 @@ export function NumberStepper({
   step = 1,
   unit,
 }: NumberStepperProps) {
+  // The text while the user types. It can be empty, which a value cannot.
+  const [draft, setDraft] = useState<string | null>(null);
+
   return (
     <div role="group" aria-label={label} className="flex items-center gap-2">
       <Button
@@ -28,21 +34,41 @@ export function NumberStepper({
         aria-label="Kurangi"
         disabled={value - step < min}
         onClick={() => {
+          setDraft(null);
           onValueChange(Math.max(min, value - step));
         }}
       >
         −
       </Button>
-      <output className="bg-bg-3 border-border-field flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border px-3">
-        <span className="text-kpi text-text-heading">{value}</span>{' '}
+      <span className="bg-bg-3 border-border-field focus-within:border-focus flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border px-3 focus-within:shadow-[inset_0_0_0_1px_var(--focus)]">
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          aria-label="Angka"
+          value={draft ?? value.toString()}
+          size={Math.max((draft ?? value.toString()).length, 1)}
+          className="text-kpi text-text-heading min-w-0 bg-transparent text-center outline-none"
+          onChange={(event) => {
+            const digits = event.target.value.replace(/\D/g, '').slice(0, 9);
+            setDraft(digits);
+            if (digits !== '') {
+              onValueChange(Math.min(max, Math.max(min, Number(digits))));
+            }
+          }}
+          onBlur={() => {
+            setDraft(null);
+          }}
+        />
         {unit ? <span className="text-body text-text-2">{unit}</span> : null}
-      </output>
+      </span>
       <Button
         size="lg"
         className="w-11 px-0"
         aria-label="Tambah"
         disabled={value + step > max}
         onClick={() => {
+          setDraft(null);
           onValueChange(Math.min(max, value + step));
         }}
       >
