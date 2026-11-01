@@ -5,7 +5,7 @@ export function sampleReady(overrides: Partial<ReadyBeranda> = {}): ReadyBeranda
   return {
     phase: 'ready',
     businessName: 'Konveksi Maju Jaya',
-    asOf: new Date(2026, 9, 29, 9, 30).toISOString(),
+    asOf: '2026-10-29T09:30:00+07:00',
     savingPerMonthRp: 312_000,
     statusCounts: { anomali: 1, offline: 1, siaga: 1, nyala: 3, mati: 1 },
     recommendations: [
@@ -40,7 +40,7 @@ export function sampleCollecting(): BerandaData {
   return {
     phase: 'collecting',
     businessName: 'Konveksi Maju Jaya',
-    asOf: new Date(2026, 9, 29, 9, 30).toISOString(),
+    asOf: '2026-10-29T09:30:00+07:00',
     collectedDays: 4,
     neededDays: 7,
     topDevices: [
@@ -54,6 +54,6 @@ export function sampleEmpty(): BerandaData {
   return {
     phase: 'no-devices',
     businessName: 'Konveksi Maju Jaya',
-    asOf: new Date(2026, 9, 29, 9, 30).toISOString(),
+    asOf: '2026-10-29T09:30:00+07:00',
   };
 }

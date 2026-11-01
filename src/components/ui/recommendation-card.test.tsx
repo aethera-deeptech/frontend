@@ -53,6 +53,15 @@ describe('RecommendationCard', () => {
   });
 });
 
+describe('DecisionButtons, names', () => {
+  it('names each button with the tip it acts on', () => {
+    render(<DecisionButtons onApply={vi.fn()} onDefer={vi.fn()} subject="Matikan kompresor" />);
+
+    expect(screen.getByRole('button', { name: 'Terapkan: Matikan kompresor' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Nanti: Matikan kompresor' })).toBeVisible();
+  });
+});
+
 describe('DecisionButtons', () => {
   it('reports each choice', async () => {
     const onApply = vi.fn();

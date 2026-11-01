@@ -11,6 +11,7 @@ import {
   formatRupiah,
   formatRupiahJuta,
   isSameDay,
+  parseMoment,
 } from '@/lib/format';
 
 describe('formatRupiah', () => {
@@ -71,5 +72,40 @@ describe('dates', () => {
   it('compares days and not times', () => {
     expect(isSameDay(date, new Date(2026, 9, 28, 23, 59))).toBe(true);
     expect(isSameDay(date, new Date(2026, 9, 29, 0, 1))).toBe(false);
+  });
+});
+
+describe('signs of values that round to zero', () => {
+  it('writes no sign on an amount or a number that rounds to 0', () => {
+    expect(formatRupiah(-0.4)).toBe('Rp0');
+    expect(formatNumber(-0.001, 2)).toBe('0');
+  });
+
+  it('keeps the sign of a value that does not round to 0', () => {
+    expect(formatRupiah(-1500)).toBe('-Rp1.500');
+    expect(formatNumber(-0.41)).toBe('-0,41');
+  });
+});
+
+describe('parseMoment', () => {
+  it('reads the clock of the string and not the clock of the device', () => {
+    const date = parseMoment('2026-10-29T09:30:00+07:00');
+
+    expect([
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+    ]).toEqual([2026, 9, 29, 9, 30]);
+  });
+
+  it('keeps the day of a moment just after midnight', () => {
+    expect(parseMoment('2026-11-01T00:30:00+07:00').getDate()).toBe(1);
+    expect(parseMoment('2026-11-01T00:30:00Z').getDate()).toBe(1);
+  });
+
+  it('falls back to the date parser for another format', () => {
+    expect(parseMoment('2026-10-29').getFullYear()).toBe(2026);
   });
 });

@@ -53,8 +53,8 @@ describe('BerandaView, ready', () => {
     );
     expect(tip.getByText('Hemat sekitar Rp104.000 per bulan')).toBeInTheDocument();
 
-    await userEvent.click(tip.getByRole('button', { name: 'Terapkan' }));
-    await userEvent.click(tip.getByRole('button', { name: 'Nanti' }));
+    await userEvent.click(tip.getByRole('button', { name: /^Terapkan/ }));
+    await userEvent.click(tip.getByRole('button', { name: /^Nanti/ }));
 
     expect(onDecision).toHaveBeenNthCalledWith(1, 'r2', 'apply');
     expect(onDecision).toHaveBeenNthCalledWith(2, 'r2', 'defer');
@@ -63,7 +63,7 @@ describe('BerandaView, ready', () => {
   it('disables the buttons of the tip that is being sent', () => {
     renderView({ busyId: 'r1' });
 
-    const buttons = screen.getAllByRole('button', { name: 'Terapkan' });
+    const buttons = screen.getAllByRole('button', { name: /^Terapkan/ });
 
     expect(buttons[0]).toBeDisabled();
     expect(buttons[1]).toBeEnabled();
@@ -138,6 +138,22 @@ describe('BerandaView, connection', () => {
     renderView();
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+describe('BerandaView, the chart of devices', () => {
+  it('shows at most 4 devices under the title that says 4', () => {
+    renderView({
+      data: sampleReady({
+        topDevices: Array.from({ length: 6 }, (_, index) => ({
+          name: `Alat ${index.toString()}`,
+          kwh: 10,
+        })),
+      }),
+    });
+
+    expect(screen.getByText('Alat 3')).toBeInTheDocument();
+    expect(screen.queryByText('Alat 4')).not.toBeInTheDocument();
   });
 });
 

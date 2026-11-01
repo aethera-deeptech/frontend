@@ -92,7 +92,7 @@ describe('BerandaPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage();
 
-    const buttons = await screen.findAllByRole('button', { name: 'Terapkan' });
+    const buttons = await screen.findAllByRole('button', { name: /^Terapkan/ });
     await userEvent.click(first(buttons));
 
     await waitFor(() => {
