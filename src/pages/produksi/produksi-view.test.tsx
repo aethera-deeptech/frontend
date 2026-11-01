@@ -96,6 +96,6 @@ describe('ProduksiView', () => {
   it('disables the button while it saves', () => {
     renderView({ saveState: 'saving' });
 
-    expect(screen.getByRole('button', { name: 'Simpan' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Menyimpan' })).toBeDisabled();
   });
 });
