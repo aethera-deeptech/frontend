@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router';
 
 import { useRecommendation, useRecommendationDecision } from '@/api/recommendations';
 import { Banner } from '@/components/ui/banner';
@@ -11,7 +11,8 @@ export function SaranCancelPage() {
   const navigate = useNavigate();
   const query = useRecommendation(id);
   const decision = useRecommendationDecision();
-  const back = `/saran/${encodeURIComponent(id)}`;
+  const { search } = useLocation();
+  const back = `/saran/${encodeURIComponent(id)}${search}`;
 
   if (!query.data) {
     return query.isPending ? (
@@ -23,6 +24,11 @@ export function SaranCancelPage() {
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
       />
     );
+  }
+
+  // A tip that is not applied has no record to remove, for example after the record was removed and the user went back
+  if (query.data.status !== 'applied') {
+    return <Navigate to={back} replace />;
   }
 
   const progress = query.data.verification;
@@ -60,7 +66,7 @@ export function SaranCancelPage() {
             { id, decision: 'cancel' },
             {
               onSuccess: () => {
-                void navigate(back);
+                void navigate(back, { replace: true });
               },
             },
           );

@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 import type { RecommendationDecision, RecommendationDetail } from '@/api/recommendations';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { SectionCard } from '@/components/ui/section-card';
 import { Tag } from '@/components/ui/tag';
 import { cn } from '@/lib/cn';
-import { formatDateWithYear, formatPercent, formatRupiah } from '@/lib/format';
+import { formatDateWithYear, formatPercent, formatRupiah, parseMoment } from '@/lib/format';
 import { statusLabels, statusTones } from '@/pages/saran/recommendation-status';
 
 interface SaranDetailViewProps {
@@ -17,15 +17,22 @@ interface SaranDetailViewProps {
   busy?: boolean;
 }
 
+// The address of the list with the filter that the user chose, so a tip opens and closes without losing the filter
+function useListPath(): string {
+  return `/saran${useLocation().search}`;
+}
+
 export function SaranDetailView({ detail, onDecision, busy = false }: SaranDetailViewProps) {
   const { status } = detail;
+  const listPath = useListPath();
+  const { search } = useLocation();
   const waiting = status === 'pending' || status === 'deferred';
 
   return (
     <div className="flex flex-col gap-3">
       <div className="lg:hidden">
         <Button asChild size="lg">
-          <Link to="/saran">Kembali</Link>
+          <Link to={listPath}>Kembali</Link>
         </Button>
       </div>
 
@@ -66,7 +73,9 @@ export function SaranDetailView({ detail, onDecision, busy = false }: SaranDetai
 
       {status === 'applied' ? (
         <Button asChild size="lg">
-          <Link to={`/saran/${encodeURIComponent(detail.id)}/batalkan`}>Batalkan penerapan</Link>
+          <Link to={`/saran/${encodeURIComponent(detail.id)}/batalkan${search}`}>
+            Batalkan penerapan
+          </Link>
         </Button>
       ) : null}
     </div>
@@ -190,7 +199,7 @@ function Verification({ detail }: { detail: RecommendationDetail }) {
     <SectionCard heading="Masa verifikasi">
       <p className="text-body text-text-1">
         {detail.appliedAt
-          ? `Anda menerapkan saran ini pada ${formatDateWithYear(new Date(detail.appliedAt))}. `
+          ? `Anda menerapkan saran ini pada ${formatDateWithYear(parseMoment(detail.appliedAt))}. `
           : ''}
         Sistem membandingkan energi per potong sebelum dan sesudah. Hasilnya muncul setelah {needed}{' '}
         hari.
@@ -212,7 +221,7 @@ function VerifiedResult({ detail }: { detail: RecommendationDetail }) {
     <SectionCard heading="Hasil verifikasi">
       <p className="text-body text-text-1">
         {detail.appliedAt
-          ? `Anda menerapkan saran ini pada ${formatDateWithYear(new Date(detail.appliedAt))}. `
+          ? `Anda menerapkan saran ini pada ${formatDateWithYear(parseMoment(detail.appliedAt))}. `
           : ''}
         Energi per potong untuk seluruh bengkel dibandingkan dengan {result?.beforeDays} hari data
         sebelum saran diterapkan dan {result?.afterDays} hari sesudahnya. Angka ini untuk seluruh
@@ -231,17 +240,19 @@ function VerifiedResult({ detail }: { detail: RecommendationDetail }) {
 }
 
 function Rejected({ detail }: { detail: RecommendationDetail }) {
+  const listPath = useListPath();
+
   return (
     <SectionCard heading="Keputusan Anda">
       <p className="text-body text-text-1">
         {detail.rejectedAt
-          ? `Anda menolak saran ini pada ${formatDateWithYear(new Date(detail.rejectedAt))}. `
+          ? `Anda menolak saran ini pada ${formatDateWithYear(parseMoment(detail.rejectedAt))}. `
           : ''}
         Sistem tidak menerapkannya dan tidak mengubah apa pun pada {detail.deviceName.toLowerCase()}
         .
       </p>
       <Button asChild size="lg">
-        <Link to="/saran">Kembali ke daftar</Link>
+        <Link to={listPath}>Kembali ke daftar</Link>
       </Button>
     </SectionCard>
   );
