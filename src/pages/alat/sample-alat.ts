@@ -10,7 +10,7 @@ export function sampleDevices(): DeviceList {
         status: 'anomali',
         currentPowerW: 310,
         todayKwh: 4.3,
-        anomalyAt: new Date(2026, 9, 29, 2, 10).toISOString(),
+        anomalyAt: '2026-10-29T02:10:00+07:00',
       },
       {
         id: 'd2',
@@ -18,7 +18,7 @@ export function sampleDevices(): DeviceList {
         status: 'offline',
         currentPowerW: null,
         todayKwh: null,
-        lastSeenAt: new Date(2026, 9, 28, 15, 10).toISOString(),
+        lastSeenAt: '2026-10-28T15:10:00+07:00',
       },
       { id: 'd3', name: 'Mesin jahit 3', status: 'siaga', currentPowerW: 170, todayKwh: 3.2 },
       { id: 'd4', name: 'Mesin jahit 1', status: 'nyala', currentPowerW: 780, todayKwh: 4.2 },
@@ -42,7 +42,7 @@ export function sampleNormal(overrides: Partial<DeviceDetail> = {}): DeviceDetai
     monthKwh: 142,
     onHoursToday: 7.2,
     standbyW: 3,
-    lastSeenAt: new Date(2026, 9, 29, 14, 32).toISOString(),
+    lastSeenAt: '2026-10-29T14:32:00+07:00',
     signal: 'baik',
     powerPattern: {
       points,
@@ -66,7 +66,7 @@ export function sampleAnomaly(): DeviceDetail {
     onHoursToday: 7,
     standbyW: 8,
     signal: 'cukup',
-    anomaly: { at: new Date(2026, 9, 29, 2, 10).toISOString(), peakW: 2000 },
+    anomaly: { at: '2026-10-29T02:10:00+07:00', peakW: 2000 },
     powerPattern: {
       points: points.map((value, index) => (index >= 4 && index <= 6 ? 2000 : value)),
       yMaxW: 2000,
@@ -86,7 +86,7 @@ export function sampleOffline(): DeviceDetail {
     monthKwh: 38,
     onHoursToday: null,
     standbyW: null,
-    lastSeenAt: new Date(2026, 9, 28, 15, 10).toISOString(),
+    lastSeenAt: '2026-10-28T15:10:00+07:00',
     signal: 'tidak-ada',
     powerPattern: null,
   });

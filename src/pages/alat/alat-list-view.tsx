@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
 import { Select } from '@/components/ui/select';
-import { formatDate, formatFixed, formatTime, formatWatts } from '@/lib/format';
+import { formatDate, formatFixed, formatTime, formatWatts, parseMoment } from '@/lib/format';
 import { deviceFilterOptions, summarize, type DeviceFilter } from '@/pages/alat/device-filters';
 import { statusFilterLabels } from '@/pages/alat/device-status';
 
@@ -84,10 +84,10 @@ export function AlatListView({ data, filter, onFilterChange, selectedId }: AlatL
 // The line next to the status, for example the time of an anomaly or the last day an offline device was seen
 function secondaryOf(item: DeviceListItem): string | undefined {
   if (item.status === 'anomali' && item.anomalyAt) {
-    return `pukul ${formatTime(new Date(item.anomalyAt))}`;
+    return `pukul ${formatTime(parseMoment(item.anomalyAt))}`;
   }
   if (item.status === 'offline' && item.lastSeenAt) {
-    return `Terakhir ${formatDate(new Date(item.lastSeenAt))}`;
+    return `Terakhir ${formatDate(parseMoment(item.lastSeenAt))}`;
   }
   return undefined;
 }

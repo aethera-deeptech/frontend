@@ -17,6 +17,7 @@ import {
   formatTime,
   formatWatts,
   isSameDay,
+  parseMoment,
 } from '@/lib/format';
 import { signalLabels } from '@/pages/alat/device-status';
 
@@ -29,7 +30,7 @@ interface AlatDetailViewProps {
 const dash = '-';
 
 export function AlatDetailView({ detail, now = new Date() }: AlatDetailViewProps) {
-  const lastSeen = new Date(detail.lastSeenAt);
+  const lastSeen = parseMoment(detail.lastSeenAt);
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,7 +51,7 @@ export function AlatDetailView({ detail, now = new Date() }: AlatDetailViewProps
       {detail.status === 'anomali' && detail.anomaly ? (
         <Banner
           tone="danger"
-          title={`Daya naik mendadak ${isSameDay(new Date(detail.anomaly.at), now) ? 'hari ini' : formatDate(new Date(detail.anomaly.at))} pukul ${formatTime(new Date(detail.anomaly.at))}`}
+          title={`Daya naik mendadak ${isSameDay(parseMoment(detail.anomaly.at), now) ? 'hari ini' : formatDate(parseMoment(detail.anomaly.at))} pukul ${formatTime(parseMoment(detail.anomaly.at))}`}
           message={`${detail.name} sempat menarik ${formatWatts(detail.anomaly.peakW)}, jauh di atas kisaran biasa. Periksa apakah ada beban berlebih. Anda yang memutuskan langkah berikutnya.`}
         />
       ) : null}
