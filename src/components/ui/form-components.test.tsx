@@ -235,7 +235,8 @@ describe('NumberStepper', () => {
     );
 
     expect(screen.getByRole('group', { name: 'Potong per hari' })).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('24 potong');
+    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('24');
+    expect(screen.getByText('potong')).toBeInTheDocument();
   });
 
   it('adds and subtracts one step', async () => {
@@ -249,6 +250,94 @@ describe('NumberStepper', () => {
 
     expect(onValueChange).toHaveBeenNthCalledWith(1, 26);
     expect(onValueChange).toHaveBeenNthCalledWith(2, 22);
+  });
+
+  it('lets the user type the number and keeps it inside the limits', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Potong per hari" value={24} max={500} onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '9x99');
+
+    expect(onValueChange).toHaveBeenLastCalledWith(500);
+    expect(onValueChange).toHaveBeenNthCalledWith(1, 9);
+    // The field shows the limit as soon as the typed number goes past it
+    expect(input).toHaveValue('500');
+  });
+
+  it('takes a comma as the decimal point when the step has decimals and ignores it for whole steps', async () => {
+    const decimal = vi.fn();
+    const { unmount } = render(
+      <NumberStepper label="Tarif" value={1} step={0.1} onValueChange={decimal} />,
+    );
+    const field = screen.getByRole('textbox', { name: 'Angka' });
+    await userEvent.clear(field);
+    await userEvent.type(field, '1,57');
+
+    expect(field).toHaveValue('1.5');
+    expect(decimal).toHaveBeenLastCalledWith(1.5);
+    unmount();
+
+    const whole = vi.fn();
+    render(<NumberStepper label="Potong" value={24} onValueChange={whole} />);
+    const count = screen.getByRole('textbox', { name: 'Angka' });
+    await userEvent.clear(count);
+    await userEvent.click(count);
+    await userEvent.paste('12,5');
+
+    expect(count).toHaveValue('12');
+    expect(whole).toHaveBeenLastCalledWith(12);
+  });
+
+  it('lets the user type a number whose first digit is below the minimum', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={20} min={10} max={100} onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '50');
+
+    expect(input).toHaveValue('50');
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenLastCalledWith(50);
+  });
+
+  it('lifts a number below the minimum when the user leaves the field', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={20} min={10} max={100} onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '5');
+    await userEvent.tab();
+
+    expect(onValueChange).toHaveBeenLastCalledWith(10);
+  });
+
+  it('reads the new value out after a tap on a button', () => {
+    const { container } = render(
+      <NumberStepper label="Potong per hari" value={24} unit="potong" onValueChange={vi.fn()} />,
+    );
+
+    expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('24 potong');
+  });
+
+  it('shows the value again when the user leaves an empty field', async () => {
+    render(<NumberStepper label="Potong per hari" value={24} onValueChange={vi.fn()} />);
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    expect(input).toHaveValue('');
+    await userEvent.tab();
+
+    expect(input).toHaveValue('24');
   });
 
   it('stops at the limits', () => {

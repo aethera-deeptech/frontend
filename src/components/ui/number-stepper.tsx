@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 
 interface NumberStepperProps {
@@ -19,6 +21,7 @@ function decimalsOf(number: number): number {
   return Math.min(100, Math.max(0, (mantissa.split('.')[1]?.length ?? 0) - Number(exponent)));
 }
 
+// Plus and minus change the value by one step, and a tap on the number lets the user type it.
 export function NumberStepper({
   label,
   value,
@@ -34,6 +37,27 @@ export function NumberStepper({
   const decimals = Math.max(decimalsOf(step), decimalsOf(inRange));
   const next = (amount: number) =>
     Math.min(max, Math.max(min, Number((inRange + amount).toFixed(decimals))));
+  // The text while the user types. It can be empty, which a value cannot.
+  const [draft, setDraft] = useState<string | null>(null);
+  const text = draft ?? value.toString();
+
+  // Only the characters of a number are kept. A comma is read as the decimal point and a point is kept only when the
+  // step has decimals, so a count of pieces stays a whole number. The step decides and not the value, because the value
+  // changes while the user types ("2." is 2) and would take the point away.
+  const typedDecimals = decimalsOf(step);
+  const clean = (typed: string) => {
+    if (typedDecimals === 0) {
+      // A pasted 12,5 or 1e5 is cut at the separator, so it becomes 12 or 1 and not 125 or 15
+      return (typed.split(/[.,eE]/)[0] ?? '').replace(/\D/g, '').slice(0, 9);
+    }
+    const [whole = '', ...rest] = typed
+      .replace(',', '.')
+      .replace(/[^\d.]/g, '')
+      .split('.');
+    return rest.length > 0
+      ? `${whole.slice(0, 9)}.${rest.join('').slice(0, typedDecimals)}`
+      : whole.slice(0, 9);
+  };
 
   return (
     <div role="group" aria-label={label} className="flex items-center gap-2">
@@ -43,21 +67,62 @@ export function NumberStepper({
         aria-label="Kurangi"
         disabled={inRange <= min}
         onClick={() => {
+          setDraft(null);
           onValueChange(next(-step));
         }}
       >
         −
       </Button>
-      <output className="bg-bg-3 border-border-field flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border px-3">
-        <span className="text-kpi text-text-heading">{value}</span>{' '}
+      <span className="bg-bg-3 border-border-field focus-within:border-focus flex h-11 flex-1 items-center justify-center gap-1.5 rounded-md border px-3 focus-within:shadow-[inset_0_0_0_1px_var(--focus)]">
+        <input
+          type="text"
+          inputMode={typedDecimals === 0 ? 'numeric' : 'decimal'}
+          autoComplete="off"
+          aria-label="Angka"
+          value={text}
+          size={Math.max(text.length, 1)}
+          className="text-kpi text-text-heading min-w-0 bg-transparent text-center outline-none"
+          onChange={(event) => {
+            const typed = clean(event.target.value);
+            setDraft(typed);
+            const number = Number(typed);
+            if (typed !== '' && typed !== '.' && Number.isFinite(number)) {
+              // A number below the minimum waits for the next digit (50 starts with 5) and is lifted when the field is left
+              if (number < min) {
+                return;
+              }
+              const clamped = Math.min(max, number);
+              // A number above the limit shows the limit at once, so the field never shows what is not saved
+              if (clamped !== number) {
+                setDraft(clamped.toString());
+              }
+              onValueChange(clamped);
+            }
+          }}
+          onFocus={(event) => {
+            // So that typing replaces a 0 and does not become 05
+            event.currentTarget.select();
+          }}
+          onBlur={() => {
+            if (draft !== null && draft !== '' && Number(draft) < min) {
+              onValueChange(min);
+            }
+            setDraft(null);
+          }}
+        />
         {unit ? <span className="text-body text-text-2">{unit}</span> : null}
-      </output>
+        {/* The buttons keep the focus, so the new value is read out from here */}
+        <span aria-live="polite" className="sr-only">
+          {value} {unit}
+        </span>
+      </span>
       <Button
         size="lg"
         className="w-11 px-0"
         aria-label="Tambah"
         disabled={inRange >= max}
         onClick={() => {
+          setDraft(null);
           onValueChange(next(step));
         }}
       >
