@@ -52,7 +52,7 @@ function toNetworkError(error: unknown): Error {
 }
 
 // The API asks for this header with this value on a request that changes data. A page of another site cannot add the
-// header without a preflight that the CORS rules of the API refuse, which stops a forged request that carries the cookie.
+// header without a preflight, and the CORS rules of the API refuse that, which stops a forged request with the cookie.
 const requestedWith = 'aethera';
 const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
 
