@@ -141,7 +141,7 @@ describe('the list of tips', () => {
   it('keeps the chosen status in the address when a tip opens', async () => {
     stubApi({
       'GET /v1/recommendations': { body: sampleList() },
-      'GET /v1/recommendations/r3': { body: sampleDetail({ id: 'r3', status: 'verified' }) },
+      'GET /v1/recommendations/r4': { body: sampleDetail({ id: 'r4', status: 'verified' }) },
     });
     const router = renderAt('/saran?status=verified');
 
@@ -149,7 +149,7 @@ describe('the list of tips', () => {
       await screen.findByRole('link', { name: 'Atur ulang jam nyala kipas gudang' }),
     );
 
-    expect(router.state.location.pathname).toBe('/saran/r3');
+    expect(router.state.location.pathname).toBe('/saran/r4');
     expect(router.state.location.search).toBe('?status=verified');
   });
 
