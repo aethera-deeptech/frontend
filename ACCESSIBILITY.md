@@ -1,6 +1,6 @@
 # Accessibility statement
 
-The app only has its shell (a menu, a skip link and a not found page) and no screens yet, so there is little interface to audit. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that are not built.
+The app has its screens, but the automated axe check in the end to end tests only covers the home screen and the not found page. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that were not tested.
 
 ## What the design aims for
 
