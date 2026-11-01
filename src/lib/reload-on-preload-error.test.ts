@@ -30,20 +30,30 @@ describe('reloadOnPreloadError', () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
-  it('does not reload again within 10 seconds', () => {
+  it('does not reload again within a minute and leaves that error alone', () => {
     fail();
-    fail();
+    const second = fail();
 
     expect(reload).toHaveBeenCalledTimes(1);
+    expect(second.defaultPrevented).toBe(false);
   });
 
-  it('reloads again after 10 seconds', () => {
+  it('reloads again after a minute', () => {
     vi.useFakeTimers();
     fail();
-    vi.advanceTimersByTime(10_001);
+    vi.advanceTimersByTime(60_001);
     fail();
 
     expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reload while the device is offline', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    const event = fail();
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    vi.restoreAllMocks();
   });
 
   it('does not reload when the storage is blocked, because the guard cannot work', () => {
