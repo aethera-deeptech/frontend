@@ -162,9 +162,10 @@ function onlyOnStateDevices(projectName: string) {
   test.skip(!stateDevices.includes(projectName), 'This scan runs on two devices');
 }
 
-async function expectNoViolations(page: Page) {
+async function expectNoViolations(page: Page, { exclude = [] }: { exclude?: string[] } = {}) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+    .exclude(exclude)
     .analyze();
 
   expect(results.violations).toEqual([]);
@@ -180,7 +181,10 @@ for (const state of states) {
     test('has no accessibility violations', async ({ page }, testInfo) => {
       onlyOnStateDevices(testInfo.project.name);
       await page.goto(state.path);
-      await expect(page.getByText(state.shows).first()).toBeVisible(errorWait);
+      // The list and the detail can both hold the text, and one of them is hidden on a phone, so only a visible one counts
+      await expect(page.getByText(state.shows).filter({ visible: true }).first()).toBeVisible(
+        errorWait,
+      );
       await expect(page.getByRole('status').filter({ hasText: /^Memuat/ })).toHaveCount(0);
 
       await expectNoViolations(page);
@@ -236,7 +240,9 @@ test('the list of rooms, open, has no accessibility violations', async ({ page }
   await page.getByRole('combobox', { name: 'Ruangan' }).click();
   await expect(page.getByRole('option', { name: 'Ruang jahit' })).toBeVisible();
 
-  await expectNoViolations(page);
+  // Radix hides the rest of the page with aria-hidden while the list is open, and the skip link is part of the rest. Its focus
+  // trap keeps the focus in the list, so the link cannot be reached, and axe still flags it as a hidden element that can focus.
+  await expectNoViolations(page, { exclude: ['a[href="#konten"]'] });
 });
 
 test('the consent for a clamp has no accessibility violations', async ({ page }, testInfo) => {
