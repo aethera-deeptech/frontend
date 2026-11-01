@@ -7,8 +7,8 @@ const envSchema = z.object({
     error: 'VITE_API_BASE_URL must be a full URL, for example https://api.example.com',
   }),
   VITE_GOOGLE_CLIENT_ID: z.string().default(''),
-  VITE_SENTRY_DSN: z.string().default(''),
-  VITE_SENTRY_ENVIRONMENT: z.string().default(''),
+  VITE_SENTRY_DSN: z.string().trim().default(''),
+  VITE_SENTRY_ENVIRONMENT: z.string().trim().default(''),
 });
 
 export interface Env {

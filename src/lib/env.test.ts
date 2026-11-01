@@ -27,6 +27,17 @@ describe('parseEnv', () => {
     expect(env.sentryEnvironment).toBe('production');
   });
 
+  it('treats a DSN or an environment name of spaces as not set', () => {
+    const env = parseEnv({
+      VITE_API_BASE_URL: 'https://api.example.com',
+      VITE_SENTRY_DSN: '  ',
+      VITE_SENTRY_ENVIRONMENT: ' ',
+    });
+
+    expect(env.sentryDsn).toBe('');
+    expect(env.sentryEnvironment).toBe('production');
+  });
+
   it('refuses a missing or invalid API address and names the setting', () => {
     expect(() => parseEnv({})).toThrow('VITE_API_BASE_URL');
     expect(() => parseEnv({ VITE_API_BASE_URL: 'not a url' })).toThrow('VITE_API_BASE_URL');
@@ -35,7 +46,11 @@ describe('parseEnv', () => {
 
 describe('isGoogleSignInConfigured', () => {
   it('is false for an empty client id and true otherwise', () => {
-    const base = { apiBaseUrl: 'https://api.example.com', sentryDsn: '' };
+    const base = {
+      apiBaseUrl: 'https://api.example.com',
+      sentryDsn: '',
+      sentryEnvironment: 'production',
+    };
 
     expect(isGoogleSignInConfigured({ ...base, googleClientId: '' })).toBe(false);
     expect(isGoogleSignInConfigured({ ...base, googleClientId: 'client-id' })).toBe(true);
