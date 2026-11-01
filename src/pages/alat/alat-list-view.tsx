@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
 import { Select } from '@/components/ui/select';
 import { formatDate, formatFixed, formatTime, formatWatts } from '@/lib/format';
-import { summarize, type DeviceFilter } from '@/pages/alat/device-filters';
+import { deviceFilterOptions, summarize, type DeviceFilter } from '@/pages/alat/device-filters';
 import { statusFilterLabels } from '@/pages/alat/device-status';
 
 interface AlatListViewProps {

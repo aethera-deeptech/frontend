@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/select';
 import { Tag } from '@/components/ui/tag';
 import { formatPercent, formatRupiah } from '@/lib/format';
 import { statusLabels, statusTones } from '@/pages/saran/recommendation-status';
-import { visibleItems, type StatusFilter } from '@/pages/saran/saran-filter';
+import { filterOptions, visibleItems, type StatusFilter } from '@/pages/saran/saran-filter';
 
 interface SaranListViewProps {
   data: RecommendationList;
