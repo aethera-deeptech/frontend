@@ -141,6 +141,14 @@ describe('BerandaView, connection', () => {
   });
 });
 
+describe('BerandaView, a failed decision', () => {
+  it('says that the decision was not saved', () => {
+    renderView({ decisionFailed: true });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Pilihan belum tersimpan');
+  });
+});
+
 describe('BerandaView, the chart of devices', () => {
   it('shows at most 4 devices under the title that says 4', () => {
     renderView({

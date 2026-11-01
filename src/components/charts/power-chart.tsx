@@ -55,7 +55,7 @@ export function PowerChart({
         aria-label={label}
         width={width}
         height={HEIGHT}
-        className="block overflow-visible"
+        className="block max-w-full overflow-visible"
       >
         {ticks.map((y, index) => (
           <g key={y}>

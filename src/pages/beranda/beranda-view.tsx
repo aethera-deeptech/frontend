@@ -26,6 +26,8 @@ interface BerandaViewProps {
   onDecision: (id: string, decision: RecommendationDecision) => void;
   // The id of the tip whose decision is being sent
   busyId?: string;
+  // The last decision could not be sent
+  decisionFailed?: boolean;
   // The moment on which the screen is read. Tests set it, the app leaves it out.
   now?: Date;
 }
@@ -51,6 +53,7 @@ export function BerandaView({
   connection,
   onDecision,
   busyId,
+  decisionFailed = false,
   now = new Date(),
 }: BerandaViewProps) {
   const asOf = parseMoment(data.asOf);
@@ -63,6 +66,13 @@ export function BerandaView({
           tone="warning"
           title="Data belum diperbarui"
           message={`Terakhir diperbarui ${formatDateTime(asOf)}. Angka di bawah belum diperbarui dan akan menyusul setelah koneksi internet Anda terhubung lagi.`}
+        />
+      ) : null}
+      {decisionFailed ? (
+        <Banner
+          tone="danger"
+          title="Pilihan belum tersimpan"
+          message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />
       ) : null}
       {connection === 'catching-up' ? (
