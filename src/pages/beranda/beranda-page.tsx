@@ -20,6 +20,7 @@ export function BerandaPage() {
           data={query.data}
           connection={connection}
           busyId={decision.isPending ? decision.variables.id : undefined}
+          decisionFailed={decision.isError}
           onDecision={(id, choice) => {
             decision.mutate({ id, decision: choice });
           }}
@@ -27,6 +28,13 @@ export function BerandaPage() {
       ) : (
         <div className="flex flex-col gap-3 lg:gap-6">
           <PageHeader title="Beranda" />
+          {query.isPending && connection === 'offline' ? (
+            <Banner
+              tone="warning"
+              title="Belum terhubung"
+              message="Data muncul setelah koneksi internet Anda terhubung lagi."
+            />
+          ) : null}
           {query.isPending ? (
             <div className="flex flex-col gap-3 lg:gap-4">
               <SkeletonCard />
