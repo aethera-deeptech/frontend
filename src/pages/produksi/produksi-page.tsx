@@ -49,8 +49,7 @@ function ProduksiForm({ data }: { data: Production }) {
   // The result belongs to what was sent. If the user changed a value while the save was on its way, the screen does not
   // confirm the new values as saved.
   const sent = save.variables;
-  const sameAsSent =
-    sent !== undefined && sent.date === date && sent.quantity === quantity && sent.unit === unit;
+  const sameAsSent = sent?.date === date && sent.quantity === quantity && sent.unit === unit;
   const saveState: SaveState = save.isPending
     ? 'saving'
     : save.isError
