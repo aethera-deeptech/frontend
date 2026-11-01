@@ -6,12 +6,8 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import {
-  filterOptions,
-  SaranListView,
-  visibleItems,
-  type StatusFilter,
-} from '@/pages/saran/saran-list-view';
+import { filterOptions, visibleItems, type StatusFilter } from '@/pages/saran/saran-filter';
+import { SaranListView } from '@/pages/saran/saran-list-view';
 
 function readFilter(value: string | null): StatusFilter {
   return filterOptions.find((option) => option.value === value)?.value ?? 'all';
