@@ -39,7 +39,10 @@ jobs:
       - name: Install the browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
+      # The tests answer every call to this address themselves, see e2e/fixtures.ts
       - name: Build
+        env:
+          VITE_API_BASE_URL: https://api.example.com
         run: npm run build
 
       - name: Run the end to end tests on every device

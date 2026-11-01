@@ -13,6 +13,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    env: { VITE_API_BASE_URL: 'https://api.example.com' },
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'nginx/**/*.test.ts', 'design/**/*.test.ts'],
     coverage: {
