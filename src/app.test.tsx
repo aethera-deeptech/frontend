@@ -1,14 +1,62 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import { App } from '@/app';
+import { routes } from '@/routes';
+
+function renderAt(path: string) {
+  const router = createMemoryRouter(routes, { initialEntries: [path] });
+  return render(<RouterProvider router={router} />);
+}
 
 describe('App', () => {
-  it('shows the product name as the page heading', () => {
+  it('opens the home page at the root of the site', () => {
     render(<App />);
 
+    expect(screen.getByRole('heading', { level: 1, name: 'Beranda' })).toBeInTheDocument();
+  });
+});
+
+describe('the app shell', () => {
+  it('has a skip link that points at the main content', () => {
+    renderAt('/');
+
+    expect(screen.getByRole('link', { name: 'Lewati ke konten' })).toHaveAttribute(
+      'href',
+      '#konten',
+    );
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'konten');
+  });
+
+  it('shows the menu in the bottom bar and in the sidebar and marks the open page', () => {
+    renderAt('/');
+
+    const menus = screen.getAllByRole('navigation', { name: 'Menu utama' });
+
+    expect(menus).toHaveLength(2);
+    for (const menu of menus) {
+      expect(within(menu).getByRole('link', { name: 'Beranda' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    }
+  });
+
+  it('sets the page title', () => {
+    renderAt('/');
+
+    expect(document.title).toBe('Beranda · Audit Energi UMKM');
+  });
+});
+
+describe('an unknown address', () => {
+  it('says that the page does not exist and links back to the home page', () => {
+    renderAt('/halaman-yang-tidak-ada');
+
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Audit Energi UMKM' }),
+      screen.getByRole('heading', { level: 1, name: 'Halaman tidak ditemukan' }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Kembali ke Beranda' })).toHaveAttribute('href', '/');
   });
 });
