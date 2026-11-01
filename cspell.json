@@ -16,6 +16,7 @@
     "aethera",
     "alat",
     "anchore",
+    "anomali",
     "autorun",
     "beranda",
     "blurple",
@@ -24,6 +25,7 @@
     "commitlint",
     "cyclonedx",
     "deeptech",
+    "dgimsuvy",
     "dotenv",
     "dotenvlinter",
     "energi",
@@ -37,10 +39,12 @@
     "lhci",
     "lighthouserc",
     "lycheeverse",
+    "mati",
     "misconfig",
     "nofilter",
     "nonword",
     "nosniff",
+    "nyala",
     "ossf",
     "pengaturan",
     "perkiraan",
@@ -50,6 +54,7 @@
     "sarif",
     "shadcn",
     "shellcheck",
+    "siaga",
     "sigstore",
     "syafa",
     "tampilkan",
@@ -61,6 +66,7 @@
     "trivyignores",
     "typechecks",
     "umkm",
+    "unstub",
     "vite",
     "wagoid",
     "wcag",
@@ -88,9 +94,11 @@
       "ignoreRegExpList": [
         "/'(?:[^'\\\\\\n]|\\\\.)*'/g",
         "/\"(?:[^\"\\\\\\n]|\\\\.)*\"/g",
-        "/`[^`\\n]*`/g",
-        "/>[^<>{}\\n]+</g",
-        "/^\\s*(?!\\/\\/|\\/\\*|\\*)[A-Za-z][^<>{}=;()\\[\\]`,]* [^<>{}=;()\\[\\]`,]*$/gm"
+        "/`(?:[^`\\\\]|\\\\.)*`/g",
+        "/(?:>(?! )|\\})[^<>{}()=;&|\\n]+(?=<|\\{)/g",
+        "/^[ \\t]*(?!\\/\\/|\\/\\*|\\*)[A-Za-z][^<>{}=;()\\[\\]`,\\n]* [^<>{}=;()\\[\\]`,\\n]*$/gm",
+        "/^[ \\t]*[A-Z][a-z]+[.!?]?$/gm",
+        "/(?<=[(,=:\\[!&|?{};]\\s*)\\/(?![\\/*])(?:[^\\/\\\\\\n\\[]|\\\\.|\\[(?:[^\\]\\\\\\n]|\\\\.)*\\])+\\/[dgimsuvy]*/g"
       ]
     }
   ]
