@@ -5,6 +5,9 @@ import {
   formatDate,
   formatDateTime,
   formatDayTime,
+  formatFixed,
+  formatTime,
+  formatWatts,
   formatDateWithYear,
   formatNumber,
   formatPercent,
@@ -44,6 +47,23 @@ describe('formatNumber', () => {
   });
 });
 
+describe('formatFixed', () => {
+  it('keeps the zeros after the comma', () => {
+    expect(formatFixed(7, 1)).toBe('7,0');
+    expect(formatFixed(0, 1)).toBe('0,0');
+    expect(formatFixed(4.26, 1)).toBe('4,3');
+    expect(formatFixed(1250, 0)).toBe('1.250');
+  });
+});
+
+describe('formatWatts', () => {
+  it('groups the thousands and adds the unit', () => {
+    expect(formatWatts(780)).toBe('780 W');
+    expect(formatWatts(1250)).toBe('1.250 W');
+    expect(formatWatts(0)).toBe('0 W');
+  });
+});
+
 describe('formatPercent', () => {
   it('shows one decimal at most', () => {
     expect(formatPercent(9.756)).toBe('9,8%');
@@ -62,6 +82,7 @@ describe('dates', () => {
   it('writes the time with a colon and two digits', () => {
     expect(formatDateTime(date)).toBe('28 Okt 2026, 07:05');
     expect(formatDayTime(date)).toBe('28 Okt, 07:05');
+    expect(formatTime(date)).toBe('07:05');
   });
 
   it('knows the length of a month', () => {
