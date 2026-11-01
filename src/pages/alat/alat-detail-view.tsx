@@ -116,22 +116,24 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
     );
   }
 
+  const { anomaly } = pattern;
   const peak = detail.anomaly?.peakW;
-  const hasAnomaly = pattern.anomaly !== undefined && peak !== undefined;
+  const shownAnomaly =
+    anomaly !== undefined && peak !== undefined ? { ...anomaly, peak } : undefined;
 
   return (
     <SectionCard heading="Pola daya satu hari">
       <PowerChart
-        label={`Daya ${detail.name.toLowerCase()} dalam satu hari${hasAnomaly ? ', ada anomali' : ''}`}
+        label={`Daya ${detail.name.toLowerCase()} dalam satu hari${shownAnomaly ? ', ada anomali' : ''}`}
         points={pattern.points}
         yMax={pattern.yMaxW}
         expected={pattern.expected}
         anomaly={
-          hasAnomaly
+          shownAnomaly
             ? {
-                from: pattern.anomaly.from,
-                to: pattern.anomaly.to,
-                label: `Anomali ${formatWatts(peak)}`,
+                from: shownAnomaly.from,
+                to: shownAnomaly.to,
+                label: `Anomali ${formatWatts(shownAnomaly.peak)}`,
               }
             : undefined
         }

@@ -52,7 +52,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 `GET /v1/devices/{id}` returns one device with the fields below. The API answers 404 for an id that does not exist.
 
-- `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example "Colokan pintar".
+- `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example the text `Colokan pintar`.
 - `currentPowerW`, `todayKwh`, `monthKwh`, `onHoursToday` and `standbyW`, which are `null` while there are no numbers.
 - `lastSeenAt` and `signal`, which is `baik`, `cukup`, `lemah` or `tidak-ada`.
 - `anomaly` with `at` and `peakW`, only while the status is `anomali`.
