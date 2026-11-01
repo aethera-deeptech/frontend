@@ -9,6 +9,21 @@ if (typeof window !== 'undefined') {
   window.HTMLElement.prototype.setPointerCapture = () => undefined;
   window.HTMLElement.prototype.releasePointerCapture = () => undefined;
   window.HTMLElement.prototype.scrollIntoView = () => undefined;
+
+  // jsdom has no matchMedia. By default nothing matches, so a screen is drawn like on a phone.
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) =>
+      ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+        // The deprecated addListener and removeListener are left out, nothing in the app calls them
+      }) as unknown as MediaQueryList,
+  });
 }
 
 class ResizeObserverStub {
