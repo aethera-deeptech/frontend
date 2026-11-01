@@ -31,6 +31,13 @@ jobs:
         with:
           persist-credentials: false
 
+      # The commitlint action runs as a Docker image from Docker Hub, which limits anonymous pulls
+      - name: Pull images through the Google mirror
+        uses: ./.github/actions/pull-images
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_PULL_TOKEN }}
+
       # Lints the commits of the pull request. Merge commits are ignored by commitlint, and the rules are in commitlint.config.mjs.
       - name: Commit messages
         uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
