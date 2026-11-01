@@ -1,6 +1,6 @@
 # Accessibility statement
 
-The app has its screens, but the automated axe check in the end to end tests only covers the home screen. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about screens that were not tested.
+The app has its screens, and the automated axe check in the end to end tests covers each route once, with sample data, on three devices. The home screen is checked on every device. The sign-in and sign-up screens are scanned with their forms disabled. The steps to add a device are scanned for a plug (kind, consent, name and the search while it runs) and for the clamp warning. This page says what the design aims for, where the known gaps are and how to report a barrier. It makes no claim about states that were not tested, such as an error, an empty list, the other phases of Beranda and Laporan, the other statuses of a tip, the outcomes of a device search, the clamp consent step, the open room list or the dark theme.
 
 ## What the design aims for
 

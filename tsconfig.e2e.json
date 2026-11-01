@@ -4,10 +4,11 @@
     "target": "ES2023",
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "skipLibCheck": true,
 
     "moduleResolution": "bundler",
+    "paths": { "@/*": ["./src/*"] },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

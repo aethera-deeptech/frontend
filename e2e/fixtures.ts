@@ -1,5 +1,16 @@
 import { expect, test as base } from '@playwright/test';
 
+import {
+  sampleAnomaly,
+  sampleDevices,
+  sampleNormal,
+  sampleOffline,
+} from '../src/pages/alat/sample-alat';
+import { sampleReady as sampleReport } from '../src/pages/laporan/sample-laporan';
+import { sampleSettings } from '../src/pages/pengaturan/sample-settings';
+import { sampleProduction } from '../src/pages/produksi/sample-produksi';
+import { sampleDetail, sampleList } from '../src/pages/saran/sample-saran';
+
 const apiOrigin = 'https://api.example.com';
 
 // The app is built against a placeholder API address and no backend exists in CI. Every call to that address is answered
@@ -45,21 +56,93 @@ function beranda() {
   };
 }
 
+// What the placeholder API answers for each method and path. A path that is not listed gets a 404, like an address that does not exist.
+function answer(method: string, pathname: string): unknown {
+  const tip = /^\/v1\/recommendations\/([^/]+)$/.exec(pathname)?.[1];
+  const device = /^\/v1\/devices\/([^/]+)$/.exec(pathname)?.[1];
+
+  if (method === 'POST' && pathname === '/v1/pairings') {
+    return { id: 'p1' };
+  }
+  if (method !== 'GET') {
+    return undefined;
+  }
+  if (pathname === '/v1/beranda') {
+    return beranda();
+  }
+  if (pathname === '/v1/recommendations') {
+    return sampleList();
+  }
+  if (tip) {
+    // The tip r3 is applied, so the screen to cancel it has something to cancel
+    return tip === 'r3'
+      ? sampleDetail({
+          id: 'r3',
+          title: 'Kurangi daya siaga mesin obras',
+          status: 'applied',
+          appliedAt: new Date().toISOString(),
+          verification: { collectedDays: 9, neededDays: 14 },
+        })
+      : sampleDetail({ id: tip });
+  }
+  if (pathname === '/v1/devices') {
+    return sampleDevices();
+  }
+  if (device) {
+    return device === 'd1'
+      ? sampleAnomaly()
+      : device === 'd2'
+        ? sampleOffline()
+        : sampleNormal({ id: device });
+  }
+  if (pathname === '/v1/reports') {
+    return sampleReport();
+  }
+  if (pathname === '/v1/production') {
+    return sampleProduction();
+  }
+  if (pathname === '/v1/settings') {
+    return sampleSettings();
+  }
+  if (pathname === '/v1/rooms') {
+    return {
+      items: [
+        { id: 'jahit', name: 'Ruang jahit' },
+        { id: 'gudang', name: 'Gudang' },
+      ],
+    };
+  }
+  if (pathname === '/v1/pairings/p1') {
+    return { status: 'searching' };
+  }
+  return undefined;
+}
+
 export const test = base.extend({
   page: async ({ page }, provide) => {
     await page.route(`${apiOrigin}/**`, async (route) => {
-      const origin = route.request().headers().origin ?? '';
+      const request = route.request();
+      const origin = request.headers().origin ?? '';
       const headers = {
         'access-control-allow-origin': origin,
         'access-control-allow-credentials': 'true',
+        'access-control-allow-methods': 'GET, POST, PUT, PATCH, OPTIONS',
+        'access-control-allow-headers': 'content-type',
         'content-type': 'application/json',
       };
-      const { pathname } = new URL(route.request().url());
+      const { pathname } = new URL(request.url());
 
-      if (pathname === '/v1/beranda') {
-        await route.fulfill({ status: 200, headers, body: JSON.stringify(beranda()) });
-      } else {
+      if (request.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers });
+        return;
+      }
+
+      const body = answer(request.method(), pathname);
+
+      if (body === undefined) {
         await route.fulfill({ status: 404, headers, body: '{}' });
+      } else {
+        await route.fulfill({ status: 200, headers, body: JSON.stringify(body) });
       }
     });
     await provide(page);
