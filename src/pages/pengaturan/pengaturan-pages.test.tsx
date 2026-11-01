@@ -145,7 +145,7 @@ describe('Tarif listrik', () => {
     expect(patchBody(fetchMock)).toEqual({ tariffRpPerKwh: 1500 });
   });
 
-  it.each(['abc', '0', '1444.7', '1.444,70', '14.4'])(
+  it.each(['abc', '0', '1444.7', '1.444,70', '14.4', '1.2.3'])(
     'does not save %s as a tariff',
     async (typed) => {
       const fetchMock = stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
