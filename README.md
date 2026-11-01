@@ -24,9 +24,10 @@ What exists now:
 
 What is planned and not built yet:
 
-- shadcn/ui components
-- The Rubik font and the text styles of the Figma file
-- React Router, TanStack Query and Recharts
+- Lazy loading of the routes
+- Sentry error reporting, which needs a DSN
+- The Desktop variants of the master-detail screens
+- The other sign-in screens (Verifikasi, Lupa sandi, Atur ulang and Nama usaha after Google), which need the login
 
 ## Run it
 
