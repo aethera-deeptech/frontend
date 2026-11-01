@@ -25,7 +25,6 @@ What exists now:
 What is planned and not built yet:
 
 - Lazy loading of the routes
-- Sentry error reporting, which needs a DSN
 - The Desktop variants of the master-detail screens
 - The other sign-in screens (email check, forgotten password, new password and business name after Google), which need the login
 
@@ -50,6 +49,10 @@ This builds the image and serves it on http://localhost:3000. The published imag
 ## Hosting
 
 The site is static files. Cloudflare Pages builds `main` with `npm run build` and serves `dist`. The repository has no `404.html`, so Pages serves `index.html` for every unknown path, which is what a single page app needs. `public/_headers` sets the security headers and the content security policy. The API address is a build setting (`VITE_API_BASE_URL`), so a change needs a new build.
+
+## Error reporting
+
+Errors reach Sentry when the build has a `VITE_SENTRY_DSN`. The SDK loads as its own chunk after the entry, so a build with no DSN never downloads it, and an error that happens before the chunk has loaded is not reported. `VITE_SENTRY_ENVIRONMENT` names the environment, for example `production` or `preview`, so the errors of a preview stay apart from production. The reports carry no IP address or cookie because `sendDefaultPii` is off, and the app sets up no tracing and no replay. A page that throws shows the error page and reports the error. The content security policy allows only the EU ingest hosts of Sentry, `*.ingest.de.sentry.io`, so a DSN in another region needs a change of the policy.
 
 ## Design
 
