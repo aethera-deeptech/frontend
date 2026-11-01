@@ -146,7 +146,7 @@ jobs:
       security-events: write
     env:
       # The published image is built for production. The values are public because they end up in the files of the app.
-      VITE_API_BASE_URL: https://api-aethera.syafahadyan.com
+      VITE_API_BASE_URL: https://aethera-api.syafahadyan.com
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
