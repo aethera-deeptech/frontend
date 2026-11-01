@@ -7,7 +7,7 @@ import { BeforeAfter } from '@/components/ui/before-after';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { KpiCard } from '@/components/ui/kpi-card';
-import { RecommendationCard } from '@/components/ui/recommendation-card';
+import { DecisionButtons, RecommendationCard } from '@/components/ui/recommendation-card';
 import { Tag } from '@/components/ui/tag';
 import type { ConnectionState } from '@/hooks/use-connection';
 import {
@@ -173,14 +173,18 @@ function Ready({ data, asOf, connection, onDecision, busyId, now }: ReadyProps) 
                 key={item.id}
                 title={item.title}
                 saving={`Hemat sekitar ${formatRupiah(item.savingPerMonthRp)} per bulan`}
-                deviceName={item.deviceName}
-                busy={busyId === item.id}
-                onApply={() => {
-                  onDecision(item.id, 'apply');
-                }}
-                onDefer={() => {
-                  onDecision(item.id, 'defer');
-                }}
+                meta={<p className="text-label text-text-2">{item.deviceName}</p>}
+                actions={
+                  <DecisionButtons
+                    busy={busyId === item.id}
+                    onApply={() => {
+                      onDecision(item.id, 'apply');
+                    }}
+                    onDefer={() => {
+                      onDecision(item.id, 'defer');
+                    }}
+                  />
+                }
               />
             ))}
           </>
