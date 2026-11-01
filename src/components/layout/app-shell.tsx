@@ -35,7 +35,7 @@ export function AppShell() {
       <div className="bg-bg-1 border-border-1 fixed inset-y-0 left-0 z-10 hidden w-60 border-r lg:block">
         <nav aria-label="Menu utama" className="flex flex-col gap-4 p-4">
           <Link to="/" className="text-h2 text-text-heading rounded-md">
-            Audit Energi UMKM
+            WATTLINK
           </Link>
           <ul className="flex flex-col gap-1">
             {navItems.map((item) => (

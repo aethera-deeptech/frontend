@@ -22,7 +22,7 @@ describe('the list of devices', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Memuat daftar alat');
     expect(await screen.findByText('6 alat terpasang, 1 anomali, 1 offline')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Alat' })).toBeInTheDocument();
-    expect(document.title).toBe('Alat · Audit Energi UMKM');
+    expect(document.title).toBe('Alat · WATTLINK');
   });
 
   it('offers to add a device and to record the production', async () => {

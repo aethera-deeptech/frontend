@@ -73,7 +73,7 @@ describe('the app shell', () => {
   it('sets the page title', () => {
     renderAt('/');
 
-    expect(document.title).toBe('Beranda · Audit Energi UMKM');
+    expect(document.title).toBe('Beranda · WATTLINK');
   });
 });
 

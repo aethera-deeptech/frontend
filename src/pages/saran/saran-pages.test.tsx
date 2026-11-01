@@ -24,7 +24,7 @@ describe('the list of tips', () => {
       await screen.findByRole('heading', { name: 'Menunggu keputusan Anda' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Saran' })).toBeInTheDocument();
-    expect(document.title).toBe('Saran · Audit Energi UMKM');
+    expect(document.title).toBe('Saran · WATTLINK');
   });
 
   it('shows only the chosen status and keeps it in the address', async () => {

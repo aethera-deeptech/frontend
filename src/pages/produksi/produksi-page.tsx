@@ -11,7 +11,7 @@ export function ProduksiPage() {
 
   return (
     <>
-      <title>Catat produksi · Audit Energi UMKM</title>
+      <title>Catat produksi · WATTLINK</title>
       {query.data ? (
         <ProduksiForm data={query.data} />
       ) : query.isPending ? (

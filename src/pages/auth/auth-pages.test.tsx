@@ -22,14 +22,14 @@ describe('Masuk', () => {
       screen.getByRole('button', { name: 'Lanjut dengan Google' }),
     ).toHaveAccessibleDescription(/Masuk belum tersedia/);
     expect(screen.queryByRole('navigation', { name: 'Menu utama' })).not.toBeInTheDocument();
-    expect(document.title).toBe('Masuk · Audit Energi UMKM');
+    expect(document.title).toBe('Masuk · WATTLINK');
   });
 
   it('links the brand to the home page, the only way out of a screen where nothing works', () => {
     stubApi({});
     renderAt('/masuk');
 
-    expect(screen.getByRole('link', { name: 'Audit Energi UMKM' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'WATTLINK' })).toHaveAttribute('href', '/');
   });
 
   it('links to the registration', async () => {
@@ -56,7 +56,7 @@ describe('Daftar', () => {
     expect(screen.getByRole('button', { name: 'Daftar' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Daftar dengan Google' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: 'Tampilkan kata sandi' })).toBeDisabled();
-    expect(document.title).toBe('Daftar · Audit Energi UMKM');
+    expect(document.title).toBe('Daftar · WATTLINK');
   });
 
   it('links to the login', async () => {

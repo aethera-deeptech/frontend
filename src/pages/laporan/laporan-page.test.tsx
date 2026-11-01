@@ -49,7 +49,7 @@ describe('LaporanPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Memuat laporan');
 
     expect(await screen.findByText('Rp312.000')).toBeInTheDocument();
-    expect(document.title).toBe('Laporan · Audit Energi UMKM');
+    expect(document.title).toBe('Laporan · WATTLINK');
   });
 
   it('asks for the running month first and for another month when the address names it', async () => {

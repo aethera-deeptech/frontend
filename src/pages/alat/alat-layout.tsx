@@ -34,7 +34,7 @@ export function AlatLayout() {
 
   return (
     <>
-      <title>Alat · Audit Energi UMKM</title>
+      <title>Alat · WATTLINK</title>
       {/* On a phone the open device has its own top bar, so the title only stays for assistive technology */}
       <div className={id ? 'sr-only lg:not-sr-only' : undefined}>
         <PageHeader

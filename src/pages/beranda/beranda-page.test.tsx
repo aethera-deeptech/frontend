@@ -42,7 +42,7 @@ describe('BerandaPage', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Konveksi Maju Jaya' }),
     ).toBeInTheDocument();
-    expect(document.title).toBe('Beranda · Audit Energi UMKM');
+    expect(document.title).toBe('Beranda · WATTLINK');
   });
 
   it('asks for the data of Beranda', async () => {

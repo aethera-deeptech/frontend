@@ -27,7 +27,7 @@ export function ErrorPage() {
       tabIndex={-1}
       className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center p-4 outline-none"
     >
-      <title>Terjadi kesalahan · Audit Energi UMKM</title>
+      <title>Terjadi kesalahan · WATTLINK</title>
       <Card className="gap-3 p-6">
         <h1 className="text-h2 text-text-heading">Terjadi kesalahan</h1>
         <p className="text-body text-text-2">

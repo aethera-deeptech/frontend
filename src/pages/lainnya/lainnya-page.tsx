@@ -5,7 +5,7 @@ import { ListRow } from '@/components/ui/list-row';
 export function LainnyaPage() {
   return (
     <>
-      <title>Lainnya · Audit Energi UMKM</title>
+      <title>Lainnya · WATTLINK</title>
       <div className="flex flex-col gap-3 lg:gap-6">
         {/* The Mobile frames have no title above the menu, so it only stays for assistive technology */}
         <h1 className="text-title text-text-heading sr-only lg:not-sr-only">Lainnya</h1>

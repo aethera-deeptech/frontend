@@ -20,10 +20,10 @@ interface AuthFrameProps {
 export function AuthFrame({ title, subtitle, notice, children }: AuthFrameProps) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col gap-4 p-4 lg:justify-center">
-      <title>{`${title} · Audit Energi UMKM`}</title>
+      <title>{`${title} · WATTLINK`}</title>
       <PendingIndicator />
       <Link to="/" className="text-h2 text-text-heading self-start rounded-md">
-        Audit Energi UMKM
+        WATTLINK
       </Link>
       <div className="flex flex-col gap-1">
         <h1 className="text-title text-text-heading">{title}</h1>

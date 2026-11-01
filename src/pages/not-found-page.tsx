@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 export function NotFoundPage() {
   return (
     <>
-      <title>Halaman tidak ditemukan · Audit Energi UMKM</title>
+      <title>Halaman tidak ditemukan · WATTLINK</title>
       <h1 className="text-h2 text-text-heading">Halaman tidak ditemukan</h1>
       <p className="text-body text-text-2 mt-2">Alamat yang Anda buka tidak ada.</p>
       <Link to="/" className="text-body text-text-accent mt-3 inline-block rounded-md underline">
