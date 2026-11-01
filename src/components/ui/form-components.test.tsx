@@ -292,6 +292,35 @@ describe('NumberStepper', () => {
     expect(whole).toHaveBeenLastCalledWith(12);
   });
 
+  it('lets the user type a number whose first digit is below the minimum', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={20} min={10} max={100} onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '50');
+
+    expect(input).toHaveValue('50');
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenLastCalledWith(50);
+  });
+
+  it('lifts a number below the minimum when the user leaves the field', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={20} min={10} max={100} onValueChange={onValueChange} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Angka' });
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '5');
+    await userEvent.tab();
+
+    expect(onValueChange).toHaveBeenLastCalledWith(10);
+  });
+
   it('reads the new value out after a tap on a button', () => {
     const { container } = render(
       <NumberStepper label="Potong per hari" value={24} unit="potong" onValueChange={vi.fn()} />,
