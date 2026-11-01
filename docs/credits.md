@@ -16,7 +16,7 @@ The UI kit of the Canva Apps SDK and its design guidelines are the second refere
 
 - Source: the npm package `@canva/app-ui-kit` and the [Canva Apps SDK documentation](https://www.canva.dev/docs/apps/)
 - Owner: Canva Pty Ltd
-- License: the Canva license in the package. It allows the components only for building apps that are offered solely on the Canva platform, and it asks for a copy of the license in every copy or derivative.
+- License: the [Canva license](https://unpkg.com/@canva/app-ui-kit@5.15.0/LICENSE.md) of version 5.15.0 of the package. It allows the components only for building apps that are offered solely on the Canva platform, and it asks for a copy of the license in every copy or derivative.
 
 ## What this repository contains
 
