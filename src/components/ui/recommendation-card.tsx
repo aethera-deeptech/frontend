@@ -15,21 +15,37 @@ interface RecommendationCardProps {
   to?: string;
   // Buttons under the text on a phone and at the right on a wide screen
   actions?: ReactNode;
+  // The card that is open in the detail next to the list
+  selected?: boolean;
 }
 
-export function RecommendationCard({ title, saving, meta, to, actions }: RecommendationCardProps) {
+export function RecommendationCard({
+  title,
+  saving,
+  meta,
+  to,
+  actions,
+  selected = false,
+}: RecommendationCardProps) {
   const titleId = useId();
 
   return (
     <article
       aria-labelledby={titleId}
-      className="border-border-1 bg-bg-1 relative flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-center lg:gap-4"
+      className={cn(
+        'bg-bg-1 relative flex flex-col gap-3 rounded-lg border p-4 lg:flex-row lg:items-center lg:gap-4',
+        selected ? 'border-text-accent border-2 p-[15px]' : 'border-border-1',
+      )}
     >
       <div className={cn('flex min-w-0 flex-1 flex-col gap-1', to && 'pr-6 lg:pr-0')}>
         <h3 id={titleId} className="text-h2 text-text-heading">
           {to ? (
             // The link covers the whole card. The buttons sit above it, so they keep working.
-            <Link to={to} className="rounded-md after:absolute after:inset-0 after:rounded-lg">
+            <Link
+              to={to}
+              aria-current={selected ? 'true' : undefined}
+              className="rounded-md after:absolute after:inset-0 after:rounded-lg"
+            >
               {title}
             </Link>
           ) : (
