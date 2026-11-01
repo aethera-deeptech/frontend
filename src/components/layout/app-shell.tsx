@@ -1,14 +1,14 @@
 import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigation } from 'react-router';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import { navItems } from '@/components/layout/nav-items';
+import { PendingIndicator, useNavigationPending } from '@/components/layout/pending-indicator';
 
 // The menu is a bottom bar on a phone and a sidebar from 1024 px, like the Mobile and Desktop frames.
 export function AppShell() {
   const { pathname } = useLocation();
-  // A page opens as its own chunk, so after a tap the old page stays until the new one has loaded
-  const pending = useNavigation().state === 'loading';
+  const pending = useNavigationPending();
   const mainRef = useRef<HTMLElement>(null);
   const openPath = useRef(pathname);
 
@@ -23,20 +23,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh lg:pl-60">
-      {/* A thin bar for the sighted user. It fades in after 150 ms, so a page that opens at once shows no flicker. */}
-      <div
-        aria-hidden="true"
-        className={clsx(
-          'bg-btn-accent-face fixed inset-x-0 top-0 z-30 h-0.5',
-          pending
-            ? 'animate-pending opacity-0 motion-reduce:animate-none motion-reduce:opacity-100'
-            : 'hidden',
-        )}
-      />
-      {/* The same news for a screen reader. The region is always there, so the text is read out when it changes. */}
-      <div aria-live="polite" className="sr-only">
-        {pending ? 'Memuat halaman' : ''}
-      </div>
+      <PendingIndicator />
       <a
         href="#konten"
         className="bg-bg-1 text-text-heading text-button fixed top-2 left-2 z-20 -translate-y-16 rounded-md px-3 py-3 focus:translate-y-0"

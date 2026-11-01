@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { Link } from 'react-router';
 
+import { PendingIndicator } from '@/components/layout/pending-indicator';
 import { Banner } from '@/components/ui/banner';
 
 // The disabled fields and the Google button point at the notice, so assistive technology can tell why they do not work
@@ -20,6 +21,7 @@ export function AuthFrame({ title, subtitle, notice, children }: AuthFrameProps)
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col gap-4 p-4 lg:justify-center">
       <title>{`${title} · Audit Energi UMKM`}</title>
+      <PendingIndicator />
       <Link to="/" className="text-h2 text-text-heading self-start rounded-md">
         Audit Energi UMKM
       </Link>
