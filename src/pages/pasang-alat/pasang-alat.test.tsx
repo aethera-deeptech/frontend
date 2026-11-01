@@ -116,6 +116,23 @@ describe('Tambah alat, the warning and the consent', () => {
   });
 });
 
+describe('Tambah alat, the history', () => {
+  it('sends a clamp user back to the start when the safety tick was taken away on the way back', async () => {
+    stubApi({ 'GET /v1/rooms': { body: rooms } });
+    const router = renderAt('/alat/tambah');
+    await goToName('Penjepit arus');
+    expect(router.state.location.pathname).toBe('/alat/tambah/nama');
+
+    await act(() => router.navigate(-2));
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }),
+    );
+    await act(() => router.navigate(2));
+
+    expect(router.state.location.pathname).toBe('/alat/tambah');
+  });
+});
+
 describe('Tambah alat, the name', () => {
   it('asks for a name and a room', async () => {
     const fetchMock = stubApi({ 'GET /v1/rooms': { body: rooms } });
@@ -202,6 +219,22 @@ describe('Tambah alat, the search', () => {
     await vi.waitFor(() => {
       expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(2);
     });
+  });
+
+  it('says that a new search could not start', async () => {
+    let posts = 0;
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': () => (++posts === 1 ? { body: { id: 'p1' } } : { status: 500 }),
+      'GET /v1/pairings/p1': { body: { status: 'failed' } },
+    });
+    renderAt('/alat/tambah');
+    await goToName('Colokan pintar');
+    await fillName('Mesin jahit 2', 'Gudang');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
+
+    expect(await screen.findByText('Pencarian belum bisa dimulai')).toBeInTheDocument();
   });
 
   it('starts over when the answers are gone, for example after a reload', async () => {
