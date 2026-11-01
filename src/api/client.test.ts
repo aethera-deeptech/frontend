@@ -182,7 +182,9 @@ describe('apiDownload', () => {
   });
 
   it('gives the file the PDF type when the server sent none', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new Blob(['%PDF-1.7']))));
+    // A response without a content type, which a test Response cannot build from a Blob of another realm
+    const untyped = { ok: true, status: 200, blob: () => Promise.resolve(new Blob(['%PDF-1.7'])) };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(untyped));
 
     const blob = await apiDownload('/v1/reports/2026-10/pdf');
 

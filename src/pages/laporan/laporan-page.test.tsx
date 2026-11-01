@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 
 import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { reportFileName } from '@/pages/laporan/use-report-download';
@@ -27,11 +27,13 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status });
 }
 
+let click: MockInstance<() => void>;
+
 beforeEach(() => {
   URL.createObjectURL = vi.fn(() => 'blob:report');
   URL.revokeObjectURL = vi.fn();
   // jsdom cannot follow a link, and the page only needs to know that the browser was asked to save
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+  click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -64,7 +66,9 @@ describe('LaporanPage', () => {
   });
 
   it('asks for the running month when the address has no month or a month that is not valid', async () => {
-    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(json(sampleReady())));
+    const fetchMock = vi
+      .fn<(url: string) => Promise<Response>>()
+      .mockImplementation(() => Promise.resolve(json(sampleReady())));
     vi.stubGlobal('fetch', fetchMock);
 
     renderPage('/laporan');
@@ -181,7 +185,7 @@ describe('LaporanPage', () => {
     finish(new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } }));
 
     await waitFor(() => {
-      expect(HTMLAnchorElement.prototype.click).not.toHaveBeenCalled();
+      expect(click).not.toHaveBeenCalled();
     });
     expect(screen.queryByText('Laporan diunduh')).not.toBeInTheDocument();
   });
