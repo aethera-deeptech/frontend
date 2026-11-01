@@ -46,12 +46,14 @@ async function expectNoViolations(page: Page) {
   expect(results.violations).toEqual([]);
 }
 
-// The page counts as ready when its heading shows and no skeleton or error is left, because a scan of a loading or an error state
-// would pass while the real screen is never checked
+// The page counts as ready when its heading shows, no skeleton is left and no load error shows, because a scan of a loading or an
+// error state would pass while the real screen is never checked. A banner with a notice is part of some screens, so it is not a sign.
 async function expectLoaded(page: Page) {
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
-  await expect(page.getByRole('status')).toHaveCount(0);
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('status').filter({ hasText: /^Memuat/ })).toHaveCount(0);
+  await expect(
+    page.getByRole('alert').filter({ hasText: /tidak bisa dimuat|belum bisa dimuat/ }),
+  ).toHaveCount(0);
 }
 
 for (const screen of screens) {
