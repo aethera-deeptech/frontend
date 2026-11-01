@@ -60,7 +60,7 @@ describe('useConnection', () => {
       onlineManager.setOnline(false);
     });
     act(() => {
-      void client.fetchQuery({ queryKey: ['slow'], queryFn: () => pending });
+      void client.query({ queryKey: ['slow'], queryFn: () => pending });
       onlineManager.setOnline(true);
     });
 

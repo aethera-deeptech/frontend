@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 
 import { cn } from '@/lib/cn';
 
-const tagVariants = cva('text-tag inline-flex items-center rounded-sm px-2 py-[3px]', {
+const tagVariants = cva('text-tag inline-flex h-5 items-center rounded-sm px-2', {
   variants: {
     tone: {
       danger: 'bg-bg-danger-muted text-text-danger',
