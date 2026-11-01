@@ -12,8 +12,10 @@ interface NumberStepperProps {
 }
 
 // A step of 0.1 on 0.2 gives 0.30000000000000004 in floating point, so the result is rounded to the digits it needs
+// A number such as 1e-7 is written with an exponent, which moves the point that many places to the right.
 function decimalsOf(number: number): number {
-  return number.toString().split('.')[1]?.length ?? 0;
+  const [mantissa = '', exponent = '0'] = number.toString().split('e');
+  return Math.max(0, (mantissa.split('.')[1]?.length ?? 0) - Number(exponent));
 }
 
 export function NumberStepper({
