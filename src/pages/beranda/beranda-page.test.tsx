@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -104,5 +104,35 @@ describe('BerandaPage', () => {
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Saran' })).not.toBeInTheDocument();
     });
+  });
+
+  it('says that the decision was not saved when sending it fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(json(sampleReady()))
+      .mockResolvedValueOnce(json({}, 500));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage();
+
+    const buttons = await screen.findAllByRole('button', { name: /^Terapkan/ });
+    await userEvent.click(first(buttons));
+
+    expect(await screen.findByText('Pilihan belum tersimpan')).toBeInTheDocument();
+    expect(first(screen.getAllByRole('button', { name: /^Terapkan/ }))).toBeEnabled();
+  });
+
+  it('tells the user that the data waits for a connection when the page opens offline', async () => {
+    onlineManager.setOnline(false);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json(sampleReady())));
+    renderPage();
+
+    expect(await screen.findByText('Belum terhubung')).toBeInTheDocument();
+    expect(screen.getByText('Memuat data Anda')).toBeInTheDocument();
+
+    onlineManager.setOnline(true);
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Konveksi Maju Jaya' }),
+    ).toBeInTheDocument();
   });
 });
