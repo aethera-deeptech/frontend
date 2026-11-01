@@ -64,9 +64,17 @@ describe('Pengaturan', () => {
 
 describe('Nama usaha', () => {
   it('saves the name and confirms it on the overview', async () => {
+    let saved = false;
     const fetchMock = stubApi({
-      'GET /v1/settings': { body: sampleSettings() },
-      'PATCH /v1/settings': { status: 204 },
+      'GET /v1/settings': () => ({
+        body: saved
+          ? { ...sampleSettings(), businessName: 'Konveksi Maju Sejahtera' }
+          : sampleSettings(),
+      }),
+      'PATCH /v1/settings': () => {
+        saved = true;
+        return { status: 204 };
+      },
     });
     const router = renderAt('/lainnya/pengaturan/nama');
 
@@ -77,6 +85,9 @@ describe('Nama usaha', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
 
     expect(await screen.findByText('Nama usaha sudah diperbarui.')).toBeInTheDocument();
+    // The overview asks again and shows the new name
+    expect(await screen.findByText('Konveksi Maju Sejahtera')).toBeInTheDocument();
+    expect(screen.queryByText('Konveksi Maju Jaya')).not.toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/lainnya/pengaturan');
     expect(patchBody(fetchMock)).toEqual({ businessName: 'Konveksi Maju Sejahtera' });
   });
@@ -134,16 +145,37 @@ describe('Tarif listrik', () => {
     expect(patchBody(fetchMock)).toEqual({ tariffRpPerKwh: 1500 });
   });
 
-  it('does not save text or 0', async () => {
-    stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
-    renderAt('/lainnya/pengaturan/tarif');
+  it.each(['abc', '0', '1444.7', '1.444,70', '14.4'])(
+    'does not save %s as a tariff',
+    async (typed) => {
+      const fetchMock = stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
+      renderAt('/lainnya/pengaturan/tarif');
 
-    const input = await screen.findByRole('textbox', { name: 'Tarif per kWh (Rp)' });
-    await userEvent.clear(input);
-    await userEvent.type(input, 'abc');
+      const input = await screen.findByRole('textbox', { name: 'Tarif per kWh (Rp)' });
+      await userEvent.clear(input);
+      await userEvent.type(input, typed);
+      await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+      expect(
+        await screen.findByText(
+          'Isi tarif dengan angka bulat lebih dari 0, misalnya 1444 atau 1.444.',
+        ),
+      ).toBeInTheDocument();
+      expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+    },
+  );
+
+  it('goes back without a request when the default tariff is saved unchanged', async () => {
+    const fetchMock = stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
+    const router = renderAt('/lainnya/pengaturan/tarif');
+
+    await screen.findByRole('textbox', { name: 'Tarif per kWh (Rp)' });
     await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
 
-    expect(await screen.findByText('Isi tarif dengan angka lebih dari 0.')).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(router.state.location.pathname).toBe('/lainnya/pengaturan');
+    });
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
   });
 
   it('offers the default tariff only while the user has a tariff of their own', async () => {
