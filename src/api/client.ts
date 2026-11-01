@@ -136,8 +136,12 @@ export async function apiDownload(
     throw toNetworkError(error);
   }
 
-  // An empty answer, or a page that a proxy or the app fallback sends with status 200, is not a report
+  // An empty answer, or a page that a proxy or the app fallback sends with status 200, is not a report. The type of the
+  // answer can be missing or wrong, so the first bytes of the file have to say PDF as well.
   if (blob.size === 0 || (blob.type !== '' && !blob.type.startsWith('application/pdf'))) {
+    throw new ContractError();
+  }
+  if ((await blob.slice(0, 4).text()) !== '%PDF') {
     throw new ContractError();
   }
   return blob.type === '' ? new Blob([blob], { type: 'application/pdf' }) : blob;
