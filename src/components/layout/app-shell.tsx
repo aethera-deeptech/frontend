@@ -3,10 +3,13 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import { navItems } from '@/components/layout/nav-items';
+import { PendingIndicator } from '@/components/layout/pending-indicator';
+import { useNavigationPending } from '@/hooks/use-navigation-pending';
 
 // The menu is a bottom bar on a phone and a sidebar from 1024 px, like the Mobile and Desktop frames.
 export function AppShell() {
   const { pathname } = useLocation();
+  const pending = useNavigationPending();
   const mainRef = useRef<HTMLElement>(null);
   const openPath = useRef(pathname);
 
@@ -21,6 +24,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh lg:pl-60">
+      <PendingIndicator />
       <a
         href="#konten"
         className="bg-bg-1 text-text-heading text-button fixed top-2 left-2 z-20 -translate-y-16 rounded-md px-3 py-3 focus:translate-y-0"
@@ -69,6 +73,7 @@ export function AppShell() {
       <main
         ref={mainRef}
         id="konten"
+        aria-busy={pending}
         tabIndex={-1}
         className="p-4 pb-34 outline-none lg:p-6 lg:pb-24"
       >
