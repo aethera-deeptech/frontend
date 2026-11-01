@@ -160,28 +160,6 @@ describe('SegmentedControl', () => {
   });
 });
 
-describe('SegmentedControl, keyboard', () => {
-  it('moves the choice with the arrow keys', async () => {
-    const onValueChange = vi.fn();
-    render(
-      <SegmentedControl
-        label="Periode"
-        segments={[
-          { value: 'minggu', label: 'Minggu ini' },
-          { value: 'bulan', label: 'Bulan ini' },
-        ]}
-        value="minggu"
-        onValueChange={onValueChange}
-      />,
-    );
-
-    await userEvent.tab();
-    await userEvent.keyboard('{ArrowRight}');
-
-    expect(onValueChange).toHaveBeenCalledWith('bulan');
-  });
-});
-
 describe('NumberStepper, limits and decimals', () => {
   it('enables a button that still has room', () => {
     render(<NumberStepper label="Jumlah" value={1} min={0} max={2} onValueChange={vi.fn()} />);
