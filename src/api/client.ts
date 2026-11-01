@@ -41,32 +41,41 @@ export async function apiRequest<T>(
   schema: z.ZodType<T>,
   { method = 'GET', body, signal }: RequestOptions = {},
 ): Promise<T> {
+  // A path always starts with one slash, so it can never change the host of the address
+  if (!/^\/(?!\/)/.test(path)) {
+    throw new Error(`The API path must start with one slash, got "${path}".`);
+  }
+  // These two can fail because of a wrong build setting or a body that cannot be written, which is a bug and not a lost
+  // connection, so they stay outside the try below.
+  const url = `${getEnv().apiBaseUrl}${path}`;
+  const payloadText = body === undefined ? undefined : JSON.stringify(body);
   let response: Response;
+  let text: string;
 
   try {
-    response = await fetch(`${getEnv().apiBaseUrl}${path}`, {
+    response = await fetch(url, {
       method,
       credentials: 'include',
       headers: {
         Accept: 'application/json',
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(payloadText === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: payloadText,
       signal,
     });
+
+    if (!response.ok) {
+      throw new ApiError(response.status);
+    }
+    // A body that is cut off halfway fails here, like a lost connection
+    // An answer without a body, for example 204, is read as null
+    text = await response.text();
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    if (error instanceof ApiError || (error instanceof Error && error.name === 'AbortError')) {
       throw error;
     }
     throw new NetworkError();
   }
-
-  if (!response.ok) {
-    throw new ApiError(response.status);
-  }
-
-  // An answer without a body, for example 204, is read as null
-  const text = await response.text();
   let payload: unknown = null;
 
   if (text !== '') {
