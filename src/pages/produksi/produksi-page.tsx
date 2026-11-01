@@ -89,8 +89,7 @@ function ProduksiForm({ data }: { data: Production }) {
       onSave={() => {
         save.mutate({ date, quantity, unit });
       }}
-      // The Lainnya menu comes with the Pengaturan screens, so until then Kembali goes to the home page
-      backTo="/"
+      backTo="/lainnya"
     />
   );
 }
