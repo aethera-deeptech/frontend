@@ -113,6 +113,14 @@ describe('PowerChart', () => {
     expect(container.querySelectorAll('circle.fill-chart-anomaly')).toHaveLength(1);
   });
 
+  it('lets the drawing pass the edge so that a dot on the last point is not cut', () => {
+    render(<PowerChart {...props} anomaly={{ from: 4, to: 4, label: 'Anomali 2.000 W' }} />);
+
+    expect(screen.getByRole('img', { name: 'Daya mesin jahit 1 hari ini' })).toHaveClass(
+      'overflow-visible',
+    );
+  });
+
   it('keeps a stretch with wrong indexes inside the points', () => {
     const { container } = render(
       <PowerChart {...props} anomaly={{ from: -3, to: 99, label: 'Anomali 2.000 W' }} />,
