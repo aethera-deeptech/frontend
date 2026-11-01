@@ -1,6 +1,9 @@
 import type { RouteObject } from 'react-router';
 
 import { AppShell } from '@/components/layout/app-shell';
+import { AlatDetailPage } from '@/pages/alat/alat-detail-page';
+import { AlatLayout } from '@/pages/alat/alat-layout';
+import { AlatRenamePage } from '@/pages/alat/alat-rename-page';
 import { BerandaPage } from '@/pages/beranda/beranda-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { SaranCancelPage } from '@/pages/saran/saran-cancel-page';
@@ -18,6 +21,14 @@ export const routes: RouteObject[] = [
         children: [
           { path: ':id', element: <SaranDetailPage /> },
           { path: ':id/batalkan', element: <SaranCancelPage /> },
+        ],
+      },
+      {
+        path: 'alat',
+        element: <AlatLayout />,
+        children: [
+          { path: ':id', element: <AlatDetailPage /> },
+          { path: ':id/ganti-nama', element: <AlatRenamePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
