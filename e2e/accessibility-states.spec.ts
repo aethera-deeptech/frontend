@@ -63,7 +63,7 @@ const states: StateCase[] = [
         body: { phase: 'collecting', businessName: 'Konveksi Maju Jaya', neededDays: 7 },
       },
     },
-    shows: 'Belum ada saran',
+    shows: /Sistem sedang mengumpulkan data awal/,
   },
   {
     name: 'Saran when the list cannot load',
@@ -256,7 +256,9 @@ test('the consent for a clamp has no accessibility violations', async ({ page },
   await page.getByRole('button', { name: /Penjepit arus/ }).click();
   await page.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }).click();
   await page.getByRole('button', { name: 'Lanjut' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Sebelum memasang' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Sebelum memasang', exact: true }),
+  ).toBeVisible();
 
   await expectNoViolations(page);
 });
