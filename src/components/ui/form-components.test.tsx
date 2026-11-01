@@ -197,6 +197,26 @@ describe('NumberStepper, limits and decimals', () => {
     expect(screen.getByRole('button', { name: 'Tambah' })).toBeDisabled();
   });
 
+  it('still steps to the limit when a whole step does not fit', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={499} step={2} max={500} onValueChange={onValueChange} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tambah' }));
+
+    expect(onValueChange).toHaveBeenCalledWith(500);
+  });
+
+  it('keeps the digits of the value as well as of the step', async () => {
+    const onValueChange = vi.fn();
+    render(<NumberStepper label="Jumlah" value={1.25} onValueChange={onValueChange} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tambah' }));
+
+    expect(onValueChange).toHaveBeenCalledWith(2.25);
+  });
+
   it('keeps the digits of the step', async () => {
     const onValueChange = vi.fn();
     render(
