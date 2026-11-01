@@ -135,6 +135,13 @@ describe('SaranListView', () => {
     );
   });
 
+  it('has no button to add a device when devices exist but no tip does', () => {
+    renderList({ data: { ...sampleList(), phase: 'ready', items: [] } });
+
+    expect(screen.getByRole('heading', { name: 'Belum ada saran' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tambah alat' })).not.toBeInTheDocument();
+  });
+
   it('explains the empty list while the first days are collected', () => {
     renderList({ data: { phase: 'collecting', businessName: 'Maju', neededDays: 7 } });
 

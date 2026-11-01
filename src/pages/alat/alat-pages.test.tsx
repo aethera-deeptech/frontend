@@ -41,6 +41,18 @@ describe('the list of devices', () => {
     );
   });
 
+  it('keeps the production button off the screen of one device', async () => {
+    stubApi({
+      'GET /v1/devices': { body: sampleDevices() },
+      'GET /v1/devices/d4': { body: sampleNormal() },
+    });
+    renderAt('/alat/d4');
+
+    await screen.findByRole('heading', { name: 'Info alat' });
+
+    expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
+  });
+
   it('does not offer the production while no device is installed', async () => {
     stubApi({ 'GET /v1/devices': { body: { items: [] } } });
     renderAt('/alat');
