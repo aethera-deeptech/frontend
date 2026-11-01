@@ -41,7 +41,8 @@ describe('the list of devices', () => {
     );
   });
 
-  it('keeps the production button off the screen of one device', async () => {
+  it('hides the production button on a phone and keeps it on a wide screen when a device is open', async () => {
+    matchWideScreen();
     stubApi({
       'GET /v1/devices': { body: sampleDevices() },
       'GET /v1/devices/d4': { body: sampleNormal() },
@@ -50,7 +51,11 @@ describe('the list of devices', () => {
 
     await screen.findByRole('heading', { name: 'Info alat' });
 
-    expect(screen.queryByRole('link', { name: 'Catat produksi' })).not.toBeInTheDocument();
+    // jsdom has no layout, so the class says what a phone hides and a wide screen shows
+    expect(screen.getByRole('link', { name: 'Catat produksi' })).toHaveClass(
+      'hidden',
+      'lg:inline-flex',
+    );
   });
 
   it('does not offer the production while no device is installed', async () => {

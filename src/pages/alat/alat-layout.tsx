@@ -84,7 +84,10 @@ export function AlatLayout() {
         </div>
       </div>
       {/* After the content, so the tab order follows what the eye sees */}
-      {!id && data && data.items.length > 0 ? <CatatProduksiFab /> : null}
+      {/* On a phone the open device has its own screen, on a wide screen the list stays next to it, so the button stays */}
+      {data && data.items.length > 0 ? (
+        <CatatProduksiFab className={id ? 'hidden lg:inline-flex' : undefined} />
+      ) : null}
     </>
   );
 }
