@@ -17,8 +17,19 @@ describe('Masuk', () => {
     expect(screen.getByLabelText('Kata sandi')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Masuk' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Lanjut dengan Google' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Tampilkan kata sandi' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Lanjut dengan Google' }),
+    ).toHaveAccessibleDescription(/Masuk belum tersedia/);
     expect(screen.queryByRole('navigation', { name: 'Menu utama' })).not.toBeInTheDocument();
     expect(document.title).toBe('Masuk · Audit Energi UMKM');
+  });
+
+  it('links the brand to the home page, the only way out of a screen where nothing works', () => {
+    stubApi({});
+    renderAt('/masuk');
+
+    expect(screen.getByRole('link', { name: 'Audit Energi UMKM' })).toHaveAttribute('href', '/');
   });
 
   it('links to the registration', async () => {
@@ -44,6 +55,8 @@ describe('Daftar', () => {
     expect(screen.getByLabelText('Kata sandi')).toHaveAccessibleDescription('Minimal 8 karakter.');
     expect(screen.getByRole('button', { name: 'Daftar' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Daftar dengan Google' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Tampilkan kata sandi' })).toBeDisabled();
+    expect(document.title).toBe('Daftar · Audit Energi UMKM');
   });
 
   it('links to the login', async () => {
@@ -57,6 +70,16 @@ describe('Daftar', () => {
 });
 
 describe('PasswordField', () => {
+  it('keeps the typed text when the box is ticked', async () => {
+    render(<PasswordField label="Kata sandi" />);
+    const input = screen.getByLabelText('Kata sandi');
+
+    await userEvent.type(input, 'rahasia123');
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Tampilkan kata sandi' }));
+
+    expect(input).toHaveValue('rahasia123');
+  });
+
   it('hides the text until the box is ticked', async () => {
     render(<PasswordField label="Kata sandi" />);
     const input = screen.getByLabelText('Kata sandi');
