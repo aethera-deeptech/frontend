@@ -33,7 +33,7 @@ export function SaranLayout() {
 
   return (
     <>
-      <title>Saran · Audit Energi UMKM</title>
+      <title>Saran · WATTLINK</title>
       {/* On a phone the open tip has its own top bar, so the title only stays for assistive technology */}
       <div className={id ? 'sr-only lg:not-sr-only' : undefined}>
         <PageHeader

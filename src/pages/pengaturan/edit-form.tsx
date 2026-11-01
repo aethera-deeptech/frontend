@@ -29,7 +29,7 @@ export function EditForm({
 }: EditFormProps) {
   return (
     <form noValidate onSubmit={onSubmit} className="flex flex-col gap-3 lg:max-w-lg">
-      <title>{`${title} · Audit Energi UMKM`}</title>
+      <title>{`${title} · WATTLINK`}</title>
       <div className="lg:hidden">
         <Button asChild size="lg">
           <Link to={settingsPath}>Kembali</Link>

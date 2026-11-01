@@ -19,7 +19,7 @@ export function PengaturanPage() {
 
   return (
     <>
-      <title>Pengaturan · Audit Energi UMKM</title>
+      <title>Pengaturan · WATTLINK</title>
       <SettingsGate
         fallback={(content) => (
           <div className="flex flex-col gap-3">

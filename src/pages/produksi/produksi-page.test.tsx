@@ -38,7 +38,7 @@ describe('ProduksiPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Memuat catatan produksi');
 
     expect(await screen.findByRole('textbox', { name: 'Angka' })).toHaveValue('120');
-    expect(document.title).toBe('Catat produksi · Audit Energi UMKM');
+    expect(document.title).toBe('Catat produksi · WATTLINK');
   });
 
   it('starts at 0 when there is no record', async () => {

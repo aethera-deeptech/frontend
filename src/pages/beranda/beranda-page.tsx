@@ -14,7 +14,7 @@ export function BerandaPage() {
 
   return (
     <>
-      <title>Beranda · Audit Energi UMKM</title>
+      <title>Beranda · WATTLINK</title>
       {query.data ? (
         <BerandaView
           data={query.data}

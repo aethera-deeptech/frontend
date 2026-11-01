@@ -21,7 +21,7 @@ export function LaporanPage() {
 
   return (
     <>
-      <title>Laporan · Audit Energi UMKM</title>
+      <title>Laporan · WATTLINK</title>
       {data ? (
         <LaporanView
           data={data}

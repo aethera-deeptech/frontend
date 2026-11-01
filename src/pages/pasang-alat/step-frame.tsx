@@ -17,7 +17,7 @@ interface StepFrameProps {
 export function StepFrame({ title, subtitle, backTo, children }: StepFrameProps) {
   return (
     <div className="flex flex-col gap-3 lg:max-w-lg">
-      <title>{`${title} · Audit Energi UMKM`}</title>
+      <title>{`${title} · WATTLINK`}</title>
       <div className="lg:hidden">
         <Button asChild size="lg">
           <Link to={backTo}>Kembali</Link>
