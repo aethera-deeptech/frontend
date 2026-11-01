@@ -44,6 +44,30 @@ describe('TextInput', () => {
   });
 });
 
+describe('TextInput, messages', () => {
+  it('announces an error and keeps a helper quiet', () => {
+    const { rerender } = render(<TextInput label="Nama usaha" helper="Tampil di laporan." />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    rerender(<TextInput label="Nama usaha" error="Isi nama usaha." />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Isi nama usaha.');
+  });
+
+  it('keeps the description that the caller passes next to the message', () => {
+    render(
+      <>
+        <p id="extra">Tambahan</p>
+        <TextInput label="Nama usaha" helper="Tampil di laporan." aria-describedby="extra" />
+      </>,
+    );
+
+    expect(screen.getByLabelText('Nama usaha')).toHaveAccessibleDescription(
+      'Tambahan Tampil di laporan.',
+    );
+  });
+});
+
 describe('Select', () => {
   const options = [
     { value: 'rendah', label: 'Rendah' },
@@ -133,6 +157,65 @@ describe('SegmentedControl', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Minggu ini' }));
 
     expect(onValueChange).toHaveBeenCalledWith('minggu');
+  });
+});
+
+describe('SegmentedControl, keyboard', () => {
+  it('moves the choice with the arrow keys', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <SegmentedControl
+        label="Periode"
+        segments={[
+          { value: 'minggu', label: 'Minggu ini' },
+          { value: 'bulan', label: 'Bulan ini' },
+        ]}
+        value="minggu"
+        onValueChange={onValueChange}
+      />,
+    );
+
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}');
+
+    expect(onValueChange).toHaveBeenCalledWith('bulan');
+  });
+});
+
+describe('NumberStepper, limits and decimals', () => {
+  it('enables a button that still has room', () => {
+    render(<NumberStepper label="Jumlah" value={1} min={0} max={2} onValueChange={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Kurangi' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Tambah' })).toBeEnabled();
+  });
+
+  it('disables the button that would pass the limit', () => {
+    render(<NumberStepper label="Jumlah" value={2} min={0} max={2} onValueChange={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Kurangi' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Tambah' })).toBeDisabled();
+  });
+
+  it('keeps the digits of the step', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberStepper label="Jumlah" value={0.2} step={0.1} max={1} onValueChange={onValueChange} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tambah' }));
+
+    expect(onValueChange).toHaveBeenCalledWith(0.3);
+  });
+
+  it('starts from the nearest limit when the value is outside the limits', async () => {
+    const onValueChange = vi.fn();
+    render(<NumberStepper label="Jumlah" value={600} max={500} onValueChange={onValueChange} />);
+
+    expect(screen.getByRole('button', { name: 'Tambah' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Kurangi' }));
+
+    expect(onValueChange).toHaveBeenCalledWith(499);
   });
 });
 
