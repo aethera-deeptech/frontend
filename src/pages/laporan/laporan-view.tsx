@@ -169,7 +169,9 @@ function Ready({
         <Button size="lg" onClick={onDownload} disabled={download.status === 'busy'}>
           {download.status === 'busy' ? 'Menyiapkan laporan' : 'Unduh laporan (PDF)'}
         </Button>
-        <p className="text-label text-text-2">{billLabel}. Termasuk beban yang belum terpantau alat.</p>
+        <p className="text-label text-text-2">
+          {billLabel}. Termasuk beban yang belum terpantau alat.
+        </p>
       </div>
     </div>
   );
