@@ -12,6 +12,12 @@ describe('scale', () => {
     expect(scale(-5, 1000, 90)).toBe(0);
   });
 
+  it('returns zero for a value or an axis that is not a number', () => {
+    expect(scale(Number.NaN, 100, 50)).toBe(0);
+    expect(scale(10, Number.NaN, 50)).toBe(0);
+    expect(scale(Number.POSITIVE_INFINITY, 100, 50)).toBe(0);
+  });
+
   it('returns zero when the axis has no height', () => {
     expect(scale(5, 0, 90)).toBe(0);
   });
