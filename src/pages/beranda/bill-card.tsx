@@ -16,15 +16,18 @@ export function BillCard({ bill, asOf, now }: BillCardProps) {
   const monthEnd = new Date(asOf.getFullYear(), asOf.getMonth(), days);
   const today = isSameDay(asOf, now);
   const until = today ? 'hari ini' : formatDate(asOf);
-  const yMax =
-    Math.max(Math.ceil(Math.max(bill.projectedTotalRp, bill.potentialTotalRp) / 1_000_000), 1) *
-    1_000_000;
   const soFar = bill.dailyTotalRp.at(-1) ?? 0;
+  // The axis also holds the bill so far, so the line is never cut at the top
+  const yMax =
+    Math.max(
+      Math.ceil(Math.max(bill.projectedTotalRp, bill.potentialTotalRp, soFar) / 1_000_000),
+      1,
+    ) * 1_000_000;
   const saving = bill.projectedTotalRp - bill.potentialTotalRp;
 
   return (
     <Card title="Perkiraan tagihan bulan ini">
-      <p className="flex items-baseline gap-2">
+      <p className="flex flex-wrap items-baseline gap-x-2">
         <span className="text-kpi text-text-heading">{formatRupiah(bill.projectedTotalRp)}</span>
         <span className="text-label text-text-2">perkiraan sampai {formatDate(monthEnd)}</span>
       </p>

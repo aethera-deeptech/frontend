@@ -29,7 +29,7 @@ test('the page logs no console errors', async ({ page }) => {
   });
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Konveksi Maju Jaya' })).toBeVisible();
 
   expect(errors).toEqual([]);
 });

@@ -40,7 +40,9 @@ export function RecommendationCard({ title, saving, meta, to, actions }: Recomme
         {meta}
       </div>
       {actions ? <div className="relative z-10 flex gap-2">{actions}</div> : null}
-      {to ? <ChevronRightIcon className="text-text-2 absolute top-4 right-4 lg:hidden" /> : null}
+      {to ? (
+        <ChevronRightIcon className="text-text-2 pointer-events-none absolute top-4 right-4 lg:hidden" />
+      ) : null}
     </article>
   );
 }
@@ -50,10 +52,13 @@ interface DecisionButtonsProps {
   onDefer: () => void;
   // The buttons wait while a decision is being sent
   busy?: boolean;
+  // The tip that the buttons act on. A screen reader hears it in the name, so three tips do not give three buttons that
+  // are all named Terapkan.
+  subject?: string;
 }
 
 // The two choices on a tip that waits for a decision. They are side by side and share the width on a phone.
-export function DecisionButtons({ onApply, onDefer, busy = false }: DecisionButtonsProps) {
+export function DecisionButtons({ onApply, onDefer, busy = false, subject }: DecisionButtonsProps) {
   return (
     <>
       <Button
@@ -61,6 +66,7 @@ export function DecisionButtons({ onApply, onDefer, busy = false }: DecisionButt
         size="lg"
         className="flex-1 lg:h-9 lg:flex-none lg:rounded-md"
         disabled={busy}
+        aria-label={subject ? `Terapkan: ${subject}` : undefined}
         onClick={onApply}
       >
         Terapkan
@@ -69,6 +75,7 @@ export function DecisionButtons({ onApply, onDefer, busy = false }: DecisionButt
         size="lg"
         className="flex-1 lg:h-9 lg:flex-none lg:rounded-md"
         disabled={busy}
+        aria-label={subject ? `Nanti: ${subject}` : undefined}
         onClick={onDefer}
       >
         Nanti

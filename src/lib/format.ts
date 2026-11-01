@@ -10,7 +10,8 @@ function groupThousands(value: number): string {
 }
 
 export function formatRupiah(value: number): string {
-  const sign = value < 0 ? '-' : '';
+  // The sign follows the rounded amount, so -0.4 is Rp0 and not -Rp0
+  const sign = value < 0 && Math.round(Math.abs(value)) !== 0 ? '-' : '';
   return `${sign}Rp${groupThousands(Math.abs(value))}`;
 }
 
@@ -24,10 +25,24 @@ export function formatRupiahJuta(value: number): string {
 
 // A decimal number with a comma, with at most the given number of digits after it
 export function formatNumber(value: number, maxDecimals = 2): string {
-  const [whole = '0', decimals] = value.toFixed(maxDecimals).split('.');
+  const fixed = Math.abs(value).toFixed(maxDecimals);
+  const [whole = '0', decimals] = fixed.split('.');
   const trimmed = decimals?.replace(/0+$/, '');
   const grouped = groupThousands(Number(whole));
-  return trimmed ? `${grouped},${trimmed}` : grouped;
+  // A value that rounds to 0 has no sign
+  const sign = value < 0 && Number(fixed) !== 0 ? '-' : '';
+  return `${sign}${trimmed ? `${grouped},${trimmed}` : grouped}`;
+}
+
+// A moment from the API, such as 2026-10-29T09:30:00+07:00, read by the clock of the business and not by the clock of the
+// device. The offset is dropped on purpose, so a device in another time zone shows the same day and hour.
+export function parseMoment(iso: string): Date {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
+  if (!parts) {
+    return new Date(iso);
+  }
+  const [year = 0, month = 1, day = 1, hour = 0, minute = 0] = parts.slice(1).map(Number);
+  return new Date(year, month - 1, day, hour, minute);
 }
 
 export function formatPercent(value: number): string {

@@ -16,6 +16,7 @@ import {
   formatDateWithYear,
   formatNumber,
   formatRupiah,
+  parseMoment,
 } from '@/lib/format';
 import { BillCard } from '@/pages/beranda/bill-card';
 
@@ -52,7 +53,7 @@ export function BerandaView({
   busyId,
   now = new Date(),
 }: BerandaViewProps) {
-  const asOf = new Date(data.asOf);
+  const asOf = parseMoment(data.asOf);
 
   return (
     <div className="flex flex-col gap-3 lg:gap-6">
@@ -121,7 +122,7 @@ function TopDevices({ devices }: { devices: CollectingBeranda['topDevices'] }) {
   return (
     <BarChart
       aria-label="Energi per alat"
-      items={devices.map((device) => ({
+      items={devices.slice(0, 4).map((device) => ({
         label: device.name,
         value: device.kwh,
         display: formatNumber(device.kwh, 1),
@@ -176,6 +177,7 @@ function Ready({ data, asOf, connection, onDecision, busyId, now }: ReadyProps) 
                 meta={<p className="text-label text-text-2">{item.deviceName}</p>}
                 actions={
                   <DecisionButtons
+                    subject={item.title}
                     busy={busyId === item.id}
                     onApply={() => {
                       onDecision(item.id, 'apply');
