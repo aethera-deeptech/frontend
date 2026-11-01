@@ -11,6 +11,11 @@ interface NumberStepperProps {
   unit?: string;
 }
 
+// A step of 0.1 on 0.2 gives 0.30000000000000004 in floating point, so the result keeps the digits of the step
+function decimalsOf(step: number): number {
+  return step.toString().split('.')[1]?.length ?? 0;
+}
+
 export function NumberStepper({
   label,
   value,
@@ -20,15 +25,21 @@ export function NumberStepper({
   step = 1,
   unit,
 }: NumberStepperProps) {
+  const decimals = decimalsOf(step);
+  // A value outside the limits first moves to the nearest limit, so a step never starts from a value that cannot be chosen
+  const inRange = Math.min(max, Math.max(min, value));
+  const next = (amount: number) =>
+    Math.min(max, Math.max(min, Number((inRange + amount).toFixed(decimals))));
+
   return (
     <div role="group" aria-label={label} className="flex items-center gap-2">
       <Button
         size="lg"
         className="w-11 px-0"
         aria-label="Kurangi"
-        disabled={value - step < min}
+        disabled={inRange - step < min}
         onClick={() => {
-          onValueChange(Math.max(min, value - step));
+          onValueChange(next(-step));
         }}
       >
         −
@@ -41,9 +52,9 @@ export function NumberStepper({
         size="lg"
         className="w-11 px-0"
         aria-label="Tambah"
-        disabled={value + step > max}
+        disabled={inRange + step > max}
         onClick={() => {
-          onValueChange(Math.min(max, value + step));
+          onValueChange(next(step));
         }}
       >
         +
