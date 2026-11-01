@@ -39,16 +39,17 @@ const buttonVariants = cva(
   },
 );
 
-// A link cannot be disabled, so asChild and disabled never go together.
+// A link cannot be disabled and has no type, so asChild goes with neither. The child keeps its own type.
 type ButtonProps = VariantProps<typeof buttonVariants> &
   (
     | (ComponentProps<'button'> & {
         asChild?: false;
       })
-    | (Omit<ComponentProps<'button'>, 'disabled'> & {
+    | (Omit<ComponentProps<'button'>, 'disabled' | 'type'> & {
         // Render the child element, for example a Link, with the button look
         asChild: true;
         disabled?: never;
+        type?: never;
       })
   );
 
