@@ -13,6 +13,8 @@ interface ListRowProps {
   valueNote?: string;
   // The row becomes a link and shows the chevron
   to?: string;
+  // The row that is open in the detail next to the list
+  selected?: boolean;
   className?: string;
 }
 
@@ -24,12 +26,13 @@ export function ListRow({
   value,
   valueNote,
   to,
+  selected = false,
   className,
 }: ListRowProps) {
   const content: ReactNode = (
     <>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body text-text-heading">{title}</span>
+        <span className="text-body text-text-heading break-words">{title}</span>
         {status || secondary ? (
           <span className="flex items-center gap-2">
             {status ? <StatusDot status={status} /> : null}
@@ -48,9 +51,19 @@ export function ListRow({
   );
 
   return (
-    <li className={cn('border-border-2 border-b', className)}>
+    <li
+      className={cn(
+        'border-border-2 border-b',
+        selected && '-mx-4 bg-bg-accent-muted px-4',
+        className,
+      )}
+    >
       {to ? (
-        <Link to={to} className="flex min-h-11 items-center gap-3 py-3">
+        <Link
+          to={to}
+          aria-current={selected ? 'true' : undefined}
+          className="flex min-h-11 items-center gap-3 py-3"
+        >
           {content}
         </Link>
       ) : (

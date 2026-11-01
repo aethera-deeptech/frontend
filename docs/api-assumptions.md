@@ -45,3 +45,17 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `result` has `beforeKwh`, `afterKwh`, `beforeDays` and `afterDays` after the verification.
 
 `POST /v1/recommendations/{id}/reject` records that the user said no. `POST /v1/recommendations/{id}/cancel` removes the record that an applied tip was applied, and the tip waits for a decision again. After any decision the frontend loads the list, the tip and the home screen again.
+
+## Alat
+
+`GET /v1/devices` returns `items`, a list of the devices. An empty list means that no device is installed. Each item has `id`, `name`, `status`, `currentPowerW` and `todayKwh`. The status is `nyala`, `mati`, `siaga`, `offline` or `anomali`. The power and the energy are `null` while the device does not answer. A device with an anomaly also has `anomalyAt`, and an offline device also has `lastSeenAt`. Both are moments in ISO 8601 with an offset.
+
+`GET /v1/devices/{id}` returns one device with the fields below. The API answers 404 for an id that does not exist.
+
+- `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example the text `Colokan pintar`.
+- `currentPowerW`, `todayKwh`, `monthKwh`, `onHoursToday` and `standbyW`, which are `null` while there are no numbers.
+- `lastSeenAt` and `signal`, which is `baik`, `cukup`, `lemah` or `tidak-ada`.
+- `anomaly` with `at` and `peakW`, only while the status is `anomali`.
+- `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
+
+`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.

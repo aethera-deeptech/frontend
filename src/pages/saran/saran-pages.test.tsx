@@ -1,65 +1,17 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter } from 'react-router';
-import { RouterProvider } from 'react-router/dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { routes } from '@/routes';
 import { sampleDetail, sampleList } from '@/pages/saran/sample-saran';
+import { matchWideScreen, renderAt, restoreScreen, stubApi } from '@/test/stub-api';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
 }));
 
-interface Answer {
-  status?: number;
-  body?: unknown;
-}
-
-// Answers each call to the API by its path. A path that is not listed fails like a lost connection.
-function stubApi(answers: Record<string, Answer | (() => Answer)>) {
-  const fetchMock = vi.fn((input: string, init?: RequestInit) => {
-    const path = new URL(input).pathname;
-    const method = init?.method ?? 'GET';
-    const answer = answers[`${method} ${path}`];
-
-    if (!answer) {
-      return Promise.reject(new TypeError(`No answer for ${method} ${path}`));
-    }
-    const { status = 200, body = null } = typeof answer === 'function' ? answer() : answer;
-    return Promise.resolve(new Response(body === null ? null : JSON.stringify(body), { status }));
-  });
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
-}
-
-function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
-  return router;
-}
-
-const originalMatchMedia = window.matchMedia.bind(window);
-
-function matchWideScreen() {
-  window.matchMedia = (query: string) =>
-    ({
-      matches: true,
-      media: query,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-    }) as unknown as MediaQueryList;
-}
-
 afterEach(() => {
   vi.unstubAllGlobals();
-  window.matchMedia = originalMatchMedia;
+  restoreScreen();
 });
 
 describe('the list of tips', () => {

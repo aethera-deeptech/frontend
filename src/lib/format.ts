@@ -45,6 +45,33 @@ export function parseMoment(iso: string): Date {
   return new Date(year, month - 1, day, hour, minute);
 }
 
+// The current moment as the clock of the business shows it (Asia/Jakarta, the +07:00 of the API moments), so "today" does not
+// depend on the time zone of the device. The result holds the business wall time in the local fields, like parseMoment.
+export function businessNow(date: Date = new Date()): Date {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jakarta',
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).formatToParts(date);
+  const read = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  return new Date(read('year'), read('month') - 1, read('day'), read('hour'), read('minute'));
+}
+
+// A number with exactly the given digits after the comma, for example 7,0 jam
+export function formatFixed(value: number, decimals: number): string {
+  const [whole = '0', decimal] = value.toFixed(decimals).split('.');
+  const grouped = groupThousands(Number(whole));
+  return decimal ? `${grouped},${decimal}` : grouped;
+}
+
+export function formatWatts(value: number): string {
+  return `${formatNumber(value, 0)} W`;
+}
+
 export function formatPercent(value: number): string {
   return `${formatNumber(value, 1)}%`;
 }
@@ -57,7 +84,7 @@ export function formatDateWithYear(date: Date): string {
   return `${formatDate(date)} ${date.getFullYear().toString()}`;
 }
 
-function formatTime(date: Date): string {
+export function formatTime(date: Date): string {
   const pad = (value: number) => value.toString().padStart(2, '0');
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
