@@ -225,7 +225,9 @@ describe('Tambah alat, the search', () => {
     renderAt('/alat/tambah/mencari/p1');
 
     expect(screen.getByRole('status')).toHaveTextContent('Mencari alat di dekat Anda');
-    expect(await screen.findByText('Pasang alat, lalu hubungkan ke Wi-Fi.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Pasang alat, lalu nyalakan dekat WATTLINK Hub.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Mencari alat di dekat Anda');
   });
 
