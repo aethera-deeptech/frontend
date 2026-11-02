@@ -76,7 +76,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example the text `WATTLINK Plug`. The backend still sends `Colokan pintar` and `Penjepit arus (dijepit di kabel)` until it changes its texts, so the screen shows what the API sends.
 - `currentPowerW`, `todayKwh`, `monthKwh`, `onHoursToday` and `standbyW`, which are `null` while there are no numbers.
 - `lastSeenAt` and `signal`, which is `baik`, `cukup`, `lemah` or `tidak-ada`.
-- `anomaly` with `at` and `peakW`, only while the status is `anomali`.
+- `anomaly` with `at`, `peakW` and `kind`, only while the status is `anomali`. The `kind` is `surge` (far above the usual power of that hour), `overload` (the condition that the device reports) or `degradation` (a loaded motor with a poor power factor), and the banner says which. A degradation that the API found in the readings also has `powerFactor` from 0 to 1, which the banner shows. A response with no `kind`, or a kind that the frontend does not know, reads as `surge`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
 `PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
