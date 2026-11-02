@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { z } from 'zod';
 
+import { ApiError } from '@/api/client';
 import { useRooms, useStartPairing } from '@/api/pairing';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -117,7 +118,19 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
           />
         )}
       />
-      {start.isError ? (
+      {start.error instanceof ApiError && start.error.code === 'no_gateway' ? (
+        // The hub was removed after the first step, or the list of hubs could not be read there
+        <Banner
+          tone="warning"
+          title="WATTLINK Hub belum terhubung"
+          message="Hubungkan WATTLINK Hub dulu, lalu cari alat lagi."
+          action={
+            <Button asChild size="lg">
+              <Link to={`${addPath}/hub`}>Hubungkan WATTLINK Hub</Link>
+            </Button>
+          }
+        />
+      ) : start.isError ? (
         <Banner
           tone="danger"
           title="Pencarian belum bisa dimulai"

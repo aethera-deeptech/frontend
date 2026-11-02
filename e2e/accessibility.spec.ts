@@ -18,6 +18,7 @@ const screens = [
   { name: 'Alat, a device with an anomaly', path: '/alat/d1' },
   { name: 'Alat, a device that is offline', path: '/alat/d2' },
   { name: 'Alat, rename a device', path: '/alat/d4/ganti-nama' },
+  { name: 'Tambah alat, connect the hub', path: '/alat/tambah/hub' },
   { name: 'Laporan', path: '/laporan' },
   { name: 'Lainnya', path: '/lainnya' },
   { name: 'Catat produksi', path: '/lainnya/produksi' },

@@ -27,10 +27,17 @@ export const signedInUser = {
   businessName: 'Konveksi Maju Jaya',
 };
 const signedIn: Answer = { body: signedInUser };
+// A business with one WATTLINK Hub, so the first step of Tambah alat is the choice of the kind of device
+export const sampleGateway = {
+  id: 'g1',
+  name: 'Hub pabrik',
+  lastSeenAt: '2026-10-29T14:30:00+07:00',
+};
 
 export function stubApi(overrides: Record<string, Answer | (() => Answer)>) {
   const answers: Record<string, Answer | (() => Answer)> = {
     'GET /v1/auth/me': signedIn,
+    'GET /v1/gateways': { body: { items: [sampleGateway] } },
     ...overrides,
   };
   const fetchMock = vi.fn((input: string, init?: RequestInit) => {
