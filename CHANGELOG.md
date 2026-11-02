@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.2.0](https://github.com/aethera-deeptech/frontend/compare/v0.1.0...v0.2.0) (2026-11-02)
+
+
+### Features
+
+* **auth:** add the change email screen for a sign up with a wrong address ([19b5dac](https://github.com/aethera-deeptech/frontend/commit/19b5dacdd438d53681adab4ed66181a30fff3638))
+* **auth:** add the change email screen for a sign up with a wrong address ([#62](https://github.com/aethera-deeptech/frontend/issues/62)) ([9af9704](https://github.com/aethera-deeptech/frontend/commit/9af9704becd42851fc9e29cadcf80fc4c3ef0b52))
+* **pasang-alat:** add a room from the form of the device ([077a873](https://github.com/aethera-deeptech/frontend/commit/077a8738e356da84e489fde5af4aa2de0d0bb1ea))
+* **pasang-alat:** add a room from the form of the device ([#65](https://github.com/aethera-deeptech/frontend/issues/65)) ([06dbc38](https://github.com/aethera-deeptech/frontend/commit/06dbc38a3883a05ec6e66b65691221f6dfe9934f))
+* **pasang-alat:** connect the WATTLINK Hub with its claim code before the first device ([58900d9](https://github.com/aethera-deeptech/frontend/commit/58900d9711290425ca1c7c43741737af8e684287))
+* **pasang-alat:** connect the WATTLINK Hub with its claim code before the first device ([#64](https://github.com/aethera-deeptech/frontend/issues/64)) ([457bf5e](https://github.com/aethera-deeptech/frontend/commit/457bf5e4eb8acd787276e8d30c1dd4bbc4dd0830))
+* **settings:** add the time zone setting and a screen to change it ([df7e729](https://github.com/aethera-deeptech/frontend/commit/df7e7296ad73633c3fbb32e9df195788a200ffa3))
+* **settings:** add the time zone setting and a screen to change it ([#63](https://github.com/aethera-deeptech/frontend/issues/63)) ([44a7119](https://github.com/aethera-deeptech/frontend/commit/44a71198da1ebf20d8d3e5c51e617a27977dcf7e))
+
+
+### Bug Fixes
+
+* **alat:** read today by the time zone of the business and not by WIB only ([cde805a](https://github.com/aethera-deeptech/frontend/commit/cde805a3195927e5985d0118f2a8847d81f98dc2))
+* **app:** name the hub in the offline and failed search texts and assert them ([5f8cf23](https://github.com/aethera-deeptech/frontend/commit/5f8cf2314ac23e3c5191ba442512200e068993d2))
+* **app:** say WATTLINK Hub where the copy still sent the user to Wi-Fi ([a2c17b0](https://github.com/aethera-deeptech/frontend/commit/a2c17b0e639736e39dada6efbcf2e73cc1790dbe))
+* **app:** say WATTLINK Hub where the copy still sent the user to Wi-Fi ([#60](https://github.com/aethera-deeptech/frontend/issues/60)) ([572d379](https://github.com/aethera-deeptech/frontend/commit/572d379a248c831e4f0bc3534f33a90a7d44c868))
+* **auth:** block leaving while the change email call runs and clear the credential banner on edit ([dc4bb92](https://github.com/aethera-deeptech/frontend/commit/dc4bb9243628f8bc6292303d6b2ce339e0435ff6))
+* **auth:** keep Kembali and the history from leaving a running change email call unseen ([08265ee](https://github.com/aethera-deeptech/frontend/commit/08265eeb2ea23abe3fcf39240a9fc143e8729748))
+* **pasang-alat:** count characters without the spread of a string and clear the field banner on edit ([4ec9212](https://github.com/aethera-deeptech/frontend/commit/4ec9212715703be847f5a4572f8e0bd0a4a63550))
+* **pasang-alat:** count the hub name by characters, leave the claim step in the history and clear the banner on edit ([f776389](https://github.com/aethera-deeptech/frontend/commit/f7763890eefc0081b6c6c33d2263aacc09e00d33))
+* **pasang-alat:** count the room name by characters without the spread of a string ([8488058](https://github.com/aethera-deeptech/frontend/commit/848805827c75bd7693f6f15a405c4f480f752e9a))
+* **pasang-alat:** load the rooms again after adding one and write the list only when it is cached ([b1d47be](https://github.com/aethera-deeptech/frontend/commit/b1d47be8e3563fb66854401531050b1fb8bc291b))
+* **settings:** load the production records again after a change of the time zone ([b0bf590](https://github.com/aethera-deeptech/frontend/commit/b0bf590a3b88ccce9583c9b2c608e05399955ca8))
+
 ## 0.1.0 (2026-11-02)
 
 
