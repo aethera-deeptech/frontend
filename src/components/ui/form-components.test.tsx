@@ -96,6 +96,27 @@ describe('Select', () => {
     expect(onValueChange).toHaveBeenCalledWith('rendah');
   });
 
+  it('names a group that an option starts and keeps the options before it outside any group', async () => {
+    render(
+      <Select
+        label="Periode"
+        options={[
+          { value: '2026-10', label: 'Oktober 2026' },
+          { value: '2026-09', label: 'September 2026' },
+          { value: '2026-W43', label: '19 sampai 25 Okt 2026', group: 'Minggu' },
+          { value: '2026-W42', label: '12 sampai 18 Okt 2026' },
+        ]}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Periode' }));
+    const group = await screen.findByRole('group', { name: 'Minggu' });
+
+    expect(group).toContainElement(screen.getByRole('option', { name: '19 sampai 25 Okt 2026' }));
+    expect(group).toContainElement(screen.getByRole('option', { name: '12 sampai 18 Okt 2026' }));
+    expect(group).not.toContainElement(screen.getByRole('option', { name: 'September 2026' }));
+  });
+
   it('shows an error under the field', () => {
     render(<Select label="Kepekaan" options={options} error="Pilih kepekaan." />);
 
