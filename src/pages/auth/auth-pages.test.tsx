@@ -398,16 +398,19 @@ describe('Daftar, other answers', () => {
     expect(await screen.findByText('Coba lagi dalam 5 menit.')).toBeVisible();
   });
 
-  it('reads a wait of zero in the answer as the usual minute and not as an error', async () => {
-    stubApi({ 'POST /v1/auth/register': { status: 201, body: { retryAfterSeconds: 0 } } });
-    renderAt('/daftar');
+  it.each([0, -5])(
+    'reads a wait of %i in the answer as the usual minute and not as an error',
+    async (wait) => {
+      stubApi({ 'POST /v1/auth/register': { status: 201, body: { retryAfterSeconds: wait } } });
+      renderAt('/daftar');
 
-    await fillAndSend();
+      await fillAndSend();
 
-    expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam (59|60) detik$/ }),
-    ).toBeVisible();
-  });
+      expect(
+        await screen.findByRole('button', { name: /^Kirim ulang dalam (59|60) detik$/ }),
+      ).toBeVisible();
+    },
+  );
 });
 
 describe('Verifikasi', () => {

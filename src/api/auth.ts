@@ -16,7 +16,7 @@ export type Me = z.infer<typeof meSchema>;
 // The contract says an integer and no more, so a zero must not turn a sent email into an error. A wait that is not positive
 // falls back to the usual 60 seconds.
 const verificationSentSchema = z
-  .object({ retryAfterSeconds: z.number().int().min(0) })
+  .object({ retryAfterSeconds: z.number().int() })
   .transform(({ retryAfterSeconds }) => ({
     retryAfterSeconds: retryAfterSeconds > 0 ? retryAfterSeconds : 60,
   }));

@@ -273,16 +273,16 @@ const signedIn = {
 
 async function signIn(page: Page) {
   await page.goto('/masuk');
-  await page.getByLabel('Email').fill('dewi@example.com');
-  await page.getByLabel('Kata sandi').fill('rahasia123');
+  await page.getByLabel('Email', { exact: true }).fill('dewi@example.com');
+  await page.getByLabel('Kata sandi', { exact: true }).fill('rahasia123');
   await page.getByRole('button', { name: 'Masuk', exact: true }).click();
 }
 
 async function signUp(page: Page) {
   await page.goto('/daftar');
   await page.getByLabel('Nama usaha').fill('Konveksi Maju Jaya');
-  await page.getByLabel('Email').fill('dewi@example.com');
-  await page.getByLabel('Kata sandi').fill('rahasia123');
+  await page.getByLabel('Email', { exact: true }).fill('dewi@example.com');
+  await page.getByLabel('Kata sandi', { exact: true }).fill('rahasia123');
   await page.getByRole('button', { name: 'Daftar', exact: true }).click();
 }
 
