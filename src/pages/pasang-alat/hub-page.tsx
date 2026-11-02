@@ -33,7 +33,8 @@ function checkName(value: string): string | undefined {
   if (name === '') {
     return 'Isi nama WATTLINK Hub.';
   }
-  return name.length > gatewayNameLength.max
+  // The API counts characters and not the units of the string, so an emoji counts once
+  return [...name].length > gatewayNameLength.max
     ? `Nama paling panjang ${gatewayNameLength.max.toString()} huruf.`
     : undefined;
 }
@@ -78,7 +79,8 @@ export function HubPage() {
       { claimCode: normalizeClaimCode(code), name: name.trim() },
       {
         onSuccess: () => {
-          void navigate(addPath);
+          // The step leaves the history, so Back from the choice does not open an empty claim form
+          void navigate(addPath, { replace: true });
         },
         onError: (error) => {
           if (error instanceof ApiError && error.status === 429) {
@@ -133,7 +135,8 @@ export function HubPage() {
           error={codeError}
           onChange={(event) => {
             setCode(event.target.value);
-            if (failure === 'code-unknown') {
+            // The wait after a 429 has its own timer, so only the other answers go away
+            if (failure && failure !== 'rate-limited') {
               claim.reset();
             }
           }}

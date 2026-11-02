@@ -66,7 +66,8 @@ export function claimFailure(error: unknown): ClaimFailure {
   if (!(error instanceof ApiError)) {
     return error instanceof Error && error.name === 'NetworkError' ? 'offline' : 'other';
   }
-  if (error.code === 'claim_code_unknown' || error.status === 404) {
+  // Only the code counts, because a 404 of a proxy or a missing route is not a wrong code
+  if (error.code === 'claim_code_unknown') {
     return 'code-unknown';
   }
   if (error.code === 'gateway_claimed_elsewhere') {

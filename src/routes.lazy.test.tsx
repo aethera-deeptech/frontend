@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
 import { sessionKey } from '@/api/auth';
+import { gatewaysKey } from '@/api/gateways';
 import { routes } from '@/routes';
 
 // This file does not load the pages first, so it runs the lazy path of the real app. Every other test file loads them.
@@ -15,6 +16,10 @@ function renderAt(path: string) {
     email: 'dewi@example.com',
     emailVerified: true,
     businessName: 'Maju',
+  });
+  // The first step of Tambah alat reads the hubs, and this client has no API to ask
+  client.setQueryData(gatewaysKey, {
+    items: [{ id: 'g1', name: 'Hub pabrik', lastSeenAt: '2026-10-29T14:30:00+07:00' }],
   });
   render(
     <QueryClientProvider client={client}>

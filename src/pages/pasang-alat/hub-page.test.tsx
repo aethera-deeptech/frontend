@@ -39,14 +39,28 @@ describe('Tambah alat, the first step', () => {
   });
 
   it('says that the hub loads, then opens the hub step when the business has none', async () => {
-    stubApi(noHub);
+    let answer: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            answer = resolve;
+          }),
+      ),
+    );
     const router = renderAt('/alat/tambah');
 
-    expect(screen.getByRole('status')).toHaveTextContent('Memuat WATTLINK Hub');
+    expect(await screen.findByText('Memuat WATTLINK Hub')).toBeVisible();
+
+    answer(new Response(JSON.stringify({ items: [] })));
+
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/alat/tambah/hub');
     });
-    expect(screen.getByRole('heading', { level: 1, name: 'Hubungkan WATTLINK Hub' })).toBeVisible();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Hubungkan WATTLINK Hub' }),
+    ).toBeVisible();
   });
 
   it('does not block the user when the list of hubs cannot be loaded', async () => {
@@ -116,17 +130,45 @@ describe('Hubungkan WATTLINK Hub', () => {
     );
   });
 
+  it('counts a name by characters, so 21 emoji are allowed', async () => {
+    const fetchMock = stubApi({
+      ...noHub,
+      'POST /v1/gateways': { status: 201, body: sampleGateway },
+    });
+    renderAt('/alat/tambah/hub');
+
+    await fill('K7M2Q9XA', '\u{1F50C}'.repeat(21));
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    await waitFor(() => {
+      expect(bodyOf(fetchMock, '/v1/gateways')).toBeDefined();
+    });
+  });
+
+  it('does not call a 404 without the code of the API a wrong code', async () => {
+    stubApi({ ...noHub, 'POST /v1/gateways': { status: 404 } });
+    renderAt('/alat/tambah/hub');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    expect(await screen.findByText('Terjadi kesalahan')).toBeVisible();
+    expect(screen.queryByText('Kode tidak dikenali')).not.toBeInTheDocument();
+  });
+
   it('sends the code in capital letters without spaces and opens the choice of the kind', async () => {
     const fetchMock = stubApi({
       ...noHub,
       'POST /v1/gateways': { status: 201, body: sampleGateway },
     });
-    const router = renderAt('/alat/tambah/hub');
+    // Start at the choice, so the empty list is cached and the claim has to fill it
+    const router = renderAt('/alat/tambah');
+    await screen.findByRole('heading', { level: 1, name: 'Hubungkan WATTLINK Hub' });
 
     await fill(' k7m2 q9xa ', ' Hub pabrik ');
     await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
 
-    // The list of hubs still answers with no hub, so the choice only shows when the claim filled the list
+    // The list of hubs still answers with no hub, so the choice only shows because the claim filled the list
     expect(await screen.findByRole('button', { name: /WATTLINK Plug/ })).toBeVisible();
     expect(router.state.location.pathname).toBe('/alat/tambah');
     expect(bodyOf(fetchMock, '/v1/gateways')).toEqual({
