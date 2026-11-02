@@ -10,7 +10,10 @@ import { devicesKey } from '@/api/devices';
 export const deviceKinds = ['plug', 'clamp'] as const;
 export type DeviceKind = (typeof deviceKinds)[number];
 
-const roomsSchema = z.object({ items: z.array(z.object({ id: z.string(), name: z.string() })) });
+const roomSchema = z.object({ id: z.string(), name: z.string() });
+const roomsSchema = z.object({ items: z.array(roomSchema) });
+
+export const roomNameLength = { max: 40 } as const;
 
 const pairingSchema = z.object({
   // The API keeps looking for the device and says when it gives up
@@ -32,6 +35,36 @@ export function useRooms() {
   return useQuery({
     queryKey: roomsKey,
     queryFn: ({ signal }) => apiRequest('/v1/rooms', roomsSchema, { signal }),
+  });
+}
+
+// Adds a room. A business with no room cannot add a device, so the form of the device offers this call.
+export function useCreateRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (room: { name: string }) =>
+      apiRequest('/v1/rooms', roomSchema, { method: 'POST', body: room }),
+    onSuccess: async (room) => {
+      // A read that started before the call may answer after it, without the new room
+      await queryClient.cancelQueries({ queryKey: roomsKey });
+      // The form of the device shows the new room at once, in the place that the API gives it (by name). When the list is not
+      // in the cache, for example after a long time on the room form, nothing is written and the form reads the whole list.
+      queryClient.setQueryData(roomsKey, (old: z.infer<typeof roomsSchema> | undefined) =>
+        old
+          ? {
+              items: [...old.items.filter((item) => item.id !== room.id), room].sort((a, b) => {
+                const first = a.name.toLowerCase();
+                const second = b.name.toLowerCase();
+                return first < second ? -1 : first > second ? 1 : 0;
+              }),
+            }
+          : undefined,
+      );
+      // The API has the last word on the list
+      await queryClient.invalidateQueries({ queryKey: roomsKey });
+    },
+    gcTime: 0,
   });
 }
 

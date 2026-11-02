@@ -163,6 +163,13 @@ export const routes: RouteObject[] = [
                     ),
                   },
                   {
+                    path: 'ruangan',
+                    ...lazyPage(
+                      () => import('@/pages/pasang-alat/ruangan-baru-page'),
+                      (module) => module.RuanganBaruPage,
+                    ),
+                  },
+                  {
                     path: 'mencari/:id',
                     ...lazyPage(
                       () => import('@/pages/pasang-alat/mencari-page'),
