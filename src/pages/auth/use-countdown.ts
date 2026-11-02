@@ -10,7 +10,13 @@ export function useCountdown(endsAt: number | null): number {
       return;
     }
     const timer = setInterval(() => {
-      setNow(Date.now());
+      const current = Date.now();
+
+      setNow(current);
+      // Nothing is left to count, so the page stops rendering every second
+      if (current >= endsAt) {
+        clearInterval(timer);
+      }
     }, 1000);
 
     return () => {

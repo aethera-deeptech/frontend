@@ -41,12 +41,20 @@ export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBan
           message={`Coba lagi ${waitText(retryAfterSeconds)}.`}
         />
       );
+    case 'invalid-input':
+      return (
+        <Banner
+          tone="danger"
+          title="Periksa isian Anda"
+          message="Ada isian yang belum sesuai. Periksa lalu coba lagi."
+        />
+      );
     default:
       return (
         <Banner
           tone="danger"
           title="Terjadi kesalahan"
-          message="Coba lagi. Jika tetap gagal, coba beberapa saat lagi."
+          message="Coba lagi beberapa saat lagi."
           action={action}
         />
       );

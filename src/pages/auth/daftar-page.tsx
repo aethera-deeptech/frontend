@@ -35,6 +35,10 @@ export function DaftarPage() {
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
+    // The controls stay enabled while the call runs, so the focus stays where it is. A second press does nothing.
+    if (register.isPending) {
+      return;
+    }
     setTried(true);
 
     if (checkBusinessName(businessName)) {
@@ -55,7 +59,7 @@ export function DaftarPage() {
       { businessName: businessName.trim(), email: address, password },
       {
         onSuccess: ({ retryAfterSeconds }) => {
-          // The address stays in the state of this visit only. It is not stored, so a reload asks to sign up again.
+          // The address goes in the history entry of this visit and not in any storage of ours. A reload of the next screen keeps it.
           void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
         },
       },
@@ -84,7 +88,7 @@ export function DaftarPage() {
         />
       ) : null}
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">
-        <fieldset disabled={register.isPending} className="flex flex-col gap-3">
+        <fieldset className="flex flex-col gap-3">
           <legend className="sr-only">Daftar dengan email</legend>
           <TextInput
             ref={nameRef}
@@ -122,7 +126,12 @@ export function DaftarPage() {
               setPassword(event.target.value);
             }}
           />
-          <Button type="submit" kind="accent" size="lg">
+          <Button
+            type="submit"
+            kind="accent"
+            size="lg"
+            aria-disabled={register.isPending || undefined}
+          >
             {register.isPending ? 'Sedang mendaftar' : 'Daftar'}
           </Button>
         </fieldset>

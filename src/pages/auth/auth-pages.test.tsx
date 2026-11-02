@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -108,8 +109,16 @@ describe('Masuk', () => {
     await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
     await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
 
-    expect(await screen.findByRole('button', { name: 'Sedang masuk' })).toBeDisabled();
-    expect(screen.getByLabelText('Email')).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Sedang masuk' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    // The controls stay enabled so the focus is not lost, and a second press does nothing
+    expect(screen.getByRole('button', { name: 'Sedang masuk' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.getByLabelText('Email')).toBeEnabled();
   });
 
   it('says that the email or the password does not match, in one text for both', async () => {
@@ -156,7 +165,7 @@ describe('Masuk', () => {
     });
     expect(
       await screen.findByRole('button', { name: /^Kirim ulang dalam \d+ detik$/ }),
-    ).toBeDisabled();
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('says how long to wait when the API limits the tries', async () => {
@@ -173,6 +182,81 @@ describe('Masuk', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
 
     expect(await screen.findByText('Coba lagi dalam 30 detik.')).toBeVisible();
+  });
+
+  it('drops what the cache held for another account', async () => {
+    stubApi({ 'POST /v1/auth/login': { body: me } });
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['beranda'], { businessName: 'Usaha lain' });
+    renderAt('/masuk', undefined, { client });
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+
+    await waitFor(() => {
+      expect(client.getQueryData(['session'])).toEqual(me);
+    });
+    expect(client.getQueryData(['beranda'])).toBeUndefined();
+  });
+
+  it('sends the new email to the address that the API answered for, not to what the field says now', async () => {
+    const fetchMock = stubApi({
+      'POST /v1/auth/login': {
+        status: 403,
+        body: { code: 'email_not_verified', message: 'No' },
+      },
+      'POST /v1/auth/resend-verification': { status: 202, body: { retryAfterSeconds: 60 } },
+    });
+    renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Kirim ulang email' }));
+
+    expect(bodyOf(fetchMock, '/v1/auth/resend-verification')).toEqual({
+      email: 'dewi@example.com',
+    });
+  });
+
+  it('opens the timer screen with the wait that the API names when a resend came too soon', async () => {
+    stubApi({
+      'POST /v1/auth/login': {
+        status: 403,
+        body: { code: 'email_not_verified', message: 'No' },
+      },
+      'POST /v1/auth/resend-verification': {
+        status: 429,
+        body: { code: 'resend_too_soon', message: 'Wait', retryAfterSeconds: 45 },
+      },
+    });
+    const router = renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Kirim ulang email' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/verifikasi');
+    });
+    expect(
+      await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
+    ).toBeVisible();
+  });
+
+  it('says that the fields are not right when the API refuses them', async () => {
+    stubApi({
+      'POST /v1/auth/login': { status: 422, body: { code: 'validation_failed', message: 'No' } },
+    });
+    renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+
+    expect(await screen.findByText('Periksa isian Anda')).toBeVisible();
   });
 
   it('says that the connection is lost', async () => {
@@ -292,6 +376,40 @@ describe('Daftar', () => {
   });
 });
 
+describe('Daftar, other answers', () => {
+  async function fillAndSend() {
+    await userEvent.type(screen.getByLabelText('Nama usaha'), 'Maju');
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Daftar' }));
+  }
+
+  it('says how long to wait when the API limits the tries', async () => {
+    stubApi({
+      'POST /v1/auth/register': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 300 },
+      },
+    });
+    renderAt('/daftar');
+
+    await fillAndSend();
+
+    expect(await screen.findByText('Coba lagi dalam 5 menit.')).toBeVisible();
+  });
+
+  it('reads a wait of zero in the answer as the usual minute and not as an error', async () => {
+    stubApi({ 'POST /v1/auth/register': { status: 201, body: { retryAfterSeconds: 0 } } });
+    renderAt('/daftar');
+
+    await fillAndSend();
+
+    expect(
+      await screen.findByRole('button', { name: /^Kirim ulang dalam (59|60) detik$/ }),
+    ).toBeVisible();
+  });
+});
+
 describe('Verifikasi', () => {
   it('goes back to the sign up when no address came with the visit', async () => {
     stubApi({});
@@ -307,7 +425,10 @@ describe('Verifikasi', () => {
     renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 60 });
 
     expect(screen.getByText('Tidak ada email? Periksa folder spam.')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Kirim ulang dalam 60 detik' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Kirim ulang dalam 60 detik' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   it('sends the email again when the wait is over and starts the wait again', async () => {
@@ -324,7 +445,10 @@ describe('Verifikasi', () => {
     await userEvent.click(button);
 
     expect(await screen.findByText('Email baru sudah dikirim')).toBeVisible();
-    expect(screen.getByRole('button', { name: /^Kirim ulang dalam \d+ detik$/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Kirim ulang dalam \d+ detik$/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     expect(bodyOf(fetchMock, '/v1/auth/resend-verification')).toEqual({
       email: 'dewi@example.com',
     });
@@ -345,8 +469,26 @@ describe('Verifikasi', () => {
 
     expect(
       await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
-    ).toBeDisabled();
+    ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText('Email baru sudah dikirim')).not.toBeInTheDocument();
+  });
+
+  it('waits again after any 429, not only for the too soon code', async () => {
+    stubApi({
+      'POST /v1/auth/resend-verification': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 90 },
+      },
+    });
+    renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 1 });
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 }),
+    );
+
+    expect(
+      await screen.findByRole('button', { name: /^Kirim ulang dalam (89|90) detik$/ }),
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('says that the connection is lost when the resend fails', async () => {
@@ -366,7 +508,8 @@ describe('Verify email link', () => {
 
   it('sends the token once, signs in and removes the token from the address', async () => {
     const fetchMock = stubApi({ 'POST /v1/auth/verify-email': { body: me } });
-    const router = renderAt(`/verify-email?token=${token}`);
+    // In strict mode the effect runs twice, and a second send would use up the token
+    const router = renderAt(`/verify-email?token=${token}`, undefined, { strict: true });
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Akun Anda aktif' })).toBeVisible();
     expect(bodyOf(fetchMock, '/v1/auth/verify-email')).toEqual({ token });

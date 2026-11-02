@@ -14,6 +14,8 @@ const buttonVariants = cva(
     'not-disabled:hover:mt-(--lift-inset-hover) not-disabled:hover:mb-(--lift-hover) not-disabled:hover:shadow-[0_var(--lift-hover)_0_0_var(--chonk)]',
     'not-disabled:active:mt-(--lift-inset-pressed) not-disabled:active:mb-0 not-disabled:active:shadow-none',
     'disabled:mt-(--lift-inset-pressed) disabled:mb-0 disabled:opacity-(--disabled-opacity) disabled:shadow-none',
+    // A button that waits but stays focusable looks the same, so a keyboard user does not lose the place
+    'aria-disabled:mt-(--lift-inset-pressed) aria-disabled:mb-0 aria-disabled:opacity-(--disabled-opacity) aria-disabled:shadow-none',
   ],
   {
     variants: {

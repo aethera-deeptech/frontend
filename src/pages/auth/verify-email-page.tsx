@@ -98,6 +98,9 @@ function NewLink() {
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
+    if (resend.isPending) {
+      return;
+    }
     setTried(true);
 
     if (checkEmail(email)) {
@@ -137,12 +140,11 @@ function NewLink() {
           autoComplete="email"
           value={email}
           error={emailError}
-          disabled={resend.isPending}
           onChange={(event) => {
             setEmail(event.target.value);
           }}
         />
-        <Button type="submit" kind="accent" size="lg" disabled={resend.isPending}>
+        <Button type="submit" kind="accent" size="lg" aria-disabled={resend.isPending || undefined}>
           Kirim tautan baru
         </Button>
       </form>

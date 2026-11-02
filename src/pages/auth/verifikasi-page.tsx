@@ -10,7 +10,7 @@ import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { useCountdown } from '@/pages/auth/use-countdown';
 
-// What the sign up or the sign in leaves for this screen. It lives in the state of the visit and not in storage.
+// What the sign up or the sign in leaves for this screen. It lives in the history entry of the visit. The app stores nothing, and the entry keeps it over a reload.
 const visitSchema = z.object({
   email: z.string().min(1),
   retryAfterSeconds: z.number().int().positive(),
@@ -36,6 +36,10 @@ function Verification({ email, firstWaitSeconds }: { email: string; firstWaitSec
   const left = useCountdown(readyAt);
 
   const sendAgain = () => {
+    // The button stays focusable while it waits, so a press must do nothing then
+    if (left > 0 || resend.isPending) {
+      return;
+    }
     setSentAgain(false);
     resend.mutate(email, {
       onSuccess: ({ retryAfterSeconds }) => {
@@ -43,14 +47,14 @@ function Verification({ email, firstWaitSeconds }: { email: string; firstWaitSec
         setReadyAt(Date.now() + retryAfterSeconds * 1000);
       },
       onError: (error) => {
-        // The API says how long is left, so the button waits for that long
-        if (error instanceof ApiError && error.code === 'resend_too_soon') {
+        // Any 429 says how long to wait, so the button waits for that long
+        if (error instanceof ApiError && error.status === 429) {
           setReadyAt(Date.now() + (error.retryAfterSeconds ?? 60) * 1000);
         }
       },
     });
   };
-  const tooSoon = resend.error instanceof ApiError && resend.error.code === 'resend_too_soon';
+  const limited = resend.error instanceof ApiError && resend.error.status === 429;
 
   return (
     <AuthFrame
@@ -64,7 +68,7 @@ function Verification({ email, firstWaitSeconds }: { email: string; firstWaitSec
           message="Gunakan tautan yang terbaru."
         />
       ) : null}
-      {resend.isError && !tooSoon ? (
+      {resend.isError && !limited ? (
         <FailureBanner
           failure={authFailure(resend.error)}
           retryAfterSeconds={
@@ -73,7 +77,11 @@ function Verification({ email, firstWaitSeconds }: { email: string; firstWaitSec
         />
       ) : null}
       <p className="text-body text-text-2">Tidak ada email? Periksa folder spam.</p>
-      <Button size="lg" disabled={left > 0 || resend.isPending} onClick={sendAgain}>
+      <Button
+        size="lg"
+        aria-disabled={left > 0 || resend.isPending || undefined}
+        onClick={sendAgain}
+      >
         {left > 0 ? `Kirim ulang dalam ${left.toString()} detik` : 'Kirim ulang email'}
       </Button>
     </AuthFrame>

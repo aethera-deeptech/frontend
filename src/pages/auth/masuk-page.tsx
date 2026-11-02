@@ -30,6 +30,10 @@ export function MasukPage() {
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
+    // The controls stay enabled while the call runs, so the focus stays where it is. A second press does nothing.
+    if (login.isPending) {
+      return;
+    }
     setTried(true);
     resend.reset();
 
@@ -54,7 +58,11 @@ export function MasukPage() {
   // The account exists but is not verified. The verification screen has the timer, and it also takes the answer of a resend
   // that came too soon, because that answer says how long is left.
   const sendAgain = () => {
-    const address = email.trim();
+    if (resend.isPending) {
+      return;
+    }
+    // The address that the API answered for, and not what the field says now
+    const address = login.variables?.email ?? email.trim();
 
     resend.mutate(address, {
       onSuccess: ({ retryAfterSeconds }) => {
@@ -84,7 +92,7 @@ export function MasukPage() {
           title="Email belum diverifikasi"
           message="Ketuk tautan di email dari sistem untuk mengaktifkan akun."
           action={
-            <Button size="lg" disabled={resend.isPending} onClick={sendAgain}>
+            <Button size="lg" aria-disabled={resend.isPending || undefined} onClick={sendAgain}>
               Kirim ulang email
             </Button>
           }
@@ -102,7 +110,7 @@ export function MasukPage() {
         <FailureBanner failure={authFailure(resend.error)} />
       ) : null}
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">
-        <fieldset disabled={login.isPending} className="flex flex-col gap-3">
+        <fieldset className="flex flex-col gap-3">
           <legend className="sr-only">Masuk dengan email</legend>
           <TextInput
             ref={emailRef}
@@ -125,7 +133,12 @@ export function MasukPage() {
               setPassword(event.target.value);
             }}
           />
-          <Button type="submit" kind="accent" size="lg">
+          <Button
+            type="submit"
+            kind="accent"
+            size="lg"
+            aria-disabled={login.isPending || undefined}
+          >
             {login.isPending ? 'Sedang masuk' : 'Masuk'}
           </Button>
         </fieldset>

@@ -13,7 +13,13 @@ export const meSchema = z.object({
 
 export type Me = z.infer<typeof meSchema>;
 
-const verificationSentSchema = z.object({ retryAfterSeconds: z.number().int().positive() });
+// The contract says an integer and no more, so a zero must not turn a sent email into an error. A wait that is not positive
+// falls back to the usual 60 seconds.
+const verificationSentSchema = z
+  .object({ retryAfterSeconds: z.number().int().min(0) })
+  .transform(({ retryAfterSeconds }) => ({
+    retryAfterSeconds: retryAfterSeconds > 0 ? retryAfterSeconds : 60,
+  }));
 
 // The password rules of the API. The screens check them first, so a mistake shows without a round trip.
 export const passwordLength = { min: 8, max: 128 } as const;
@@ -58,6 +64,7 @@ export function useLogin() {
     mutationFn: (credentials: Credentials) =>
       apiRequest('/v1/auth/login', meSchema, { method: 'POST', body: credentials }),
     onSuccess: startSession,
+    gcTime: 0,
   });
 }
 
@@ -65,6 +72,7 @@ export function useRegister() {
   return useMutation({
     mutationFn: (account: Credentials & { businessName: string }) =>
       apiRequest('/v1/auth/register', verificationSentSchema, { method: 'POST', body: account }),
+    gcTime: 0,
   });
 }
 
@@ -76,6 +84,7 @@ export function useVerifyEmail() {
     mutationFn: (token: string) =>
       apiRequest('/v1/auth/verify-email', meSchema, { method: 'POST', body: { token } }),
     onSuccess: startSession,
+    gcTime: 0,
   });
 }
 
@@ -95,6 +104,7 @@ export type AuthFailure =
   | 'email-not-verified'
   | 'email-taken'
   | 'rate-limited'
+  | 'invalid-input'
   | 'invalid-token'
   | 'offline'
   | 'other';
@@ -118,6 +128,9 @@ export function authFailure(error: unknown): AuthFailure {
   }
   if (error.status === 429) {
     return 'rate-limited';
+  }
+  if (error.status === 422) {
+    return 'invalid-input';
   }
   return 'other';
 }
