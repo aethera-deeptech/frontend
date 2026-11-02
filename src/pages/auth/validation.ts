@@ -6,13 +6,29 @@ import { businessNameLength, passwordLength } from '@/api/auth';
 // An address needs a name, an at sign and a domain with a dot. The API decides what counts as a real address.
 const emailShape = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function checkEmail(value: string): string | undefined {
+export function checkEmail(value: string, emptyText = 'Isi email Anda.'): string | undefined {
   const email = value.trim();
 
   if (email === '') {
-    return 'Isi email Anda.';
+    return emptyText;
   }
   return emailShape.test(email) && email.length <= 254 ? undefined : 'Isi email yang valid.';
+}
+
+// The address that replaces the one of the account. An address that is the same as the current one changes nothing, but the
+// API does not refuse it and would send another link to it, so the screen asks for another address first.
+export function checkNewEmail(value: string, current: string): string | undefined {
+  const email = value.trim();
+
+  if (email === '') {
+    return 'Isi email baru Anda.';
+  }
+  const wrong = 'Isi email yang benar, dan berbeda dari email saat ini.';
+
+  if (checkEmail(email) !== undefined) {
+    return wrong;
+  }
+  return email.toLowerCase() === current.trim().toLowerCase() ? wrong : undefined;
 }
 
 // The login accepts any password that is not empty, so a password from before a rule change still works

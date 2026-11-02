@@ -6,6 +6,7 @@ import { authFailure, useResendVerification } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { useCountdown } from '@/pages/auth/use-countdown';
@@ -84,6 +85,9 @@ function Verification({ email, firstWaitSeconds }: { email: string; firstWaitSec
       >
         {left > 0 ? `Kirim ulang dalam ${left.toString()} detik` : 'Kirim ulang email'}
       </Button>
+      <TextLink to="/ganti-email" className="self-center">
+        Ganti email
+      </TextLink>
     </AuthFrame>
   );
 }

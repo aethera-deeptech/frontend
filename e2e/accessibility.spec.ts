@@ -29,6 +29,7 @@ const screens = [
   { name: 'Keluar', path: '/lainnya/keluar' },
   { name: 'Masuk', path: '/masuk' },
   { name: 'Daftar', path: '/daftar' },
+  { name: 'Ganti email', path: '/ganti-email' },
   { name: 'Lupa kata sandi', path: '/lupa-kata-sandi' },
   { name: 'Atur ulang kata sandi', path: '/reset-password?token=' + 'c'.repeat(43) },
   { name: 'Halaman tidak ditemukan', path: '/halaman-yang-tidak-ada' },
