@@ -116,7 +116,7 @@ A `ready` report has the fields below.
 - `anomalySensitivity`, which is `rendah`, `sedang` or `tinggi`.
 - `timeZone`, an IANA zone name such as `Asia/Jakarta`. The API accepts only places with a whole hour offset from UTC, so the screen offers `Asia/Jakarta` (WIB), `Asia/Makassar` (WITA) and `Asia/Jayapura` (WIT). A zone that the API sends and the screen does not list shows its own name.
 
-`PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh`, `anomalySensitivity` and `timeZone`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices and the report again, because the tariff, the sensitivity and the zone change their numbers.
+`PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh`, `anomalySensitivity` and `timeZone`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices, the production records and the report again, because the tariff, the sensitivity and the zone change their numbers.
 
 ## Pasang alat
 

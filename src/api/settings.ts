@@ -5,6 +5,7 @@ import { sessionKey } from '@/api/auth';
 import { apiRequest } from '@/api/client';
 import { berandaKey } from '@/api/beranda';
 import { devicesKey } from '@/api/devices';
+import { productionKey } from '@/api/production';
 import { recommendationsKey } from '@/api/recommendations';
 import { reportKey } from '@/api/reports';
 
@@ -61,8 +62,9 @@ export function useUpdateSettings() {
   return useMutation({
     mutationFn: (change: SettingsChange) =>
       apiRequest('/v1/settings', z.unknown(), { method: 'PATCH', body: change }),
-    // The name shows on the home screen. The tariff turns kWh into rupiah in the tips and the report, and the work hours
-    // and the sensitivity decide which devices and which use count as odd.
+    // The name shows on the home screen. The tariff turns kWh into rupiah in the tips and the report, the work hours
+    // and the sensitivity decide which devices and which use count as odd, and the zone decides the day of the business, so
+    // it also moves the last day that the production form accepts.
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: settingsKey }),
@@ -72,6 +74,7 @@ export function useUpdateSettings() {
         queryClient.invalidateQueries({ queryKey: recommendationsKey }),
         queryClient.invalidateQueries({ queryKey: devicesKey }),
         queryClient.invalidateQueries({ queryKey: reportKey }),
+        queryClient.invalidateQueries({ queryKey: productionKey }),
       ]),
   });
 }
