@@ -130,9 +130,8 @@ export function useResetPassword() {
       apiRequest('/v1/auth/reset-password', z.null(), { method: 'POST', body: change }),
     // The API ended every session of the user, so what this browser cached for the session is no longer true. This runs
     // from the hook and not from the call, because a user who leaves the page while the call runs would skip the call.
-    onSuccess: () => {
-      queryClient.removeQueries();
-    },
+    // The screens that are open read their data again and meet the 401, so the guard sends the user to Masuk.
+    onSuccess: () => queryClient.resetQueries(),
     gcTime: 0,
   });
 }
