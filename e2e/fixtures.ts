@@ -107,6 +107,9 @@ function answer(method: string, pathname: string): unknown {
   if (pathname === '/v1/settings') {
     return sampleSettings();
   }
+  if (pathname === '/v1/gateways') {
+    return { items: [{ id: 'g1', name: 'Hub pabrik', lastSeenAt: '2026-10-29T14:30:00+07:00' }] };
+  }
   if (pathname === '/v1/rooms') {
     return {
       items: [

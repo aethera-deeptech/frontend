@@ -197,6 +197,36 @@ for (const state of states) {
   });
 }
 
+test.describe('the first step with no hub', () => {
+  test.use({
+    apiOverrides: {
+      'GET /v1/gateways': { body: { items: [] } },
+      'POST /v1/gateways': {
+        status: 404,
+        body: { code: 'claim_code_unknown', message: 'No' },
+      },
+    },
+  });
+
+  test('has no accessibility violations, also after a code that the API does not know', async ({
+    page,
+  }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await page.goto('/alat/tambah');
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Hubungkan WATTLINK Hub' }),
+    ).toBeVisible();
+    await expectNoViolations(page);
+
+    await page.getByLabel('Kode di layar WATTLINK Hub').fill('K7M2Q9XA');
+    await page.getByLabel('Nama WATTLINK Hub').fill('Hub pabrik');
+    await page.getByRole('button', { name: 'Hubungkan' }).click();
+    await expect(page.getByText('Kode tidak dikenali')).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
 async function startPlug(page: Page) {
   await page.goto('/alat/tambah');
   await page.getByRole('button', { name: /WATTLINK Plug/ }).click();
