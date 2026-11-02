@@ -32,9 +32,12 @@ export function stubApi(answers: Record<string, Answer | (() => Answer)>) {
   return fetchMock;
 }
 
-// Renders the real routes at a path with a query client that does not retry
-export function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
+// Renders the real routes at a path with a query client that does not retry. The state is what the visit carries, as a
+// navigation from another screen would leave it.
+export function renderAt(path: string, state?: unknown) {
+  const router = createMemoryRouter(routes, {
+    initialEntries: [state === undefined ? path : { pathname: path, state }],
+  });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
