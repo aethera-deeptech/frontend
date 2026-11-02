@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
+import { deviceDetailSchema } from '@/api/devices';
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
 import { summarize } from '@/pages/alat/device-filters';
 import { AlatListView } from '@/pages/alat/alat-list-view';
@@ -197,6 +198,64 @@ describe('AlatDetailView, anomaly', () => {
     );
 
     expect(screen.getByRole('alert')).toHaveTextContent('Daya naik mendadak 29 Okt pukul 02:10');
+  });
+});
+
+describe('AlatDetailView, the kind of anomaly', () => {
+  function withKind(kind: 'surge' | 'overload' | 'degradation', powerFactor?: number) {
+    const detail = sampleAnomaly();
+    return {
+      ...detail,
+      anomaly: { at: '2026-10-29T02:10:00+07:00', peakW: 2000, kind, powerFactor },
+    };
+  }
+
+  it('says an overload with the words of the device', () => {
+    renderDetail(withKind('overload'));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Beban berlebih hari ini pukul 02:10');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Alat melaporkan beban di atas batasnya. Periksa mesin yang terhubung ke alat.',
+    );
+  });
+
+  it('shows the power factor of a degradation that the API found', () => {
+    renderDetail(withKind('degradation', 0.62));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Motor bekerja kurang efisien hari ini pukul 02:10',
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Faktor daya rata-rata 0,62.');
+  });
+
+  it('says a degradation that the device reported without a power factor', () => {
+    renderDetail(withKind('degradation'));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Alat melaporkan motor bekerja kurang efisien. Pertimbangkan pemeriksaan.',
+    );
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Faktor daya');
+  });
+});
+
+describe('the schema of the anomaly', () => {
+  const base = { at: '2026-10-29T02:10:00+07:00', peakW: 2000 };
+
+  it('reads an answer with no kind as a surge, like the API before it had kinds', () => {
+    const parsed = deviceDetailSchema.shape.anomaly.parse(base);
+
+    expect(parsed?.kind).toBe('surge');
+  });
+
+  it('reads a kind that it does not know as a surge and drops a power factor out of range', () => {
+    const parsed = deviceDetailSchema.shape.anomaly.parse({
+      ...base,
+      kind: 'vibration',
+      powerFactor: 4,
+    });
+
+    expect(parsed?.kind).toBe('surge');
+    expect(parsed?.powerFactor).toBeUndefined();
   });
 });
 
