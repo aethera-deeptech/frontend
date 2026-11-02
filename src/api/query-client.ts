@@ -63,7 +63,8 @@ export function createQueryClient(): QueryClient {
       return;
     }
     if (signedInEmail !== undefined && signedInEmail !== me.data.email) {
-      client.removeQueries({ predicate: (query) => query.queryKey[0] !== sessionKey[0] });
+      // A reset also reads the queries that a screen still uses, which would otherwise keep the data of the first user
+      void client.resetQueries({ predicate: (query) => query.queryKey[0] !== sessionKey[0] });
     }
     signedInEmail = me.data.email;
   });

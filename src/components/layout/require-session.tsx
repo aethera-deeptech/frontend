@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 // The screens of the app need a session. Without one the user goes to Masuk and comes back to this screen after the sign in.
 export function RequireSession() {
   const session = useSession();
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
 
   // A 401 wins over data that an earlier read left behind, because the session has ended since
   if (session.error instanceof ApiError && session.error.status === 401) {
-    return <Navigate to="/masuk" replace state={{ from: `${pathname}${search}` }} />;
+    return <Navigate to="/masuk" replace state={{ from: `${pathname}${search}${hash}` }} />;
   }
   // A read that fails in the background, for example on a lost connection, keeps the user where they are
   if (session.data) {

@@ -22,11 +22,11 @@ describe('the guard of the screens', () => {
 
   it('sends a user without a session to Masuk and remembers the screen that was asked for', async () => {
     stubApi({ 'GET /v1/auth/me': unauthorized });
-    const router = renderAt('/laporan?periode=2026-10', undefined, { session: false });
+    const router = renderAt('/laporan?periode=2026-10#ringkasan', undefined, { session: false });
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Masuk' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/masuk');
-    expect(router.state.location.state).toEqual({ from: '/laporan?periode=2026-10' });
+    expect(router.state.location.state).toEqual({ from: '/laporan?periode=2026-10#ringkasan' });
   });
 
   it('brings the user back to that screen after the sign in', async () => {
