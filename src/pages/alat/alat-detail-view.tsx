@@ -61,7 +61,7 @@ export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewPr
         <Banner
           tone="warning"
           title="Alat tidak terhubung"
-          message={`Terakhir terhubung ${formatDateTime(lastSeen)}. Periksa apakah alat menyala dan dekat dengan WATTLINK Hub.`}
+          message={`Terakhir terhubung ${formatDateTime(lastSeen)}. Periksa apakah alat dan WATTLINK Hub menyala dan saling dekat.`}
         />
       ) : null}
 

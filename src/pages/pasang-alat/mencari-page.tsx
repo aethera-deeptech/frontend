@@ -57,7 +57,7 @@ export function MencariPage() {
         <Banner
           tone="danger"
           title="Alat belum terhubung"
-          message="Pastikan alat menyala dan dekat dengan WATTLINK Hub. Lalu coba lagi."
+          message="Pastikan alat dan WATTLINK Hub menyala dan saling dekat. Lalu coba lagi."
           action={
             <Button size="lg" disabled={start.isPending} onClick={searchAgain}>
               Coba lagi

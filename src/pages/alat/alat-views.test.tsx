@@ -206,6 +206,10 @@ describe('AlatDetailView, offline', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Alat tidak terhubung');
     expect(screen.getByRole('status')).toHaveTextContent('Terakhir terhubung 28 Okt 2026, 15:10.');
+    // A hub that is off also leaves every device without data, so the text names both
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Periksa apakah alat dan WATTLINK Hub menyala dan saling dekat.',
+    );
     expect(screen.getAllByText('-')).toHaveLength(4);
     expect(screen.getByText('38 kWh')).toBeInTheDocument();
     expect(screen.getByText('Tidak ada')).toBeInTheDocument();

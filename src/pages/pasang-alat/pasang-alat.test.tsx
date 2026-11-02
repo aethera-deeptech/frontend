@@ -242,6 +242,9 @@ describe('Tambah alat, the search', () => {
     await fillName('Mesin jahit 2', 'Gudang');
 
     expect(await screen.findByText('Alat belum terhubung')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Pastikan alat dan WATTLINK Hub menyala dan saling dekat. Lalu coba lagi.',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
 
     await vi.waitFor(() => {
