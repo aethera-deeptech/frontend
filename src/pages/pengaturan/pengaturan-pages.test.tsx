@@ -292,3 +292,52 @@ describe('Kepekaan anomali', () => {
     expect(select).toHaveAccessibleDescription(/Rendah menandai lebih sedikit anomali/);
   });
 });
+
+describe('Zona waktu', () => {
+  it('saves the zone that the user picked', async () => {
+    const fetchMock = stubApi({
+      'GET /v1/settings': { body: sampleSettings() },
+      'PATCH /v1/settings': { status: 204 },
+    });
+    renderAt('/lainnya/pengaturan/zona-waktu');
+
+    const select = await screen.findByRole('combobox', { name: 'Zona waktu' });
+    expect(select).toHaveTextContent('WIB (Jakarta)');
+    await userEvent.click(select);
+    await userEvent.click(screen.getByRole('option', { name: 'WITA (Makassar)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Zona waktu sudah diperbarui.')).toBeInTheDocument();
+    expect(patchBody(fetchMock)).toEqual({ timeZone: 'Asia/Makassar' });
+  });
+
+  it('names the three zones of Indonesia in the helper', async () => {
+    stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
+    renderAt('/lainnya/pengaturan/zona-waktu');
+
+    const select = await screen.findByRole('combobox', { name: 'Zona waktu' });
+
+    expect(select).toHaveAccessibleDescription(/WIT untuk Maluku dan Papua/);
+  });
+
+  it('shows a zone from the API that is not one of the three', async () => {
+    stubApi({ 'GET /v1/settings': { body: sampleSettings({ timeZone: 'Asia/Dubai' }) } });
+    renderAt('/lainnya/pengaturan/zona-waktu');
+
+    expect(await screen.findByRole('combobox', { name: 'Zona waktu' })).toHaveTextContent(
+      'Asia/Dubai',
+    );
+  });
+
+  it('says that the zone could not be saved and stays on the form', async () => {
+    stubApi({
+      'GET /v1/settings': { body: sampleSettings() },
+      'PATCH /v1/settings': { status: 422, body: { code: 'validation_failed', message: 'No' } },
+    });
+    renderAt('/lainnya/pengaturan/zona-waktu');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Pengaturan belum tersimpan')).toBeInTheDocument();
+  });
+});
