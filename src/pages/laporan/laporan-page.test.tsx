@@ -76,7 +76,9 @@ describe('LaporanPage', () => {
       expect.objectContaining({ credentials: 'include' }),
     );
 
-    fetchMock.mockResolvedValue(new Response(new Blob(['pdf'])));
+    fetchMock.mockResolvedValue(
+      new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } }),
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Unduh laporan (PDF)' }));
 
     expect(await screen.findByText(/Laporan-Minggu-2026-W43\.pdf/)).toBeInTheDocument();

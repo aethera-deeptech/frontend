@@ -40,10 +40,7 @@ export function LaporanView({
   const week = data.phase === 'ready' && data.granularity === 'week';
   // The running week has only the days until now, and the oldest week can start before the first data. Both reports cover only
   // the days with data. The API sets through only for the running month or week.
-  const partial =
-    week &&
-    data.phase === 'ready' &&
-    (data.through !== undefined || data.period === data.weeks.at(-1));
+  const partial = week && (data.through !== undefined || data.period === data.weeks.at(-1));
 
   return (
     <div className="flex flex-col gap-3 lg:gap-6">

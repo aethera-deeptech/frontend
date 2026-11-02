@@ -96,6 +96,11 @@ describe('LaporanView, ready', () => {
       'September 2026',
       'Agustus 2026',
       'Juli 2026',
+      '26 Okt sampai 1 Nov, belum penuh',
+      '19 sampai 25 Okt 2026',
+      '12 sampai 18 Okt 2026',
+      '5 sampai 11 Okt 2026',
+      '28 Sep sampai 4 Okt, belum penuh',
     ]);
     await userEvent.click(screen.getByRole('option', { name: 'Agustus 2026' }));
 
@@ -187,7 +192,7 @@ describe('LaporanView, a week', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Tagihan 7 hari' })).toBeVisible();
     expect(screen.getByText('Rp474.000')).toBeInTheDocument();
     expect(screen.getByText('Termasuk beban belum terpantau alat')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Energi per alat' })).toHaveTextContent('Setrika uap');
+    expect(screen.getByRole('list', { name: 'Energi per alat' })).toHaveTextContent('Setrika uap');
     expect(screen.getByText('Tagihan dan energi bengkel Anda selama 7 hari')).toBeInTheDocument();
   });
 
