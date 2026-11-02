@@ -21,6 +21,8 @@ describe('returnPath', () => {
     ['the screen after the sign up', '/verifikasi'],
     ['the page of the email link', '/verify-email'],
     ['the question before the sign out', '/lainnya/keluar'],
+    ['the page to ask for a reset link', '/lupa-kata-sandi'],
+    ['the page of the reset link', '/reset-password?token=x'],
     ['a value that is not a string', 5],
   ])('goes to the home screen for %s', (_name, from) => {
     expect(returnPath({ from })).toBe('/');

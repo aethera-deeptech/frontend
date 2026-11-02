@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { PasswordField } from '@/pages/auth/password-field';
+import { createQueryClient } from '@/api/query-client';
 import { renderAt, stubApi } from '@/test/stub-api';
 
 const me = { email: 'dewi@example.com', emailVerified: true, businessName: 'Maju' };
@@ -630,6 +631,327 @@ describe('Verifikasi', () => {
     await userEvent.click(ready);
 
     expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
+  });
+});
+
+describe('Lupa kata sandi', () => {
+  it('is reached from Masuk and shows the form with the focus on the heading', async () => {
+    stubApi({});
+    renderAt('/masuk');
+
+    await userEvent.click(screen.getByRole('link', { name: 'Lupa kata sandi?' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Lupa kata sandi' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: 'Kembali ke Masuk' })).toHaveAttribute(
+      'href',
+      '/masuk',
+    );
+  });
+
+  it('asks for the email before it calls the API', async () => {
+    const fetchMock = stubApi({});
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Isi email Anda.');
+    expect(screen.getByLabelText('Email')).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sends the link and then shows a screen that does not name the address', async () => {
+    freezeClock();
+    const fetchMock = stubApi({
+      'POST /v1/auth/forgot-password': { status: 202, body: { retryAfterSeconds: 60 } },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.type(screen.getByLabelText('Email'), ' dewi@example.com ');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Periksa email Anda' }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        'Jika email itu terdaftar, sistem sudah mengirim tautan untuk mengatur ulang kata sandi.',
+      ),
+    ).toBeVisible();
+    expect(screen.queryByText(/dewi@example\.com/)).not.toBeInTheDocument();
+    expect(bodyOf(fetchMock, '/v1/auth/forgot-password')).toEqual({ email: 'dewi@example.com' });
+    expect(screen.getByRole('button', { name: 'Kirim ulang dalam 60 detik' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
+  it('sends the link again when the wait is over', async () => {
+    const fetchMock = stubApi({
+      'POST /v1/auth/forgot-password': { status: 202, body: { retryAfterSeconds: 1 } },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 }),
+    );
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.filter(([url]) => url.endsWith('/v1/auth/forgot-password')),
+      ).toHaveLength(2);
+    });
+  });
+
+  // Sends the first link, then moves the clock past the wait so the button works again
+  async function sendFirstLinkAndWait(email: string) {
+    await userEvent.type(screen.getByLabelText('Email'), email);
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+    await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' });
+    vi.setSystemTime(Date.now() + 61_000);
+
+    return screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 });
+  }
+
+  it('says that a newer link was sent after a resend, and waits again', async () => {
+    freezeClock();
+    stubApi({
+      'POST /v1/auth/forgot-password': { status: 202, body: { retryAfterSeconds: 60 } },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.click(await sendFirstLinkAndWait('dewi@example.com'));
+
+    expect(await screen.findByText('Email baru sudah dikirim')).toBeVisible();
+    expect(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+    ).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('waits for the time that the API names when a resend is limited', async () => {
+    freezeClock();
+    let calls = 0;
+    stubApi({
+      'POST /v1/auth/forgot-password': () => {
+        calls += 1;
+        return calls === 1
+          ? { status: 202, body: { retryAfterSeconds: 60 } }
+          : {
+              status: 429,
+              body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 45 },
+            };
+      },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.click(await sendFirstLinkAndWait('dewi@example.com'));
+
+    expect(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }, { timeout: 3000 }),
+    ).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.queryByText('Email baru sudah dikirim')).not.toBeInTheDocument();
+  });
+
+  it('says that the connection is lost when a resend fails', async () => {
+    freezeClock();
+    let calls = 0;
+    const fetchMock = stubApi({
+      'POST /v1/auth/forgot-password': () => {
+        calls += 1;
+        return { status: 202, body: { retryAfterSeconds: 60 } };
+      },
+    });
+    renderAt('/lupa-kata-sandi');
+    const resend = await sendFirstLinkAndWait('dewi@example.com');
+    fetchMock.mockImplementation(() => Promise.reject(new TypeError('offline')));
+
+    await userEvent.click(resend);
+
+    expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
+    expect(calls).toBe(1);
+  });
+
+  it('does not call the API when the button is pressed while it waits', async () => {
+    freezeClock();
+    const fetchMock = stubApi({
+      'POST /v1/auth/forgot-password': { status: 202, body: { retryAfterSeconds: 60 } },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+    );
+
+    expect(fetchMock.mock.calls.filter(([url]) => url.includes('forgot-password'))).toHaveLength(1);
+  });
+
+  it('says how long to wait when the API limits the tries', async () => {
+    stubApi({
+      'POST /v1/auth/forgot-password': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 30 },
+      },
+    });
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+
+    expect(await screen.findByText('Coba lagi dalam 30 detik.')).toBeVisible();
+  });
+
+  it('says that the connection is lost', async () => {
+    stubApi({});
+    renderAt('/lupa-kata-sandi');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan' }));
+
+    expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
+  });
+});
+
+describe('Reset password link', () => {
+  const resetToken = 'b'.repeat(43);
+
+  async function fill(password: string, again: string) {
+    await userEvent.type(screen.getByLabelText('Kata sandi baru'), password);
+    await userEvent.type(screen.getByLabelText('Ulangi kata sandi'), again);
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan kata sandi' }));
+  }
+
+  it('sends the token and the new password once, removes the token from the address and offers Masuk', async () => {
+    const fetchMock = stubApi({ 'POST /v1/auth/reset-password': { status: 204 } });
+    const router = renderAt(`/reset-password?token=${resetToken}`, undefined, { strict: true });
+
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('');
+    });
+    await fill('rahasia123', 'rahasia123');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Kata sandi diperbarui' }),
+    ).toBeVisible();
+    expect(bodyOf(fetchMock, '/v1/auth/reset-password')).toEqual({
+      token: resetToken,
+      password: 'rahasia123',
+    });
+    expect(screen.getByRole('link', { name: 'Masuk' })).toHaveAttribute('href', '/masuk');
+    // The form is gone, so the heading of the next screen takes the focus
+    expect(screen.getByRole('heading', { level: 1, name: 'Kata sandi diperbarui' })).toHaveFocus();
+  });
+
+  it('drops the cached session after the reset, because the API ended every session', async () => {
+    stubApi({ 'POST /v1/auth/reset-password': { status: 204 } });
+    const client = createQueryClient();
+    const router = renderAt(`/reset-password?token=${resetToken}`, undefined, { client });
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('');
+    });
+
+    await fill('rahasia123', 'rahasia123');
+
+    await screen.findByRole('heading', { level: 1, name: 'Kata sandi diperbarui' });
+    expect(client.getQueryData(['session'])).toBeUndefined();
+  });
+
+  it('names the first field that is wrong and does not call the API', async () => {
+    const fetchMock = stubApi({});
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    await fill('pendek', 'pendek');
+
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveAccessibleDescription(
+      'Minimal 8 karakter.',
+    );
+    expect(screen.getByLabelText('Kata sandi baru')).toBeInvalid();
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('says that the two passwords are not the same', async () => {
+    const fetchMock = stubApi({});
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    await fill('rahasia123', 'rahasia124');
+
+    expect(screen.getByLabelText('Ulangi kata sandi')).toHaveAccessibleDescription(
+      'Kata sandi tidak sama.',
+    );
+    expect(screen.getByLabelText('Ulangi kata sandi')).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('shows both passwords with one box', async () => {
+    stubApi({});
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveAttribute('type', 'password');
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Tampilkan kata sandi' }));
+
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Ulangi kata sandi')).toHaveAttribute('type', 'text');
+  });
+
+  it('says that the link does not work when the token was used or expired, and offers a new one', async () => {
+    stubApi({
+      'POST /v1/auth/reset-password': {
+        status: 410,
+        body: { code: 'token_invalid_or_expired', message: 'No' },
+      },
+    });
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    await fill('rahasia123', 'rahasia123');
+
+    expect(await screen.findByText('Tautan tidak berlaku')).toBeVisible();
+    expect(screen.getByRole('heading', { level: 1, name: 'Atur ulang kata sandi' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: 'Minta tautan baru' })).toHaveAttribute(
+      'href',
+      '/lupa-kata-sandi',
+    );
+    expect(screen.getByRole('link', { name: 'Kembali ke Masuk' })).toHaveAttribute(
+      'href',
+      '/masuk',
+    );
+  });
+
+  it('does not show the form for a link with no token or with a token that cannot be real', () => {
+    stubApi({});
+    renderAt('/reset-password?token=pendek');
+
+    expect(screen.getByText('Tautan tidak berlaku')).toBeVisible();
+    expect(screen.queryByLabelText('Kata sandi baru')).not.toBeInTheDocument();
+  });
+
+  it('says how long to wait when the API limits the tries, and keeps the form', async () => {
+    stubApi({
+      'POST /v1/auth/reset-password': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 20 },
+      },
+    });
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    await fill('rahasia123', 'rahasia123');
+
+    expect(await screen.findByText('Coba lagi dalam 20 detik.')).toBeVisible();
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveValue('rahasia123');
+  });
+
+  it('does not send twice when the form is sent again while the first call runs', async () => {
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt(`/reset-password?token=${resetToken}`);
+
+    await userEvent.type(screen.getByLabelText('Kata sandi baru'), 'rahasia123');
+    await userEvent.type(screen.getByLabelText('Ulangi kata sandi'), 'rahasia123{Enter}');
+    await userEvent.type(screen.getByLabelText('Ulangi kata sandi'), '{Enter}');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 

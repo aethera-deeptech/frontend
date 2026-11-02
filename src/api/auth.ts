@@ -106,6 +106,36 @@ export function useResendVerification() {
   });
 }
 
+// Asks for the email with the link to a new password. The answer is the same for every address, so the screen cannot tell
+// whether the account exists.
+export function useForgotPassword() {
+  return useMutation({
+    mutationKey: [...authMutationKey, 'forgot-password'],
+    mutationFn: (email: string) =>
+      apiRequest('/v1/auth/forgot-password', verificationSentSchema, {
+        method: 'POST',
+        body: { email },
+      }),
+    gcTime: 0,
+  });
+}
+
+// Sets the new password with the token of the link. The API ends every session of the user, so the user signs in again.
+export function useResetPassword() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...authMutationKey, 'reset-password'],
+    mutationFn: (change: { token: string; password: string }) =>
+      apiRequest('/v1/auth/reset-password', z.null(), { method: 'POST', body: change }),
+    // The API ended every session of the user, so what this browser cached for the session is no longer true. This runs
+    // from the hook and not from the call, because a user who leaves the page while the call runs would skip the call.
+    // The screens that are open read their data again and meet the 401, so the guard sends the user to Masuk.
+    onSuccess: () => queryClient.resetQueries(),
+    gcTime: 0,
+  });
+}
+
 // Ends the session of this device. A 401 means that there is no session left, which is what the user asked for. The caller
 // moves to Masuk first and empties the cache after that, because the guard observes the session and would read it again
 // if the cache were emptied while the old screen is still on show.

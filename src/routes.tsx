@@ -48,6 +48,20 @@ export const routes: RouteObject[] = [
         ),
       },
       {
+        path: 'lupa-kata-sandi',
+        ...lazyPage(
+          () => import('@/pages/auth/lupa-kata-sandi-page'),
+          (module) => module.LupaKataSandiPage,
+        ),
+      },
+      {
+        path: 'reset-password',
+        ...lazyPage(
+          () => import('@/pages/auth/reset-password-page'),
+          (module) => module.ResetPasswordPage,
+        ),
+      },
+      {
         path: 'verify-email',
         ...lazyPage(
           () => import('@/pages/auth/verify-email-page'),
