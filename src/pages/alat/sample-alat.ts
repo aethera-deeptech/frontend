@@ -66,7 +66,7 @@ export function sampleAnomaly(): DeviceDetail {
     onHoursToday: 7,
     standbyW: 8,
     signal: 'cukup',
-    anomaly: { at: '2026-10-29T02:10:00+07:00', peakW: 2000 },
+    anomaly: { at: '2026-10-29T02:10:00+07:00', peakW: 2000, kind: 'surge' },
     powerPattern: {
       points: points.map((value, index) => (index >= 4 && index <= 6 ? 2000 : value)),
       yMaxW: 2000,

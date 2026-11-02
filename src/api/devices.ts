@@ -30,6 +30,11 @@ const listItem = z.object({
 
 export const deviceListSchema = z.object({ items: z.array(listItem) });
 
+// What kind of anomaly the API found. An older API sends no kind, and a kind that this version does not know reads as a surge,
+// which is the original anomaly, so the screen never fails over a new word.
+export const anomalyKinds = ['surge', 'overload', 'degradation'] as const;
+export type AnomalyKind = (typeof anomalyKinds)[number];
+
 export const signalQualities = ['baik', 'cukup', 'lemah', 'tidak-ada'] as const;
 
 export const deviceDetailSchema = z.object({
@@ -46,7 +51,15 @@ export const deviceDetailSchema = z.object({
   standbyW: watts.nullable(),
   lastSeenAt: moment,
   signal: z.enum(signalQualities),
-  anomaly: z.object({ at: moment, peakW: watts }).optional(),
+  anomaly: z
+    .object({
+      at: moment,
+      peakW: watts,
+      kind: z.enum(anomalyKinds).catch('surge'),
+      // Only for a degradation that the API found in the readings, the mean power factor of the poor samples
+      powerFactor: z.number().min(0).max(1).optional().catch(undefined),
+    })
+    .optional(),
   // The power over the last day, spread evenly. It is null while there is no recent data.
   powerPattern: z
     .object({
