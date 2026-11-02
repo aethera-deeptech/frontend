@@ -27,9 +27,9 @@ export function PersetujuanPage() {
       {wizard.kind === 'plug' ? (
         <Card title="Yang perlu Anda cek">
           <p className="text-body text-text-1">
-            Daya mesin tidak boleh melebihi batas yang tertulis pada colokan pintar. Lihat label di
-            colokan dan di mesin. Jika ragu, jangan pasang di mesin itu. Colokan yang kepanasan atau
-            berbau gosong harus dicabut.
+            Daya mesin tidak boleh melebihi batas yang tertulis pada WATTLINK Plug. Lihat label di
+            WATTLINK Plug dan di mesin. Jika ragu, jangan pasang di mesin itu. WATTLINK Plug yang
+            kepanasan atau berbau gosong harus dicabut.
           </p>
         </Card>
       ) : null}

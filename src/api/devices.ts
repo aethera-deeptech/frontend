@@ -37,7 +37,7 @@ export const deviceDetailSchema = z.object({
   name: z.string(),
   status,
   room: z.string(),
-  // The type of the device as text, for example "Colokan pintar"
+  // The type of the device as text, for example "WATTLINK Plug"
   kindLabel: z.string(),
   currentPowerW: watts.nullable(),
   todayKwh: kwh.nullable(),

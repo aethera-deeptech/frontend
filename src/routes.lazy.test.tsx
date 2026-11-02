@@ -35,6 +35,6 @@ describe('the lazy routes', () => {
     renderAt('/alat/tambah');
 
     expect(screen.getByRole('status')).toHaveTextContent('Memuat aplikasi');
-    expect(await screen.findByRole('button', { name: /Colokan pintar/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /WATTLINK Plug/ })).toBeInTheDocument();
   });
 });

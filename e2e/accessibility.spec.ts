@@ -83,7 +83,7 @@ test('the steps to add a plug have no accessibility violations', async ({ page }
   await expectLoaded(page);
   await expectNoViolations(page);
 
-  await page.getByRole('button', { name: /Colokan pintar/ }).click();
+  await page.getByRole('button', { name: /WATTLINK Plug/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Sebelum memasang' })).toBeVisible();
   await expectNoViolations(page);
 
@@ -105,10 +105,10 @@ test('the steps to add a plug have no accessibility violations', async ({ page }
 test('the warning for a clamp has no accessibility violations', async ({ page }, testInfo) => {
   onlyOnAxeDevices(testInfo.project.name);
   await page.goto('/alat/tambah');
-  await page.getByRole('button', { name: /Penjepit arus/ }).click();
+  await page.getByRole('button', { name: /WATTLINK Clamp/ }).click();
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Sebelum memasang penjepit arus' }),
+    page.getByRole('heading', { level: 1, name: 'Sebelum memasang WATTLINK Clamp' }),
   ).toBeVisible();
   await expectNoViolations(page);
 });

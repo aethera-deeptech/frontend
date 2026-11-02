@@ -20,9 +20,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function goToName(kind: 'Colokan pintar' | 'Penjepit arus') {
+async function goToName(kind: 'WATTLINK Plug' | 'WATTLINK Clamp') {
   await userEvent.click(await screen.findByRole('button', { name: new RegExp(kind) }));
-  if (kind === 'Penjepit arus') {
+  if (kind === 'WATTLINK Clamp') {
     await userEvent.click(
       screen.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }),
     );
@@ -47,10 +47,10 @@ describe('Tambah alat, choose the kind', () => {
     renderAt('/alat/tambah');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Tambah alat' })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Colokan pintar/ })).toHaveTextContent(
+    expect(screen.getByRole('button', { name: /WATTLINK Plug/ })).toHaveTextContent(
       'Untuk mesin yang dicolok ke stopkontak',
     );
-    expect(screen.getByRole('button', { name: /Penjepit arus/ })).toHaveTextContent(
+    expect(screen.getByRole('button', { name: /WATTLINK Clamp/ })).toHaveTextContent(
       'Dipasang di panel listrik',
     );
     expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', '/alat');
@@ -60,11 +60,11 @@ describe('Tambah alat, choose the kind', () => {
     stubApi({});
     const router = renderAt('/alat/tambah');
 
-    await userEvent.click(await screen.findByRole('button', { name: /Colokan pintar/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Plug/ }));
     expect(router.state.location.pathname).toBe('/alat/tambah/persetujuan');
 
     await act(() => router.navigate('/alat/tambah'));
-    await userEvent.click(await screen.findByRole('button', { name: /Penjepit arus/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Clamp/ }));
     expect(router.state.location.pathname).toBe('/alat/tambah/peringatan');
   });
 });
@@ -73,10 +73,10 @@ describe('Tambah alat, the warning and the consent', () => {
   it('lets the user go on only after the box is ticked', async () => {
     stubApi({});
     const router = renderAt('/alat/tambah');
-    await userEvent.click(await screen.findByRole('button', { name: /Penjepit arus/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Clamp/ }));
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Sebelum memasang penjepit arus' }),
+      screen.getByRole('heading', { level: 1, name: 'Sebelum memasang WATTLINK Clamp' }),
     ).toBeVisible();
     expect(screen.getByText('Ada risiko sengatan listrik dan kebakaran')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Lanjut' })).toBeDisabled();
@@ -94,18 +94,20 @@ describe('Tambah alat, the warning and the consent', () => {
 
   it('tells a plug user to keep the machine under the rating of the plug, and not a clamp user', async () => {
     const router = renderAt('/alat/tambah');
-    await userEvent.click(await screen.findByRole('button', { name: /Colokan pintar/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Plug/ }));
 
     expect(router.state.location.pathname).toBe('/alat/tambah/persetujuan');
     expect(screen.getByRole('heading', { name: 'Yang perlu Anda cek' })).toBeInTheDocument();
-    expect(screen.getByText(/tidak boleh melebihi batas yang tertulis pada colokan/)).toBeVisible();
+    expect(
+      screen.getByText(/tidak boleh melebihi batas yang tertulis pada WATTLINK Plug/),
+    ).toBeVisible();
     expect(screen.getByText(/Jika ragu, jangan pasang di mesin itu/)).toBeVisible();
     expect(screen.getByText(/berbau gosong harus dicabut/)).toBeVisible();
   });
 
   it('shows no rating check for a clamp, which has the warning before', async () => {
     const router = renderAt('/alat/tambah');
-    await userEvent.click(await screen.findByRole('button', { name: /Penjepit arus/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Clamp/ }));
     await userEvent.click(
       screen.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }),
     );
@@ -133,7 +135,7 @@ describe('Tambah alat, the warning and the consent', () => {
   it('sends a clamp that skipped the warning back to it', async () => {
     stubApi({});
     const router = renderAt('/alat/tambah');
-    await userEvent.click(await screen.findByRole('button', { name: /Penjepit arus/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /WATTLINK Clamp/ }));
     await act(() => router.navigate('/alat/tambah/persetujuan'));
 
     expect(router.state.location.pathname).toBe('/alat/tambah/peringatan');
@@ -144,7 +146,7 @@ describe('Tambah alat, the history', () => {
   it('sends a clamp user back to the start when the safety tick was taken away on the way back', async () => {
     stubApi({ 'GET /v1/rooms': { body: rooms } });
     const router = renderAt('/alat/tambah');
-    await goToName('Penjepit arus');
+    await goToName('WATTLINK Clamp');
     expect(router.state.location.pathname).toBe('/alat/tambah/nama');
 
     await act(() => router.navigate(-2));
@@ -161,7 +163,7 @@ describe('Tambah alat, the name', () => {
   it('asks for a name and a room', async () => {
     const fetchMock = stubApi({ 'GET /v1/rooms': { body: rooms } });
     renderAt('/alat/tambah');
-    await goToName('Colokan pintar');
+    await goToName('WATTLINK Plug');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Cari alat' }));
 
@@ -173,7 +175,7 @@ describe('Tambah alat, the name', () => {
   it('says that the rooms could not be loaded', async () => {
     stubApi({ 'GET /v1/rooms': { status: 503 } });
     renderAt('/alat/tambah');
-    await goToName('Colokan pintar');
+    await goToName('WATTLINK Plug');
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Daftar ruangan tidak bisa dimuat');
   });
@@ -181,7 +183,7 @@ describe('Tambah alat, the name', () => {
   it('says that the search could not start and keeps the form', async () => {
     stubApi({ 'GET /v1/rooms': { body: rooms }, 'POST /v1/pairings': { status: 500 } });
     renderAt('/alat/tambah');
-    await goToName('Colokan pintar');
+    await goToName('WATTLINK Plug');
 
     await fillName('Mesin jahit 2', 'Ruang jahit');
 
@@ -198,7 +200,7 @@ describe('Tambah alat, the search', () => {
       'GET /v1/pairings/p1': { body: { status: 'connected' } },
     });
     const router = renderAt('/alat/tambah');
-    await goToName('Penjepit arus');
+    await goToName('WATTLINK Clamp');
 
     await fillName('  Mesin jahit 2 ', 'Ruang produksi');
 
@@ -234,7 +236,7 @@ describe('Tambah alat, the search', () => {
       'GET /v1/pairings/p1': { body: { status: 'failed' } },
     });
     renderAt('/alat/tambah');
-    await goToName('Colokan pintar');
+    await goToName('WATTLINK Plug');
     await fillName('Mesin jahit 2', 'Gudang');
 
     expect(await screen.findByText('Alat belum terhubung')).toBeInTheDocument();
@@ -253,7 +255,7 @@ describe('Tambah alat, the search', () => {
       'GET /v1/pairings/p1': { body: { status: 'failed' } },
     });
     renderAt('/alat/tambah');
-    await goToName('Colokan pintar');
+    await goToName('WATTLINK Plug');
     await fillName('Mesin jahit 2', 'Gudang');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
