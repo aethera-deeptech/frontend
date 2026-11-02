@@ -15,7 +15,14 @@ The screens Masuk, Daftar, Verifikasi and the page of the email link use these p
 | `POST /v1/auth/resend-verification` | The button that sends the email again, from Masuk, Verifikasi and the page of a link that does not work | 202 with `retryAfterSeconds`, 429 `resend_too_soon` with `retryAfterSeconds` |
 | `POST /v1/auth/verify-email`        | The page `/verify-email?token=` sends the token once. The 200 answer is the user and the cookie is set. | 410 `token_invalid_or_expired`, 429                                          |
 
-The user is `{ email, emailVerified, businessName }`. After a sign in or a verification the app drops everything it cached and keeps the user as the session, so the data of another account never shows. The address of the sign up goes to the screen after it in the history entry of that visit. The app stores nothing itself, but the browser keeps the entry over a reload, and a visit with no such entry goes back to Daftar. The other account calls (Google, logout, me, change email, forgot and reset password) are not used yet.
+The user is `{ email, emailVerified, businessName }`. After a sign in or a verification the app drops everything it cached and keeps the user as the session, so the data of another account never shows. The address of the sign up goes to the screen after it in the history entry of that visit. The app stores nothing itself, but the browser keeps the entry over a reload, and a visit with no such entry goes back to Daftar. Two more calls keep the session.
+
+| Call                   | Used for                                                                                                                 | Answers the screens react to                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /v1/auth/me`      | Every screen of the app waits for this answer, which is the user. The name of the business in the sidebar comes from it. | 401 sends the user to Masuk and the screen that was asked for is kept. Another failure shows a banner with a retry button and does not sign out. |
+| `POST /v1/auth/logout` | Keluar ends the session of this device. A 401 counts as done, because no session is left.                                | 204. Any other failure leaves the user on Keluar with a banner.                                                                                  |
+
+A 401 on any other call, query or mutation, means that the session ended while a screen was open. The app then reads `/v1/auth/me` again and the guard sends the user to Masuk. The 401 of the account calls themselves is not such a sign. After Keluar the app drops everything it cached. The other account calls (Google, change email, forgot and reset password) are not used yet.
 
 ## Beranda
 
