@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0](https://github.com/aethera-deeptech/frontend/compare/v0.2.0...v0.3.0) (2026-11-02)
+
+
+### Features
+
+* **alat:** say the kind of an anomaly and the power factor of a degradation ([116c1a4](https://github.com/aethera-deeptech/frontend/commit/116c1a4753557b2a2f6c574bc6103d8004c66e55))
+* **alat:** say the kind of an anomaly and the power factor of a degradation ([#66](https://github.com/aethera-deeptech/frontend/issues/66)) ([0756b74](https://github.com/aethera-deeptech/frontend/commit/0756b74add16a0099f873dec775056b9d1705278))
+* **laporan:** show the report of a week with its bill and devices and the weeks in the period menu ([585ede9](https://github.com/aethera-deeptech/frontend/commit/585ede9f06b1a2d4a19408976da0982c0fca2a8f))
+* **laporan:** show the report of a week with its bill and devices and the weeks in the period menu ([#68](https://github.com/aethera-deeptech/frontend/issues/68)) ([1cd888a](https://github.com/aethera-deeptech/frontend/commit/1cd888a4ad8c98ea0120503007e4dc49b2bba9e3))
+
+
+### Bug Fixes
+
+* **alat:** show no watts in the chart for an anomaly that is not a surge and cover more answers ([bcfb2af](https://github.com/aethera-deeptech/frontend/commit/bcfb2af11044a21082bf00f7d90cd1f0b8405578))
+* **laporan:** mark the running week as not full and leave an unnamed select group out of a group ([c085391](https://github.com/aethera-deeptech/frontend/commit/c0853913ad0302df28683cecc653d127c3d26a56))
+
 ## [0.2.0](https://github.com/aethera-deeptech/frontend/compare/v0.1.0...v0.2.0) (2026-11-02)
 
 
