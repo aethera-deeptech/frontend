@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
+import { useSession } from '@/api/auth';
 import { navItems } from '@/components/layout/nav-items';
 import { PendingIndicator } from '@/components/layout/pending-indicator';
 import { useNavigationPending } from '@/hooks/use-navigation-pending';
@@ -10,6 +11,7 @@ import { useNavigationPending } from '@/hooks/use-navigation-pending';
 export function AppShell() {
   const { pathname } = useLocation();
   const pending = useNavigationPending();
+  const businessName = useSession().data?.businessName;
   const mainRef = useRef<HTMLElement>(null);
   const openPath = useRef(pathname);
 
@@ -68,6 +70,15 @@ export function AppShell() {
             ))}
           </ul>
         </nav>
+        <div className="border-border-1 absolute inset-x-0 bottom-0 flex flex-col gap-2 border-t p-4">
+          <Link
+            to="/lainnya/keluar"
+            className="text-button text-text-1 hover:bg-bg-3 flex h-10 items-center rounded-md px-3"
+          >
+            Keluar
+          </Link>
+          {businessName ? <p className="text-label text-text-2 px-3">{businessName}</p> : null}
+        </div>
       </div>
 
       <main

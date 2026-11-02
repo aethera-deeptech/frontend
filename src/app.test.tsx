@@ -4,7 +4,9 @@ import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
+import { sessionKey } from '@/api/auth';
 import { routes } from '@/routes';
+import { signedInUser, stubApi } from '@/test/stub-api';
 import { resolveLazyRoutes } from '@/test/resolve-routes';
 
 // The pages load on demand, so they are loaded before the app builds its router
@@ -14,6 +16,8 @@ const { App } = await import('@/app');
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  // The user is signed in, so the guard lets the shell through
+  client.setQueryData(sessionKey, signedInUser);
   return render(
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
@@ -22,10 +26,11 @@ function renderAt(path: string) {
 }
 
 describe('App', () => {
-  it('opens the home page at the root of the site', () => {
+  it('opens the home page at the root of the site', async () => {
+    stubApi({});
     render(<App />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Beranda' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Beranda' })).toBeInTheDocument();
   });
 });
 
@@ -57,6 +62,7 @@ describe('the app shell', () => {
   it('moves the focus to the main content after a navigation and not on the first render', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(sessionKey, signedInUser);
     render(
       <QueryClientProvider client={client}>
         <RouterProvider router={router} />
