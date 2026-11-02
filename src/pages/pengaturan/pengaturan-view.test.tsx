@@ -30,6 +30,11 @@ describe('PengaturanView', () => {
       'href',
       '/lainnya/pengaturan/jam-kerja',
     );
+    expect(screen.getByRole('link', { name: /Zona waktu/ })).toHaveAttribute(
+      'href',
+      '/lainnya/pengaturan/zona-waktu',
+    );
+    expect(screen.getByText('WIB (Jakarta)')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Tarif listrik/ })).toHaveAttribute(
       'href',
       '/lainnya/pengaturan/tarif',
@@ -43,6 +48,12 @@ describe('PengaturanView', () => {
     expect(
       screen.getByText(/Sistem tidak mengubah atau mematikan alat Anda\./),
     ).toBeInTheDocument();
+  });
+
+  it('shows the name of a zone that it has no label for', () => {
+    renderView({ settings: sampleSettings({ timeZone: 'Asia/Dubai' }) });
+
+    expect(screen.getByText('Asia/Dubai')).toBeInTheDocument();
   });
 
   it('says whether the tariff is the default or the tariff of the user', () => {

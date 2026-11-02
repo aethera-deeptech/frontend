@@ -243,6 +243,13 @@ export const routes: RouteObject[] = [
                         ),
                       },
                       {
+                        path: 'zona-waktu',
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/edit-zone-page'),
+                          (module) => module.EditZonePage,
+                        ),
+                      },
+                      {
                         path: 'kepekaan',
                         ...lazyPage(
                           () => import('@/pages/pengaturan/edit-sensitivity-page'),

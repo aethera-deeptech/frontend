@@ -158,6 +158,18 @@ describe('businessNow', () => {
     ]).toEqual([2026, 9, 29, 2, 30]);
   });
 
+  it('follows the zone of the business, so a business in WIT is two hours ahead of WIB', () => {
+    const now = businessNow(new Date('2026-10-29T16:00:00Z'), 'Asia/Jayapura');
+
+    expect([now.getDate(), now.getHours()]).toEqual([30, 1]);
+  });
+
+  it('falls back to WIB for a zone that the browser does not know', () => {
+    const now = businessNow(new Date('2026-10-29T16:00:00Z'), 'Mars/Olympus');
+
+    expect([now.getDate(), now.getHours()]).toEqual([29, 23]);
+  });
+
   it('reads midnight of the business as hour 0 and not 24', () => {
     const now = businessNow(new Date('2026-10-28T17:05:00Z'));
 

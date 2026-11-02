@@ -12,6 +12,7 @@ import {
   hoursLine,
   savedMessages,
   sensitivityLabels,
+  zoneLabel,
   type SavedSetting,
 } from '@/pages/pengaturan/settings-text';
 
@@ -40,6 +41,11 @@ export function PengaturanView({ settings, saved, backTo }: PengaturanViewProps)
             value={dayLabels[settings.workHours.days]}
             valueNote={hoursLine(settings.workHours)}
             to={`${settingsPath}/jam-kerja`}
+          />
+          <ListRow
+            title="Zona waktu"
+            value={zoneLabel(settings.timeZone)}
+            to={`${settingsPath}/zona-waktu`}
           />
         </ul>
       </Card>

@@ -45,11 +45,11 @@ export function parseMoment(iso: string): Date {
   return new Date(year, month - 1, day, hour, minute);
 }
 
-// The current moment as the clock of the business shows it (Asia/Jakarta, the +07:00 of the API moments), so "today" does not
-// depend on the time zone of the device. The result holds the business wall time in the local fields, like parseMoment.
-export function businessNow(date: Date = new Date()): Date {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Jakarta',
+const defaultTimeZone = 'Asia/Jakarta';
+
+function clockParts(date: Date, timeZone: string): Intl.DateTimeFormatPart[] {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
     hourCycle: 'h23',
     year: 'numeric',
     month: '2-digit',
@@ -57,6 +57,20 @@ export function businessNow(date: Date = new Date()): Date {
     hour: '2-digit',
     minute: '2-digit',
   }).formatToParts(date);
+}
+
+// The current moment as the clock of the business shows it, so "today" does not depend on the time zone of the device. The
+// zone is the one in the settings of the business (WIB, WITA or WIT), and the API moments carry its offset. The result holds
+// the business wall time in the local fields, like parseMoment. A zone name that this browser does not know falls back to
+// Asia/Jakarta, which is the zone of a new business.
+export function businessNow(date: Date = new Date(), timeZone: string = defaultTimeZone): Date {
+  let parts: Intl.DateTimeFormatPart[];
+
+  try {
+    parts = clockParts(date, timeZone);
+  } catch {
+    parts = clockParts(date, defaultTimeZone);
+  }
   const read = (type: string) => Number(parts.find((part) => part.type === type)?.value);
   return new Date(read('year'), read('month') - 1, read('day'), read('hour'), read('minute'));
 }

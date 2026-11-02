@@ -7,6 +7,7 @@ export function sampleSettings(overrides: Partial<Settings> = {}): Settings {
     workHours: { days: 'mon-sat', start: '08:00', end: '17:00' },
     tariff: { rpPerKwh: 1444, isDefault: true, defaultRpPerKwh: 1444 },
     anomalySensitivity: 'sedang',
+    timeZone: 'Asia/Jakarta',
     ...overrides,
   };
 }
