@@ -91,9 +91,18 @@ describe('Tambah ruangan', () => {
   });
 
   it('adds the room and comes back to the form with the new room chosen', async () => {
+    // The API holds the new room after the call, so a read after it returns the room too
+    let added = false;
     const fetchMock = stubApi({
-      'GET /v1/rooms': { body: rooms },
-      'POST /v1/rooms': { status: 201, body: { id: 'cetak', name: 'Ruang cetak' } },
+      'GET /v1/rooms': () => ({
+        body: {
+          items: added ? [...rooms.items, { id: 'cetak', name: 'Ruang cetak' }] : rooms.items,
+        },
+      }),
+      'POST /v1/rooms': () => {
+        added = true;
+        return { status: 201, body: { id: 'cetak', name: 'Ruang cetak' } };
+      },
     });
     const router = renderAt('/alat/tambah');
 
