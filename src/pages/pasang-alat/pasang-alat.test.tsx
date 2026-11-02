@@ -225,7 +225,9 @@ describe('Tambah alat, the search', () => {
     renderAt('/alat/tambah/mencari/p1');
 
     expect(screen.getByRole('status')).toHaveTextContent('Mencari alat di dekat Anda');
-    expect(await screen.findByText('Pasang alat, lalu hubungkan ke Wi-Fi.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Pasang alat, lalu nyalakan dekat WATTLINK Hub.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Mencari alat di dekat Anda');
   });
 
@@ -240,6 +242,9 @@ describe('Tambah alat, the search', () => {
     await fillName('Mesin jahit 2', 'Gudang');
 
     expect(await screen.findByText('Alat belum terhubung')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Pastikan alat dan WATTLINK Hub menyala dan saling dekat. Lalu coba lagi.',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
 
     await vi.waitFor(() => {

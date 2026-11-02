@@ -38,7 +38,7 @@ export function MencariPage() {
       subtitle={
         status === 'connected'
           ? 'Alat Anda sudah ditemukan.'
-          : 'Pasang alat, lalu hubungkan ke Wi-Fi.'
+          : 'Pasang alat, lalu nyalakan dekat WATTLINK Hub.'
       }
       backTo={`${addPath}/nama`}
     >
@@ -57,7 +57,7 @@ export function MencariPage() {
         <Banner
           tone="danger"
           title="Alat belum terhubung"
-          message="Pastikan alat menyala dan dekat dengan Wi-Fi. Lalu coba lagi."
+          message="Pastikan alat dan WATTLINK Hub menyala dan saling dekat. Lalu coba lagi."
           action={
             <Button size="lg" disabled={start.isPending} onClick={searchAgain}>
               Coba lagi
