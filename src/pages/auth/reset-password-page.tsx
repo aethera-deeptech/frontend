@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 
 import { authFailure, isPlausibleToken, useResetPassword } from '@/api/auth';
@@ -20,7 +19,6 @@ export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [token] = useState(() => params.get('token') ?? '');
   const reset = useResetPassword();
-  const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
   const [again, setAgain] = useState('');
   const [shown, setShown] = useState(false);
@@ -91,15 +89,7 @@ export function ResetPasswordPage() {
       againRef.current?.focus();
       return;
     }
-    reset.mutate(
-      { token, password },
-      {
-        // The API ended every session of the user, so what this browser cached for the session is no longer true
-        onSuccess: () => {
-          queryClient.removeQueries();
-        },
-      },
-    );
+    reset.mutate({ token, password });
   };
 
   return (
