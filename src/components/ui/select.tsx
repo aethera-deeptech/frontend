@@ -1,5 +1,5 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { useId } from 'react';
+import { Fragment, useId } from 'react';
 
 import { CheckIcon } from '@/components/icons/check-icon';
 import { ChevronDownIcon } from '@/components/icons/chevron-down-icon';
@@ -95,30 +95,35 @@ export function Select({
             className="bg-bg-overlay border-border-1 z-50 max-h-(--radix-select-content-available-height) w-(--radix-select-trigger-width) overflow-y-auto rounded-md border p-1"
           >
             <SelectPrimitive.Viewport>
-              {groupOptions(options).map((group, index) => (
-                <SelectPrimitive.Group key={group.label ?? index}>
-                  {group.label !== undefined ? (
-                    <>
-                      <SelectPrimitive.Separator className="bg-border-1 my-1 h-px" />
+              {groupOptions(options).map((group, index) => {
+                const items = group.options.map((option) => (
+                  <SelectPrimitive.Item
+                    key={option.value}
+                    value={option.value}
+                    className="text-body text-text-1 data-[highlighted]:bg-bg-3 data-[state=checked]:bg-bg-accent-muted data-[state=checked]:text-text-accent flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 outline-none"
+                  >
+                    <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                    <SelectPrimitive.ItemIndicator>
+                      <CheckIcon />
+                    </SelectPrimitive.ItemIndicator>
+                  </SelectPrimitive.Item>
+                ));
+
+                // A group with no name has no label for the group to point at, so its options stand alone
+                return group.label === undefined ? (
+                  <Fragment key={index}>{items}</Fragment>
+                ) : (
+                  <Fragment key={group.label}>
+                    <SelectPrimitive.Separator className="bg-border-1 my-1 h-px" />
+                    <SelectPrimitive.Group>
                       <SelectPrimitive.Label className="text-label text-text-2 px-3 py-1">
                         {group.label}
                       </SelectPrimitive.Label>
-                    </>
-                  ) : null}
-                  {group.options.map((option) => (
-                    <SelectPrimitive.Item
-                      key={option.value}
-                      value={option.value}
-                      className="text-body text-text-1 data-[highlighted]:bg-bg-3 data-[state=checked]:bg-bg-accent-muted data-[state=checked]:text-text-accent flex min-h-11 items-center justify-between gap-2 rounded-md px-3 py-2 outline-none"
-                    >
-                      <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
-                      <SelectPrimitive.ItemIndicator>
-                        <CheckIcon />
-                      </SelectPrimitive.ItemIndicator>
-                    </SelectPrimitive.Item>
-                  ))}
-                </SelectPrimitive.Group>
-              ))}
+                      {items}
+                    </SelectPrimitive.Group>
+                  </Fragment>
+                );
+              })}
             </SelectPrimitive.Viewport>
           </SelectPrimitive.Content>
         </SelectPrimitive.Portal>

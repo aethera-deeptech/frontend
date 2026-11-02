@@ -221,6 +221,19 @@ describe('LaporanView, a week', () => {
     expect(screen.queryByText('Tagihan 7 hari')).not.toBeInTheDocument();
   });
 
+  it('says that the running week is not full, because its bill stops at the newest data', () => {
+    renderView({
+      data: sampleWeek({ period: '2026-W44', through: '2026-10-29T09:30:00+07:00' }),
+      period: '2026-W44',
+    });
+
+    expect(screen.getByText('Minggu 26 Okt sampai 1 Nov belum penuh')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Tagihan hari yang tercatat' }),
+    ).toBeVisible();
+    expect(screen.queryByText('Tagihan 7 hari')).not.toBeInTheDocument();
+  });
+
   it('shows no banner for a week that is full', () => {
     renderView({ data: week(), period: '2026-W43' });
 
@@ -232,10 +245,9 @@ describe('LaporanView, a week', () => {
 
     await userEvent.click(screen.getByRole('combobox', { name: 'Periode' }));
 
-    expect(
-      await screen.findByRole('option', { name: 'Oktober 2026, sampai 29 Okt' }),
-    ).toBeVisible();
+    expect(await screen.findByRole('option', { name: 'Oktober 2026' })).toBeVisible();
     expect(screen.getByRole('group', { name: 'Minggu' })).toBeVisible();
+    expect(screen.getByRole('option', { name: '26 Okt sampai 1 Nov, belum penuh' })).toBeVisible();
     expect(screen.getByRole('option', { name: '12 sampai 18 Okt 2026' })).toBeVisible();
     expect(screen.getByRole('option', { name: '28 Sep sampai 4 Okt, belum penuh' })).toBeVisible();
   });

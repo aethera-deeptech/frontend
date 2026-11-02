@@ -6,7 +6,7 @@ export function sampleReady(overrides: Partial<ReadyReport> = {}): ReadyReport {
     phase: 'ready',
     granularity: 'month',
     periods: ['2026-10', '2026-09', '2026-08', '2026-07'],
-    weeks: ['2026-W43', '2026-W42', '2026-W41', '2026-W40'],
+    weeks: ['2026-W44', '2026-W43', '2026-W42', '2026-W41', '2026-W40'],
     period: '2026-10',
     through: '2026-10-29T09:30:00+07:00',
     saving: {

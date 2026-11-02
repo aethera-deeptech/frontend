@@ -93,13 +93,13 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 A `ready` report has the fields below.
 
-- `through` is a moment in ISO 8601 with an offset. It is only there while the month is the running month, and it is the moment of the newest data.
+- `through` is a moment in ISO 8601 with an offset. It is only there while the period is the running month or the running week, and it is the moment of the newest data.
 - `saving` has three parts that are counted apart. `verified` has `rp`, `count` and `checkedDays`. `applied` has `rp`, `count`, `day` and `neededDays`, the day of the check that the tip is on. `estimate` has `rp` and `count`.
 - `topDevices` is a list of `name` and `kwh`, the devices that used the most energy in the month or the week.
-- `billRp` is the bill of the month, or the bill until `through` for the running month. For a week it is the bill of its seven days.
+- `billRp` is the bill of the month, or the bill until `through` for the running month. For a week it is the bill of its seven days, or until `through` for the running week.
 - `energyPerPiece` has the same shape as on the home screen. Only the running month has it.
 
-For a week the three sums of `saving` stay in the answer, but they are rates of 30 days and not amounts of a week. The screen does not show them and points to the monthly report. The oldest week in `weeks` can start before the first data, so the screen marks it as not full, with no flag from the API (a flag would be better).
+For a week the three sums of `saving` stay in the answer, but they are rates of 30 days and not amounts of a week. The screen does not show them and points to the monthly report. The API lists the running week first, and its bill stops at `through`. The oldest week in `weeks` can start before the first data. The screen marks both as not full and says that the report covers only the days with data. The oldest week has no flag from the API, so the screen reads it from its place in the list (a flag would be better).
 
 `GET /v1/reports/{period}/pdf` returns the report of that month or week as a PDF. The frontend sends the session cookie, saves the file as `Laporan-<Month>-<Year>.pdf` or `Laporan-Minggu-<Year>-W<week>.pdf` and offers a link to open it.
 

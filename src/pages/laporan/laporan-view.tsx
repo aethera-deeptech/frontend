@@ -38,8 +38,12 @@ export function LaporanView({
 }: LaporanViewProps) {
   const loading = period !== data.period;
   const week = data.phase === 'ready' && data.granularity === 'week';
-  // The oldest week that has a report can start before the first data, so its report covers only the days with data
-  const partial = week && data.phase === 'ready' && data.period === data.weeks.at(-1);
+  // The running week has only the days until now, and the oldest week can start before the first data. Both reports cover only
+  // the days with data. The API sets through only for the running month or week.
+  const partial =
+    week &&
+    data.phase === 'ready' &&
+    (data.through !== undefined || data.period === data.weeks.at(-1));
 
   return (
     <div className="flex flex-col gap-3 lg:gap-6">
@@ -129,6 +133,8 @@ function PeriodSelect({
   onChange: (period: string) => void;
 }) {
   const oldestWeek = data.weeks.at(-1);
+  // The API lists the running week first
+  const runningWeek = data.weeks[0];
   const until = data.through ? formatDate(parseMoment(data.through)) : undefined;
 
   return (
@@ -146,13 +152,11 @@ function PeriodSelect({
         })),
         ...data.weeks.map((value, index) => ({
           value,
-          // The oldest week is named last and without the year, so the text stays on one line
+          // A week that is not full is named without the year, so the text stays on one line
           label:
-            value === oldestWeek
+            value === oldestWeek || value === runningWeek
               ? `${formatWeekRange(value, false)}, belum penuh`
-              : value === data.period && until
-                ? `${formatWeekRange(value)}, sampai ${until}`
-                : formatWeekRange(value),
+              : formatWeekRange(value),
           group: index === 0 ? 'Minggu' : undefined,
         })),
       ]}
