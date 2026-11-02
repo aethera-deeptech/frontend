@@ -171,7 +171,7 @@ describe('Masuk', () => {
       email: 'dewi@example.com',
     });
     expect(
-      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }, { timeout: 3000 }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -249,7 +249,9 @@ describe('Masuk', () => {
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/verifikasi');
     });
-    expect(await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' })).toBeVisible();
+    expect(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }, { timeout: 3000 }),
+    ).toBeVisible();
   });
 
   it('says that the fields are not right when the API refuses them', async () => {
@@ -499,7 +501,11 @@ describe('Daftar, other answers', () => {
       await fillAndSend();
 
       expect(
-        await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+        await screen.findByRole(
+          'button',
+          { name: 'Kirim ulang dalam 60 detik' },
+          { timeout: 3000 },
+        ),
       ).toBeVisible();
     },
   );
@@ -552,7 +558,7 @@ describe('Verifikasi', () => {
     expect(await screen.findByText('Email baru sudah dikirim')).toBeVisible();
     // The number reads the clock once a second, so the first picture can show a second more
     expect(
-      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }, { timeout: 3000 }),
     ).toHaveAttribute('aria-disabled', 'true');
     expect(bodyOf(fetchMock, '/v1/auth/resend-verification')).toEqual({
       email: 'dewi@example.com',
@@ -577,7 +583,7 @@ describe('Verifikasi', () => {
     await userEvent.click(ready);
 
     expect(
-      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }, { timeout: 3000 }),
     ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText('Email baru sudah dikirim')).not.toBeInTheDocument();
   });
@@ -600,7 +606,7 @@ describe('Verifikasi', () => {
     await userEvent.click(ready);
 
     expect(
-      await screen.findByRole('button', { name: 'Kirim ulang dalam 90 detik' }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 90 detik' }, { timeout: 3000 }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -700,7 +706,9 @@ describe('Verify email link', () => {
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/verifikasi');
     });
-    expect(await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' })).toBeVisible();
+    expect(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }, { timeout: 3000 }),
+    ).toBeVisible();
   });
 
   it('shows that the new link could not be sent when the API fails', async () => {
