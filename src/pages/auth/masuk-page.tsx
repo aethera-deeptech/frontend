@@ -134,6 +134,9 @@ export function MasukPage() {
               setPassword(event.target.value);
             }}
           />
+          <TextLink to="/lupa-kata-sandi" className="self-start">
+            Lupa kata sandi?
+          </TextLink>
           <Button
             type="submit"
             kind="accent"

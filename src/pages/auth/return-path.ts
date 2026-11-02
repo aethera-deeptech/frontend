@@ -8,7 +8,9 @@ export function returnPath(state: unknown): string {
   if (typeof from !== 'string' || !/^\/(?![/\\])/.test(from)) {
     return '/';
   }
-  return /^\/(masuk|daftar|verifikasi|verify-email|lainnya\/keluar)(?![^/?#])/.test(from)
+  return /^\/(masuk|daftar|verifikasi|verify-email|lupa-kata-sandi|reset-password|lainnya\/keluar)(?![^/?#])/.test(
+    from,
+  )
     ? '/'
     : from;
 }
