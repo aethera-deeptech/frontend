@@ -79,7 +79,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `anomaly` with `at` and `peakW`, only while the status is `anomali`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
-`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. A 409 `no_gateway` says that the business has no hub, and the form offers the hub step. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
+`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
 
 ## Laporan
 
@@ -127,6 +127,6 @@ A `ready` report has the fields below.
 
 `GET /v1/rooms` returns `items`, the rooms of the business, each with `id` and `name`. The user picks one when a device is added.
 
-`POST /v1/pairings` with the body `{ "kind": "plug", "name": "Mesin jahit 2", "roomId": "jahit" }` starts the search for a new device and answers `{ "id": "..." }`. The `kind` is `plug` for a smart plug or `clamp` for a current clamp. The name is 1 to 40 characters long after the spaces at both ends are removed.
+`POST /v1/pairings` with the body `{ "kind": "plug", "name": "Mesin jahit 2", "roomId": "jahit" }` starts the search for a new device and answers `{ "id": "..." }`. The `kind` is `plug` for a smart plug or `clamp` for a current clamp. The name is 1 to 40 characters long after the spaces at both ends are removed. A 409 `no_gateway` says that the business has no hub, and the form offers the hub step.
 
 `GET /v1/pairings/{id}` returns `{ "status": "searching" | "connected" | "failed" }`. The frontend asks again every 3 seconds while the status is `searching`, and the API decides when to give up and answer `failed`. When the status turns `connected` the frontend loads the devices and the home screen again.
