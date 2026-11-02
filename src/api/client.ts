@@ -5,11 +5,18 @@ import { getEnv } from '@/lib/env';
 // The server answered with a status that is not a success
 export class ApiError extends Error {
   readonly status: number;
+  // The stable code of the API for the app to react to, for example `invalid_credentials`. Only a short lowercase word is
+  // kept, so text from the body never reaches a screen or a report.
+  readonly code: string | undefined;
+  // How long the API asks the client to wait, in seconds, on a 429
+  readonly retryAfterSeconds: number | undefined;
 
-  constructor(status: number) {
+  constructor(status: number, details: { code?: string; retryAfterSeconds?: number } = {}) {
     super(`The API answered with status ${status.toString()}.`);
     this.name = 'ApiError';
     this.status = status;
+    this.code = details.code;
+    this.retryAfterSeconds = details.retryAfterSeconds;
   }
 }
 
@@ -56,6 +63,39 @@ function toNetworkError(error: unknown): Error {
 const requestedWith = 'aethera';
 const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
 
+const errorCodePattern = /^[a-z][a-z_]{0,63}$/;
+// A day is longer than any wait that the API asks for, so a bigger number is not a wait
+const longestWaitSeconds = 86_400;
+
+// The body of an error answer is `{ code, message, retryAfterSeconds? }`. A body that is missing, is not JSON or has another
+// shape gives no details, and the status alone still tells what happened.
+async function readErrorDetails(
+  response: Response,
+): Promise<{ code?: string; retryAfterSeconds?: number }> {
+  try {
+    const body: unknown = JSON.parse(await response.text());
+
+    if (typeof body !== 'object' || body === null) {
+      return {};
+    }
+    const code = 'code' in body && typeof body.code === 'string' ? body.code : undefined;
+    const wait = 'retryAfterSeconds' in body ? body.retryAfterSeconds : undefined;
+
+    return {
+      code: code !== undefined && errorCodePattern.test(code) ? code : undefined,
+      retryAfterSeconds:
+        typeof wait === 'number' &&
+        Number.isInteger(wait) &&
+        wait >= 1 &&
+        wait <= longestWaitSeconds
+          ? wait
+          : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 async function send(path: string, accept: string, options: RequestOptions): Promise<Response> {
   const { method = 'GET', body, signal } = options;
 
@@ -87,7 +127,7 @@ async function send(path: string, accept: string, options: RequestOptions): Prom
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status);
+    throw new ApiError(response.status, await readErrorDetails(response));
   }
 
   return response;

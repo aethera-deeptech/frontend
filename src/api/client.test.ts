@@ -91,6 +91,46 @@ describe('apiRequest', () => {
     await expect(apiRequest('/v1/usaha', schema)).rejects.toBeInstanceOf(ApiError);
   });
 
+  it('keeps the code and the wait time that the API names in an error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      answer('{"code":"resend_too_soon","message":"Wait","retryAfterSeconds":42}', 429),
+    );
+
+    await expect(apiRequest('/v1/usaha', schema)).rejects.toMatchObject({
+      status: 429,
+      code: 'resend_too_soon',
+      retryAfterSeconds: 42,
+    });
+  });
+
+  it.each([
+    ['text that is not a code', '{"code":"Not a code!"}'],
+    ['a code that is not a string', '{"code":5}'],
+    ['a body that is not JSON', 'oops'],
+    ['a body that is not an object', '"invalid_credentials"'],
+    ['an empty body', ''],
+  ])('keeps no code for %s', async (_name, body) => {
+    vi.stubGlobal('fetch', answer(body, 401));
+
+    await expect(apiRequest('/v1/usaha', schema)).rejects.toMatchObject({
+      status: 401,
+      code: undefined,
+    });
+  });
+
+  it.each([0, -3, 1.5, 100_000, '30'])('ignores the wait time %j', async (wait) => {
+    vi.stubGlobal(
+      'fetch',
+      answer(JSON.stringify({ code: 'rate_limited', retryAfterSeconds: wait }), 429),
+    );
+
+    await expect(apiRequest('/v1/usaha', schema)).rejects.toMatchObject({
+      code: 'rate_limited',
+      retryAfterSeconds: undefined,
+    });
+  });
+
   it('fails when the answer does not match the schema', async () => {
     vi.stubGlobal('fetch', answer('{"name":5}'));
 
