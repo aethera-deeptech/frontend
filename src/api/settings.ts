@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { sessionKey } from '@/api/auth';
 import { apiRequest } from '@/api/client';
 import { berandaKey } from '@/api/beranda';
 import { devicesKey } from '@/api/devices';
@@ -62,6 +63,8 @@ export function useUpdateSettings() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: settingsKey }),
+        // The sidebar shows the business name from the session
+        queryClient.invalidateQueries({ queryKey: sessionKey }),
         queryClient.invalidateQueries({ queryKey: berandaKey }),
         queryClient.invalidateQueries({ queryKey: recommendationsKey }),
         queryClient.invalidateQueries({ queryKey: devicesKey }),
