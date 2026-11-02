@@ -2,7 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sampleDevices, sampleNormal } from '@/pages/alat/sample-alat';
+import { sampleAnomaly, sampleDevices, sampleNormal } from '@/pages/alat/sample-alat';
+import { sampleSettings } from '@/pages/pengaturan/sample-settings';
 import { matchWideScreen, renderAt, restoreScreen, stubApi } from '@/test/stub-api';
 
 vi.mock('@/lib/env', () => ({
@@ -11,6 +12,7 @@ vi.mock('@/lib/env', () => ({
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
   restoreScreen();
 });
 
@@ -285,5 +287,36 @@ describe('the form to rename a device', () => {
     renderAt('/alat/d4/ganti-nama');
 
     expect(await screen.findByRole('link', { name: 'Batal' })).toHaveAttribute('href', '/alat/d4');
+  });
+});
+
+describe('the day of an anomaly', () => {
+  // 23:00 in Jakarta is already 01:00 of the next day in Jayapura, and the anomaly came at 02:10 on 29 Oct
+  async function openAnomalyAt(timeZone: string) {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-29T16:00:00Z'));
+    stubApi({
+      'GET /v1/devices': { body: sampleDevices() },
+      'GET /v1/devices/d1': { body: sampleAnomaly() },
+      'GET /v1/settings': { body: sampleSettings({ timeZone }) },
+    });
+    renderAt('/alat/d1');
+    await screen.findByRole('alert');
+  }
+
+  it('says today by the clock of the zone of the business', async () => {
+    await openAnomalyAt('Asia/Jakarta');
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Daya naik mendadak hari ini pukul 02:10');
+    });
+  });
+
+  it('names the date when the zone of the business is already on the next day', async () => {
+    await openAnomalyAt('Asia/Jayapura');
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Daya naik mendadak 29 Okt pukul 02:10');
+    });
   });
 });

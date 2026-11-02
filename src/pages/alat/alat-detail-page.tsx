@@ -2,18 +2,24 @@ import { Link, useLocation, useParams } from 'react-router';
 
 import { ApiError } from '@/api/client';
 import { useDevice } from '@/api/devices';
+import { useSettings } from '@/api/settings';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { businessNow } from '@/lib/format';
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
 
 export function AlatDetailPage() {
   const { id = '' } = useParams();
   const query = useDevice(id);
   const { search } = useLocation();
+  // The day of an anomaly is "today" by the clock of the business. The zone comes from the settings, and WIB stands in while they load.
+  const settings = useSettings();
 
   if (query.data) {
-    return <AlatDetailView detail={query.data} />;
+    return (
+      <AlatDetailView detail={query.data} now={businessNow(undefined, settings.data?.timeZone)} />
+    );
   }
 
   if (query.isPending) {
