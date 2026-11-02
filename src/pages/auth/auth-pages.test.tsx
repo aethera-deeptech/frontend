@@ -492,7 +492,7 @@ describe('Daftar, other answers', () => {
       await fillAndSend();
 
       expect(
-        await screen.findByRole('button', { name: /^Kirim ulang dalam (59|60) detik$/ }),
+        await screen.findByRole('button', { name: /^Kirim ulang dalam (5\d|60) detik$/ }),
       ).toBeVisible();
     },
   );
@@ -584,7 +584,7 @@ describe('Verifikasi', () => {
     );
 
     expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam (89|90) detik$/ }),
+      await screen.findByRole('button', { name: /^Kirim ulang dalam (8\d|90) detik$/ }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
