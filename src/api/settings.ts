@@ -30,6 +30,8 @@ export const settingsSchema = z.object({
     defaultRpPerKwh: z.number().int().positive(),
   }),
   anomalySensitivity: z.enum(sensitivities),
+  // An IANA zone name such as Asia/Jakarta. The API accepts only places whose offset from UTC is a whole number of hours.
+  timeZone: z.string().min(1),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -41,6 +43,7 @@ export interface SettingsChange {
   workHours?: WorkHours;
   tariffRpPerKwh?: number | null;
   anomalySensitivity?: Sensitivity;
+  timeZone?: string;
 }
 
 export const settingsKey = ['settings'] as const;
