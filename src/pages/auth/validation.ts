@@ -15,8 +15,8 @@ export function checkEmail(value: string, emptyText = 'Isi email Anda.'): string
   return emailShape.test(email) && email.length <= 254 ? undefined : 'Isi email yang valid.';
 }
 
-// The address that replaces the one of the account. An address that is the same as the current one changes nothing, and the
-// API answers 422 for it, so the screen asks for another one first.
+// The address that replaces the one of the account. An address that is the same as the current one changes nothing, but the
+// API does not refuse it and would send another link to it, so the screen asks for another address first.
 export function checkNewEmail(value: string, current: string): string | undefined {
   const email = value.trim();
 

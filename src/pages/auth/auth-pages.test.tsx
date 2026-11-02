@@ -733,6 +733,24 @@ describe('Ganti email', () => {
     );
   });
 
+  it('stays on the screen when Kembali is pressed while the call runs', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)),
+    );
+    const router = renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Kembali' }));
+
+    expect(router.state.location.pathname).toBe('/ganti-email');
+    expect(screen.getByRole('button', { name: 'Kembali' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
   it('says that the email or the password does not match, without naming which', async () => {
     stubApi({
       'POST /v1/auth/change-email': {

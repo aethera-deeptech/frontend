@@ -67,7 +67,11 @@ export function GantiEmailPage() {
       {
         onSuccess: ({ retryAfterSeconds }) => {
           // The new address goes in the history entry of this visit and not in any storage of ours, like after the sign up
-          void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
+          // The form leaves the history, so Back from the next screen does not open an empty form
+          void navigate('/verifikasi', {
+            state: { email: address, retryAfterSeconds },
+            replace: true,
+          });
         },
         onError: (error) => {
           if (error instanceof ApiError && error.status === 429) {
@@ -80,6 +84,10 @@ export function GantiEmailPage() {
 
   // The screen opens from the verification screen, so one step back is that screen. A visit with no history has no such screen.
   const back = () => {
+    // A call that runs would move the account after the user has left, and no screen would say so
+    if (change.isPending) {
+      return;
+    }
     if (location.key === 'default') {
       void navigate('/masuk');
     } else {
@@ -163,7 +171,12 @@ export function GantiEmailPage() {
           >
             {change.isPending ? 'Sedang mengganti' : 'Ganti email'}
           </Button>
-          <Button type="button" size="lg" onClick={back}>
+          <Button
+            type="button"
+            size="lg"
+            aria-disabled={change.isPending || undefined}
+            onClick={back}
+          >
             Kembali
           </Button>
         </fieldset>
