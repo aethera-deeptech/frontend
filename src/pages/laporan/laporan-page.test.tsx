@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 
 import { LaporanPage } from '@/pages/laporan/laporan-page';
 import { reportFileName } from '@/pages/laporan/use-report-download';
-import { sampleReady, sampleSeptember } from '@/pages/laporan/sample-laporan';
+import { sampleReady, sampleSeptember, sampleWeek } from '@/pages/laporan/sample-laporan';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
@@ -62,6 +62,29 @@ describe('LaporanPage', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.com/v1/reports?period=2026-09',
       expect.objectContaining({ credentials: 'include' }),
+    );
+  });
+
+  it('asks for the week that the address names and downloads the file of that week', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(sampleWeek()));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage('/laporan?periode=2026-W43');
+
+    expect(await screen.findByText('Rp474.000')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/reports?period=2026-W43',
+      expect.objectContaining({ credentials: 'include' }),
+    );
+
+    fetchMock.mockResolvedValue(
+      new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Unduh laporan (PDF)' }));
+
+    expect(await screen.findByText(/Laporan-Minggu-2026-W43\.pdf/)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/reports/2026-W43/pdf',
+      expect.anything(),
     );
   });
 
@@ -215,5 +238,9 @@ describe('LaporanPage', () => {
 describe('reportFileName', () => {
   it('writes the month and the year in the name of the file', () => {
     expect(reportFileName('2026-10')).toBe('Laporan-Oktober-2026.pdf');
+  });
+
+  it('writes the ISO number of a week in the name of the file', () => {
+    expect(reportFileName('2026-W43')).toBe('Laporan-Minggu-2026-W43.pdf');
   });
 });

@@ -9,7 +9,15 @@ import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Select } from '@/components/ui/select';
 import { Tag } from '@/components/ui/tag';
-import { formatDate, formatMonthYear, formatNumber, formatRupiah, parseMoment } from '@/lib/format';
+import { TextLink } from '@/components/ui/text-link';
+import {
+  formatDate,
+  formatMonthYear,
+  formatNumber,
+  formatRupiah,
+  formatWeekRange,
+  parseMoment,
+} from '@/lib/format';
 import type { ReportDownload } from '@/pages/laporan/use-report-download';
 
 interface LaporanViewProps {
@@ -29,10 +37,21 @@ export function LaporanView({
   onDownload,
 }: LaporanViewProps) {
   const loading = period !== data.period;
+  const week = data.phase === 'ready' && data.granularity === 'week';
+  // The running week has only the days until now, and the oldest week can start before the first data. Both reports cover only
+  // the days with data. The API sets through only for the running month or week.
+  const partial = week && (data.through !== undefined || data.period === data.weeks.at(-1));
 
   return (
     <div className="flex flex-col gap-3 lg:gap-6">
-      <PageHeader title="Laporan" />
+      <PageHeader
+        title="Laporan"
+        subtitle={
+          week
+            ? `Tagihan dan energi bengkel Anda selama ${partial ? 'hari yang tercatat' : '7 hari'}`
+            : undefined
+        }
+      />
       {download.status === 'done' ? (
         <Banner
           tone="info"
@@ -75,8 +94,25 @@ export function LaporanView({
       {data.phase === 'ready' ? (
         <div aria-busy={loading} className={loading ? 'opacity-60' : undefined}>
           <div className="flex flex-col gap-3 lg:gap-6">
+            {partial ? (
+              <Banner
+                tone="info"
+                title={`Minggu ${formatWeekRange(data.period, false)} belum penuh`}
+                message="Laporan hanya mencakup hari yang punya data."
+              />
+            ) : null}
             <PeriodSelect data={data} period={period} onChange={onPeriodChange} />
-            <Ready data={data} download={download} onDownload={onDownload} loading={loading} />
+            {data.granularity === 'week' ? (
+              <WeekReady
+                data={data}
+                partial={partial}
+                download={download}
+                onDownload={onDownload}
+                loading={loading}
+              />
+            ) : (
+              <Ready data={data} download={download} onDownload={onDownload} loading={loading} />
+            )}
           </div>
         </div>
       ) : null}
@@ -93,19 +129,92 @@ function PeriodSelect({
   period: string;
   onChange: (period: string) => void;
 }) {
+  const oldestWeek = data.weeks.at(-1);
+  // The API lists the running week first
+  const runningWeek = data.weeks[0];
+  const until = data.through ? formatDate(parseMoment(data.through)) : undefined;
+
   return (
     <Select
       label="Periode"
       value={period}
       onValueChange={onChange}
-      options={data.periods.map((value) => ({
-        value,
-        label:
-          value === data.period && data.through
-            ? `${formatMonthYear(value)}, sampai ${formatDate(parseMoment(data.through))}`
-            : formatMonthYear(value),
-      }))}
+      options={[
+        ...data.periods.map((value) => ({
+          value,
+          label:
+            value === data.period && until
+              ? `${formatMonthYear(value)}, sampai ${until}`
+              : formatMonthYear(value),
+        })),
+        ...data.weeks.map((value, index) => ({
+          value,
+          // A week that is not full is named without the year, so the text stays on one line
+          label:
+            value === oldestWeek || value === runningWeek
+              ? `${formatWeekRange(value, false)}, belum penuh`
+              : formatWeekRange(value),
+          group: index === 0 ? 'Minggu' : undefined,
+        })),
+      ]}
     />
+  );
+}
+
+// The report of one week. The bill and the devices cover its seven days. The three savings of the API are 30 day rates, so
+// the screen does not show them as amounts of a week and points to the monthly report.
+function WeekReady({
+  data,
+  partial,
+  download,
+  onDownload,
+  loading,
+}: {
+  data: ReadyReport;
+  partial: boolean;
+  download: ReportDownload;
+  onDownload: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <Card
+        title={partial ? 'Tagihan hari yang tercatat' : 'Tagihan 7 hari'}
+        className="lg:row-span-2"
+      >
+        <Tag tone="muted" className="self-start">
+          Tagihan
+        </Tag>
+        <p className="text-kpi text-text-heading">{formatRupiah(data.billRp)}</p>
+        <p className="text-label text-text-2">Termasuk beban belum terpantau alat</p>
+      </Card>
+      <Card className="lg:col-start-2 lg:row-start-2">
+        <p className="text-body text-text-1">
+          Penghematan dihitung per 30 hari, jadi laporan mingguan tidak menampilkannya.
+        </p>
+        <TextLink to="/laporan" className="self-start underline">
+          Lihat laporan bulanan
+        </TextLink>
+      </Card>
+      <Card title="Energi per alat, 4 teratas (kWh)" className="lg:col-start-2 lg:row-start-1">
+        <BarChart
+          aria-label="Energi per alat"
+          items={data.topDevices.map((device) => ({
+            label: device.name,
+            value: device.kwh,
+            display: formatNumber(device.kwh, 1),
+          }))}
+        />
+      </Card>
+      <Button
+        size="lg"
+        onClick={onDownload}
+        disabled={download.status === 'busy' || loading}
+        className="lg:col-start-1"
+      >
+        {download.status === 'busy' ? 'Menyiapkan laporan' : 'Unduh laporan (PDF)'}
+      </Button>
+    </div>
   );
 }
 

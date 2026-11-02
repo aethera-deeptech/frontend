@@ -9,11 +9,17 @@ import { apiDownload, apiRequest } from '@/api/client';
 const count = z.number().int().nonnegative();
 const rupiah = z.number().int().nonnegative();
 const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
+// An ISO week, Monday to Sunday in the time zone of the business
+const week = z.string().regex(/^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/);
 
 const base = {
+  // Whether the period is a month or an ISO week. An older API sends neither this nor the weeks, and means a month.
+  granularity: z.enum(['month', 'week']).catch('month'),
   // The months that have a report, the newest first
   periods: z.array(month),
-  period: month,
+  // The ISO weeks that have a report, the newest first. The oldest one can start before the first data, so it can be partial.
+  weeks: z.array(week).catch([]),
+  period: z.union([month, week]),
   // Set while the period is the running month, the moment of the newest data
   through: z.iso.datetime({ offset: true }).optional(),
 };
@@ -41,7 +47,7 @@ export const reportSchema = z.discriminatedUnion('phase', [
     saving,
     topDevices: z.array(z.object({ name: z.string(), kwh: z.number().nonnegative() })),
     billRp: rupiah,
-    // Only the running month has a result for each piece
+    // Only the running month has a result for each piece. A week has none.
     energyPerPiece: energyPerPiece.optional(),
   }),
 ]);

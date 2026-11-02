@@ -10,6 +10,7 @@ import {
   sampleEmpty,
   sampleReady,
   sampleSeptember,
+  sampleWeek,
 } from '@/pages/laporan/sample-laporan';
 
 function renderView(props: Partial<ComponentProps<typeof LaporanView>> = {}) {
@@ -95,6 +96,11 @@ describe('LaporanView, ready', () => {
       'September 2026',
       'Agustus 2026',
       'Juli 2026',
+      '26 Okt sampai 1 Nov, belum penuh',
+      '19 sampai 25 Okt 2026',
+      '12 sampai 18 Okt 2026',
+      '5 sampai 11 Okt 2026',
+      '28 Sep sampai 4 Okt, belum penuh',
     ]);
     await userEvent.click(screen.getByRole('option', { name: 'Agustus 2026' }));
 
@@ -171,5 +177,93 @@ describe('LaporanView, not ready', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Unduh/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('LaporanView, a week', () => {
+  const week = () => sampleWeek();
+
+  it('shows the bill and the devices of seven days and names the week in the select', () => {
+    renderView({ data: week(), period: '2026-W43' });
+
+    expect(screen.getByRole('combobox', { name: 'Periode' })).toHaveTextContent(
+      '19 sampai 25 Okt 2026',
+    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Tagihan 7 hari' })).toBeVisible();
+    expect(screen.getByText('Rp474.000')).toBeInTheDocument();
+    expect(screen.getByText('Termasuk beban belum terpantau alat')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Energi per alat' })).toHaveTextContent('Setrika uap');
+    expect(screen.getByText('Tagihan dan energi bengkel Anda selama 7 hari')).toBeInTheDocument();
+  });
+
+  it('does not show the savings, which are rates of 30 days, and links to the monthly report', () => {
+    renderView({ data: week(), period: '2026-W43' });
+
+    expect(screen.queryByRole('heading', { name: 'Hemat per bulan' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Rp312.000')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Penghematan dihitung per 30 hari, jadi laporan mingguan tidak menampilkannya.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Lihat laporan bulanan' })).toHaveAttribute(
+      'href',
+      '/laporan',
+    );
+  });
+
+  it('says that the oldest week is not full and that the bill covers the days with data', () => {
+    renderView({ data: sampleWeek({ period: '2026-W40', billRp: 338_000 }), period: '2026-W40' });
+
+    expect(screen.getByText('Minggu 28 Sep sampai 4 Okt belum penuh')).toBeVisible();
+    expect(screen.getByText('Laporan hanya mencakup hari yang punya data.')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Tagihan hari yang tercatat' }),
+    ).toBeVisible();
+    expect(
+      screen.getByText('Tagihan dan energi bengkel Anda selama hari yang tercatat'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Tagihan 7 hari')).not.toBeInTheDocument();
+  });
+
+  it('says that the running week is not full, because its bill stops at the newest data', () => {
+    renderView({
+      data: sampleWeek({ period: '2026-W44', through: '2026-10-29T09:30:00+07:00' }),
+      period: '2026-W44',
+    });
+
+    expect(screen.getByText('Minggu 26 Okt sampai 1 Nov belum penuh')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Tagihan hari yang tercatat' }),
+    ).toBeVisible();
+    expect(screen.queryByText('Tagihan 7 hari')).not.toBeInTheDocument();
+  });
+
+  it('shows no banner for a week that is full', () => {
+    renderView({ data: week(), period: '2026-W43' });
+
+    expect(screen.queryByText(/belum penuh/)).not.toBeInTheDocument();
+  });
+
+  it('offers the months and then the weeks in a group', async () => {
+    renderView({ data: week(), period: '2026-W43' });
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Periode' }));
+
+    expect(await screen.findByRole('option', { name: 'Oktober 2026' })).toBeVisible();
+    expect(screen.getByRole('group', { name: 'Minggu' })).toBeVisible();
+    expect(screen.getByRole('option', { name: '26 Okt sampai 1 Nov, belum penuh' })).toBeVisible();
+    expect(screen.getByRole('option', { name: '12 sampai 18 Okt 2026' })).toBeVisible();
+    expect(screen.getByRole('option', { name: '28 Sep sampai 4 Okt, belum penuh' })).toBeVisible();
+  });
+
+  it('passes the week that the user picks', async () => {
+    const onPeriodChange = vi.fn();
+    renderView({ data: week(), period: '2026-W43', onPeriodChange });
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Periode' }));
+    await userEvent.click(await screen.findByRole('option', { name: '12 sampai 18 Okt 2026' }));
+
+    expect(onPeriodChange).toHaveBeenCalledWith('2026-W42');
   });
 });

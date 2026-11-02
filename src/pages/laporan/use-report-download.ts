@@ -4,8 +4,11 @@ import { useEffect, useRef } from 'react';
 import { downloadReport } from '@/api/reports';
 import { formatMonthYear } from '@/lib/format';
 
+// A month is named by its name and year, and a week by its ISO number, for example Laporan-Minggu-2026-W43.pdf
 export function reportFileName(period: string): string {
-  return `Laporan-${formatMonthYear(period).replace(' ', '-')}.pdf`;
+  return /-W\d{2}$/.test(period)
+    ? `Laporan-Minggu-${period}.pdf`
+    : `Laporan-${formatMonthYear(period).replace(' ', '-')}.pdf`;
 }
 
 export type ReportDownload =

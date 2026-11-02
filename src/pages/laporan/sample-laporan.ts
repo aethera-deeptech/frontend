@@ -4,7 +4,9 @@ import type { ReadyReport, ReportData } from '@/api/reports';
 export function sampleReady(overrides: Partial<ReadyReport> = {}): ReadyReport {
   return {
     phase: 'ready',
+    granularity: 'month',
     periods: ['2026-10', '2026-09', '2026-08', '2026-07'],
+    weeks: ['2026-W44', '2026-W43', '2026-W42', '2026-W41', '2026-W40'],
     period: '2026-10',
     through: '2026-10-29T09:30:00+07:00',
     saving: {
@@ -46,7 +48,9 @@ export function sampleSeptember(): ReadyReport {
 export function sampleCollecting(): ReportData {
   return {
     phase: 'collecting',
+    granularity: 'month',
     periods: ['2026-10'],
+    weeks: [],
     period: '2026-10',
     collectedDays: 4,
     neededDays: 7,
@@ -54,5 +58,30 @@ export function sampleCollecting(): ReportData {
 }
 
 export function sampleEmpty(): ReportData {
-  return { phase: 'no-devices', periods: ['2026-10'], period: '2026-10' };
+  return {
+    phase: 'no-devices',
+    granularity: 'month',
+    periods: ['2026-10'],
+    weeks: [],
+    period: '2026-10',
+  };
+}
+
+// A full week. The bill and the devices cover its seven days, and there is no moment of the newest data and no result for each
+// piece. The three savings stay in the answer, but they are 30 day rates, so the screen does not show them.
+export function sampleWeek(overrides: Partial<ReadyReport> = {}): ReadyReport {
+  return sampleReady({
+    granularity: 'week',
+    period: '2026-W43',
+    through: undefined,
+    topDevices: [
+      { name: 'Setrika uap', kwh: 37 },
+      { name: 'Mesin jahit 1', kwh: 33 },
+      { name: 'Mesin jahit 3', kwh: 31 },
+      { name: 'Kompresor', kwh: 28 },
+    ],
+    billRp: 474_000,
+    energyPerPiece: undefined,
+    ...overrides,
+  });
 }

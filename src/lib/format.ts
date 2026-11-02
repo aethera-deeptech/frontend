@@ -112,6 +112,39 @@ export function formatMonthYear(month: string): string {
   return match && name ? `${name} ${match[1] ?? ''}` : month;
 }
 
+// An ISO week written YYYY-Www, from its Monday to its Sunday. The dates are the local fields, like parseMoment, because the
+// week is the week of the business and not of the device.
+export function isoWeekRange(week: string): { start: Date; end: Date } | undefined {
+  const match = /^(\d{4})-W(0[1-9]|[1-4]\d|5[0-3])$/.exec(week);
+
+  if (!match) {
+    return undefined;
+  }
+  const year = Number(match[1]);
+  const number = Number(match[2]);
+  // Week 1 is the week with the 4th of January in it
+  const mondayOfWeekOne = 4 - ((new Date(year, 0, 4).getDay() + 6) % 7);
+
+  return {
+    start: new Date(year, 0, mondayOfWeekOne + (number - 1) * 7),
+    end: new Date(year, 0, mondayOfWeekOne + (number - 1) * 7 + 6),
+  };
+}
+
+// "19 sampai 25 Okt 2026", or "28 Sep sampai 4 Okt 2026" when the week crosses a month. The year can be left out for a short text.
+export function formatWeekRange(week: string, withYear = true): string {
+  const range = isoWeekRange(week);
+
+  if (!range) {
+    return week;
+  }
+  const { start, end } = range;
+  const from = start.getMonth() === end.getMonth() ? start.getDate().toString() : formatDate(start);
+  const text = `${from} sampai ${formatDate(end)}`;
+
+  return withYear ? `${text} ${end.getFullYear().toString()}` : text;
+}
+
 export function formatDate(date: Date): string {
   return `${date.getDate().toString()} ${months[date.getMonth()] ?? ''}`;
 }

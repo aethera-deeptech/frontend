@@ -15,6 +15,8 @@ import {
   formatPercent,
   formatRupiah,
   formatRupiahJuta,
+  formatWeekRange,
+  isoWeekRange,
   isSameDay,
   parseMoment,
 } from '@/lib/format';
@@ -174,5 +176,46 @@ describe('businessNow', () => {
     const now = businessNow(new Date('2026-10-28T17:05:00Z'));
 
     expect([now.getDate(), now.getHours(), now.getMinutes()]).toEqual([29, 0, 5]);
+  });
+});
+
+describe('isoWeekRange', () => {
+  it('runs from the Monday to the Sunday of the week', () => {
+    const range = isoWeekRange('2026-W43');
+
+    expect(range && [formatDateWithYear(range.start), formatDateWithYear(range.end)]).toEqual([
+      '19 Okt 2026',
+      '25 Okt 2026',
+    ]);
+  });
+
+  it('starts week 1 in the old year when 4 January is late in the week', () => {
+    const range = isoWeekRange('2026-W01');
+
+    expect(range && [formatDateWithYear(range.start), formatDateWithYear(range.end)]).toEqual([
+      '29 Des 2025',
+      '4 Jan 2026',
+    ]);
+  });
+
+  it('gives nothing for a text that is not a week', () => {
+    expect(isoWeekRange('2026-10')).toBeUndefined();
+    expect(isoWeekRange('2026-W54')).toBeUndefined();
+    expect(isoWeekRange('2026-W00')).toBeUndefined();
+  });
+});
+
+describe('formatWeekRange', () => {
+  it('writes the month once when the week stays in it', () => {
+    expect(formatWeekRange('2026-W43')).toBe('19 sampai 25 Okt 2026');
+  });
+
+  it('writes both months when the week crosses a month, and can leave the year out', () => {
+    expect(formatWeekRange('2026-W40')).toBe('28 Sep sampai 4 Okt 2026');
+    expect(formatWeekRange('2026-W40', false)).toBe('28 Sep sampai 4 Okt');
+  });
+
+  it('gives back a text that is not a week', () => {
+    expect(formatWeekRange('2026-10')).toBe('2026-10');
   });
 });
