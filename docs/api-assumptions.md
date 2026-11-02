@@ -83,7 +83,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 ## Laporan
 
-`GET /v1/reports` returns the report of the running month. `GET /v1/reports?period=2026-09` returns the report of another month, written as `YYYY-MM`. The API answers 404 for a month that has no report. The field `phase` tells which shape follows. Every shape has `periods`, the months that have a report with the newest first (empty when no report exists yet, never empty for `ready`), and `period`, the month of the answer.
+`GET /v1/reports` returns the report of the running month. `GET /v1/reports?period=2026-09` returns the report of another month, written as `YYYY-MM`, and `GET /v1/reports?period=2026-W43` returns the report of an ISO week, Monday to Sunday in the time zone of the business. The API answers 404 for a period that has no report. The field `phase` tells which shape follows. Every shape has `granularity` (`month` or `week`, and an answer without it means a month), `periods`, the months that have a report with the newest first (empty when no report exists yet, never empty for `ready`), `weeks`, the ISO weeks that have a report with the newest first (an answer without it means none), and `period`, the month or the week of the answer.
 
 | Phase        | Meaning                                    | Fields besides `periods` and `period` |
 | ------------ | ------------------------------------------ | ------------------------------------- |
@@ -95,11 +95,13 @@ A `ready` report has the fields below.
 
 - `through` is a moment in ISO 8601 with an offset. It is only there while the month is the running month, and it is the moment of the newest data.
 - `saving` has three parts that are counted apart. `verified` has `rp`, `count` and `checkedDays`. `applied` has `rp`, `count`, `day` and `neededDays`, the day of the check that the tip is on. `estimate` has `rp` and `count`.
-- `topDevices` is a list of `name` and `kwh`, the devices that used the most energy in the month.
-- `billRp` is the bill of the month, or the bill until `through` for the running month.
+- `topDevices` is a list of `name` and `kwh`, the devices that used the most energy in the month or the week.
+- `billRp` is the bill of the month, or the bill until `through` for the running month. For a week it is the bill of its seven days.
 - `energyPerPiece` has the same shape as on the home screen. Only the running month has it.
 
-`GET /v1/reports/{period}/pdf` returns the report of that month as a PDF. The frontend sends the session cookie, saves the file as `Laporan-<Month>-<Year>.pdf` and offers a link to open it.
+For a week the three sums of `saving` stay in the answer, but they are rates of 30 days and not amounts of a week. The screen does not show them and points to the monthly report. The oldest week in `weeks` can start before the first data, so the screen marks it as not full, with no flag from the API (a flag would be better).
+
+`GET /v1/reports/{period}/pdf` returns the report of that month or week as a PDF. The frontend sends the session cookie, saves the file as `Laporan-<Month>-<Year>.pdf` or `Laporan-Minggu-<Year>-W<week>.pdf` and offers a link to open it.
 
 ## Produksi
 
