@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 
 import { authFailure, isPlausibleToken, useResetPassword } from '@/api/auth';
@@ -19,6 +20,7 @@ export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [token] = useState(() => params.get('token') ?? '');
   const reset = useResetPassword();
+  const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
   const [again, setAgain] = useState('');
   const [shown, setShown] = useState(false);
@@ -40,7 +42,8 @@ export function ResetPasswordPage() {
 
   if (reset.isSuccess) {
     return (
-      <AuthFrame title="Kata sandi diperbarui" subtitle="Masuk dengan kata sandi baru.">
+      // Each screen has its own key, so the heading of the next one takes the focus when the form is gone
+      <AuthFrame key="done" title="Kata sandi diperbarui" subtitle="Masuk dengan kata sandi baru.">
         <Button asChild kind="accent" size="lg">
           <Link to="/masuk" replace>
             Masuk
@@ -53,6 +56,7 @@ export function ResetPasswordPage() {
   if (!isPlausibleToken(token) || failure === 'invalid-token') {
     return (
       <AuthFrame
+        key="invalid"
         title="Atur ulang kata sandi"
         subtitle="Minta tautan baru untuk mengatur ulang kata sandi."
       >
@@ -87,7 +91,15 @@ export function ResetPasswordPage() {
       againRef.current?.focus();
       return;
     }
-    reset.mutate({ token, password });
+    reset.mutate(
+      { token, password },
+      {
+        // The API ended every session of the user, so what this browser cached for the session is no longer true
+        onSuccess: () => {
+          queryClient.removeQueries();
+        },
+      },
+    );
   };
 
   return (

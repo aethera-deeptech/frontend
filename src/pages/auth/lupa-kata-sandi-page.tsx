@@ -2,6 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 
 import { authFailure, useForgotPassword } from '@/api/auth';
 import { ApiError } from '@/api/client';
+import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { TextLink } from '@/components/ui/text-link';
@@ -18,6 +19,8 @@ export function LupaKataSandiPage() {
   const [tried, setTried] = useState(false);
   // The time when the button sends the link again, and null before the first link
   const [readyAt, setReadyAt] = useState<number | null>(null);
+  // True after a link that was sent again, so the screen can say that the older one may stop working
+  const [sentAgain, setSentAgain] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const emailError = tried ? checkEmail(email) : undefined;
   const failure = forgot.isError ? authFailure(forgot.error) : undefined;
@@ -35,6 +38,7 @@ export function LupaKataSandiPage() {
     }
     forgot.mutate(email.trim(), {
       onSuccess: ({ retryAfterSeconds }) => {
+        setSentAgain(readyAt !== null);
         setReadyAt(Date.now() + retryAfterSeconds * 1000);
       },
       onError: (error) => {
@@ -51,6 +55,7 @@ export function LupaKataSandiPage() {
       <LinkSent
         readyAt={readyAt}
         pending={forgot.isPending}
+        sentAgain={sentAgain && !forgot.isPending}
         failure={failure}
         retryAfterSeconds={
           forgot.error instanceof ApiError ? forgot.error.retryAfterSeconds : undefined
@@ -105,12 +110,20 @@ export function LupaKataSandiPage() {
 interface LinkSentProps {
   readyAt: number;
   pending: boolean;
+  sentAgain: boolean;
   failure: ReturnType<typeof authFailure> | undefined;
   retryAfterSeconds: number | undefined;
   onResend: () => void;
 }
 
-function LinkSent({ readyAt, pending, failure, retryAfterSeconds, onResend }: LinkSentProps) {
+function LinkSent({
+  readyAt,
+  pending,
+  sentAgain,
+  failure,
+  retryAfterSeconds,
+  onResend,
+}: LinkSentProps) {
   const left = useCountdown(readyAt);
 
   return (
@@ -118,6 +131,13 @@ function LinkSent({ readyAt, pending, failure, retryAfterSeconds, onResend }: Li
       title="Periksa email Anda"
       subtitle="Jika email itu terdaftar, sistem sudah mengirim tautan untuk mengatur ulang kata sandi."
     >
+      {sentAgain && !failure ? (
+        <Banner
+          tone="info"
+          title="Email baru sudah dikirim"
+          message="Gunakan tautan yang terbaru."
+        />
+      ) : null}
       {failure && failure !== 'rate-limited' ? (
         <FailureBanner failure={failure} retryAfterSeconds={retryAfterSeconds} />
       ) : null}
