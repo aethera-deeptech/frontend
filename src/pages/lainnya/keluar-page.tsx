@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 
 import { authFailure, useLogout } from '@/api/auth';
@@ -9,6 +10,7 @@ import { FailureBanner } from '@/pages/auth/failure-banner';
 // The question before the session ends. It is a screen of its own and not a dialog, as in the Figma frames.
 export function KeluarPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const logout = useLogout();
   // Batal goes back to where the way to Keluar started, which is the menu on a phone and the home screen on a wide screen
   const wide = useMediaQuery('(min-width: 1024px)');
@@ -20,7 +22,11 @@ export function KeluarPage() {
     }
     logout.mutate(undefined, {
       onSuccess: () => {
-        void navigate('/masuk', { replace: true });
+        // Nothing of this business may stay in the browser for the next person. The cache is emptied after the move, when
+        // no screen of the app is left to ask for its data again.
+        void Promise.resolve(navigate('/masuk', { replace: true })).then(() => {
+          queryClient.clear();
+        });
       },
     });
   };

@@ -106,10 +106,10 @@ export function useResendVerification() {
   });
 }
 
-// Ends the session of this device. A 401 means that there is no session left, which is what the user asked for.
+// Ends the session of this device. A 401 means that there is no session left, which is what the user asked for. The caller
+// moves to Masuk first and empties the cache after that, because the guard observes the session and would read it again
+// if the cache were emptied while the old screen is still on show.
 export function useLogout() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationKey: [...authMutationKey, 'logout'],
     mutationFn: async () => {
@@ -120,11 +120,6 @@ export function useLogout() {
           throw error;
         }
       }
-    },
-    // Nothing of this business may stay in the browser for the next person. The caller moves to Masuk first, so no screen
-    // asks for its data again while the cache is emptied.
-    onSuccess: () => {
-      queryClient.removeQueries();
     },
   });
 }

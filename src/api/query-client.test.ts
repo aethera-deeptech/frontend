@@ -89,6 +89,23 @@ describe('createQueryClient', () => {
     expect(reads).toBe(1);
   });
 
+  it('drops what an account cached when the session says that another user is signed in', () => {
+    const client = createQueryClient();
+    const me = (email: string) => ({ email, emailVerified: true, businessName: 'Maju' });
+
+    client.setQueryData(['session'], me('dewi@example.com'));
+    client.setQueryData(['beranda'], { businessName: 'Usaha Dewi' });
+    // The same user again changes nothing
+    client.setQueryData(['session'], me('dewi@example.com'));
+
+    expect(client.getQueryData(['beranda'])).toBeDefined();
+
+    client.setQueryData(['session'], me('budi@example.com'));
+
+    expect(client.getQueryData(['beranda'])).toBeUndefined();
+    expect(client.getQueryData(['session'])).toEqual(me('budi@example.com'));
+  });
+
   it('reads the session again when a mutation of the app learns that it has ended', async () => {
     const client = createQueryClient();
     let reads = 0;

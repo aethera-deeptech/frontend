@@ -52,6 +52,8 @@ describe('Keluar', () => {
       expect(client.getQueryData(['beranda'])).toBeUndefined();
     });
     expect(client.getQueryData(['session'])).toBeUndefined();
+    // The guard must not read the session again between the end of the session and the move to Masuk
+    expect(fetchMock.mock.calls.filter(([url]) => url.endsWith('/v1/auth/me'))).toHaveLength(0);
     const logout = fetchMock.mock.calls.find(([url]) => url.endsWith('/v1/auth/logout'));
     expect(logout?.[1]).toMatchObject({
       method: 'POST',

@@ -22,7 +22,7 @@ The user is `{ email, emailVerified, businessName }`. After a sign in or a verif
 | `GET /v1/auth/me`      | Every screen of the app waits for this answer, which is the user. The name of the business in the sidebar comes from it. | 401 sends the user to Masuk and the screen that was asked for is kept. Another failure shows a banner with a retry button and does not sign out. |
 | `POST /v1/auth/logout` | Keluar ends the session of this device. A 401 counts as done, because no session is left.                                | 204. Any other failure leaves the user on Keluar with a banner.                                                                                  |
 
-A 401 on any other call, query or mutation, means that the session ended while a screen was open. The app then reads `/v1/auth/me` again and the guard sends the user to Masuk. The 401 of the account calls themselves is not such a sign. After Keluar the app drops everything it cached. The other account calls (Google, change email, forgot and reset password) are not used yet.
+A 401 on any other call, query or mutation, means that the session ended while a screen was open. The app then reads `/v1/auth/me` again and the guard sends the user to Masuk. The 401 of the account calls themselves is not such a sign. After Keluar the app drops everything it cached, after the move to Masuk. When a read of the session names another user than before, for example because another tab signed in as someone else, the app drops what it cached for the first user. A form that is half filled when the session ends is lost, because the app keeps no drafts. The other account calls (Google, change email, forgot and reset password) are not used yet.
 
 ## Beranda
 

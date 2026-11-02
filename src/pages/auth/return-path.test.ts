@@ -20,6 +20,7 @@ describe('returnPath', () => {
     ['the sign up', '/daftar?x=1'],
     ['the screen after the sign up', '/verifikasi'],
     ['the page of the email link', '/verify-email'],
+    ['the question before the sign out', '/lainnya/keluar'],
     ['a value that is not a string', 5],
   ])('goes to the home screen for %s', (_name, from) => {
     expect(returnPath({ from })).toBe('/');
@@ -34,5 +35,6 @@ describe('returnPath', () => {
 
   it('does not mistake a path that only starts with the name of a screen', () => {
     expect(returnPath({ from: '/masuk-lain' })).toBe('/masuk-lain');
+    expect(returnPath({ from: '/lainnya/keluar-lain' })).toBe('/lainnya/keluar-lain');
   });
 });

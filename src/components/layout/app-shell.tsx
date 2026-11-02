@@ -34,8 +34,11 @@ export function AppShell() {
         Lewati ke konten
       </a>
 
-      <div className="bg-bg-1 border-border-1 fixed inset-y-0 left-0 z-10 hidden w-60 border-r lg:block">
-        <nav aria-label="Menu utama" className="flex flex-col gap-4 p-4">
+      <div className="bg-bg-1 border-border-1 fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r lg:flex">
+        <nav
+          aria-label="Menu utama"
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
+        >
           <Link to="/" className="text-h2 text-text-heading rounded-md">
             WATTLINK
           </Link>
@@ -70,7 +73,7 @@ export function AppShell() {
             ))}
           </ul>
         </nav>
-        <div className="border-border-1 absolute inset-x-0 bottom-0 flex flex-col gap-2 border-t p-4">
+        <div className="border-border-1 flex flex-col gap-2 border-t p-4">
           <Link
             to="/lainnya/keluar"
             className="text-button text-text-1 hover:bg-bg-3 flex h-10 items-center rounded-md px-3"
