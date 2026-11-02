@@ -15,8 +15,14 @@ function bodyOf(fetchMock: ReturnType<typeof stubApi>, path: string): unknown {
   return typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
 }
 
+// The countdown reads the clock, so a test that checks the number freezes the date. The timers stay real.
+function freezeClock() {
+  vi.useFakeTimers({ toFake: ['Date'] });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe('Masuk', () => {
@@ -140,6 +146,7 @@ describe('Masuk', () => {
   });
 
   it('offers a new verification email when the email is not verified and opens the timer screen', async () => {
+    freezeClock();
     const fetchMock = stubApi({
       'POST /v1/auth/login': {
         status: 403,
@@ -164,7 +171,7 @@ describe('Masuk', () => {
       email: 'dewi@example.com',
     });
     expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam \d+ detik$/ }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -221,6 +228,7 @@ describe('Masuk', () => {
   });
 
   it('opens the timer screen with the wait that the API names when a resend came too soon', async () => {
+    freezeClock();
     stubApi({
       'POST /v1/auth/login': {
         status: 403,
@@ -241,9 +249,7 @@ describe('Masuk', () => {
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/verifikasi');
     });
-    expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
-    ).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' })).toBeVisible();
   });
 
   it('says that the fields are not right when the API refuses them', async () => {
@@ -486,13 +492,14 @@ describe('Daftar, other answers', () => {
   it.each([0, -5])(
     'reads a wait of %i in the answer as the usual minute and not as an error',
     async (wait) => {
+      freezeClock();
       stubApi({ 'POST /v1/auth/register': { status: 201, body: { retryAfterSeconds: wait } } });
       renderAt('/daftar');
 
       await fillAndSend();
 
       expect(
-        await screen.findByRole('button', { name: /^Kirim ulang dalam (5\d|60) detik$/ }),
+        await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
       ).toBeVisible();
     },
   );
@@ -539,13 +546,14 @@ describe('Verifikasi', () => {
       { name: 'Kirim ulang email' },
       { timeout: 3000 },
     );
+    freezeClock();
     await userEvent.click(button);
 
     expect(await screen.findByText('Email baru sudah dikirim')).toBeVisible();
-    expect(screen.getByRole('button', { name: /^Kirim ulang dalam \d+ detik$/ })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
+    // The number reads the clock once a second, so the first picture can show a second more
+    expect(
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 60 detik' }),
+    ).toHaveAttribute('aria-disabled', 'true');
     expect(bodyOf(fetchMock, '/v1/auth/resend-verification')).toEqual({
       email: 'dewi@example.com',
     });
@@ -560,12 +568,16 @@ describe('Verifikasi', () => {
     });
     renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 1 });
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 }),
+    const ready = await screen.findByRole(
+      'button',
+      { name: 'Kirim ulang email' },
+      { timeout: 3000 },
     );
+    freezeClock();
+    await userEvent.click(ready);
 
     expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' }),
     ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText('Email baru sudah dikirim')).not.toBeInTheDocument();
   });
@@ -579,12 +591,16 @@ describe('Verifikasi', () => {
     });
     renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 1 });
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 }),
+    const ready = await screen.findByRole(
+      'button',
+      { name: 'Kirim ulang email' },
+      { timeout: 3000 },
     );
+    freezeClock();
+    await userEvent.click(ready);
 
     expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam (8\d|90) detik$/ }),
+      await screen.findByRole('button', { name: 'Kirim ulang dalam 90 detik' }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -592,9 +608,13 @@ describe('Verifikasi', () => {
     stubApi({});
     renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 1 });
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Kirim ulang email' }, { timeout: 3000 }),
+    const ready = await screen.findByRole(
+      'button',
+      { name: 'Kirim ulang email' },
+      { timeout: 3000 },
     );
+    freezeClock();
+    await userEvent.click(ready);
 
     expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
   });
@@ -665,6 +685,7 @@ describe('Verify email link', () => {
   });
 
   it('opens the timer screen with the wait of the API when the new link came too soon', async () => {
+    freezeClock();
     stubApi({
       'POST /v1/auth/resend-verification': {
         status: 429,
@@ -679,9 +700,7 @@ describe('Verify email link', () => {
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/verifikasi');
     });
-    expect(
-      await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
-    ).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Kirim ulang dalam 45 detik' })).toBeVisible();
   });
 
   it('shows that the new link could not be sent when the API fails', async () => {
