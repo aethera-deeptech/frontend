@@ -18,7 +18,7 @@ The app has its screens, and the automated axe check in the end to end tests cov
 - Hover states are designed for buttons, sidebar items and menu options only. The other controls have none yet.
 - The floating Catat produksi button stays over the lower right corner on Beranda and Alat. At 200 percent zoom or with a large system font it covers more of the screen, and this was not tested.
 - Nothing has been tested with assistive technology, and no conformance claim is made for any standard such as WCAG.
-- The wording of the safety warning for the clamp sensor is a draft that a licensed electrician must confirm.
+- The wording of the safety warning for the WATTLINK Clamp is a draft that a licensed electrician must confirm.
 
 ## Report a barrier
 

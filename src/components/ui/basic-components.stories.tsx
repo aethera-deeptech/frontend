@@ -95,7 +95,7 @@ export const Banners: Story = {
         action={<Button size="sm">Lihat</Button>}
       />
       <Banner tone="warning" title="Sambungan lambat" message="Data tertunda beberapa menit." />
-      <Banner tone="danger" title="Alat tidak terjangkau" message="Periksa colokan dan Wi-Fi." />
+      <Banner tone="danger" title="Alat tidak terjangkau" message="Periksa alat dan Wi-Fi." />
     </div>
   ),
 };
