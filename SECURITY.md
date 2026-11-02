@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-The project has no release yet. Only the `main` branch receives security fixes.
+The latest release and the `main` branch receive security fixes. Earlier releases do not. The releases are listed on the GitHub Releases page.
 
 ## Reporting a vulnerability
 
