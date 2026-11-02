@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 
+import { useGateways } from '@/api/gateways';
 import type { DeviceKind } from '@/api/pairing';
 import { ChevronRightIcon } from '@/components/icons/chevron-right-icon';
+import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
@@ -23,6 +25,16 @@ const choices: { kind: DeviceKind; title: string; hint: string; next: string }[]
 export function PilihJenisPage() {
   const navigate = useNavigate();
   const wizard = useWizard();
+  const gateways = useGateways();
+
+  // A business with no hub cannot search for a device, so the first step is to connect the hub. A list that cannot be loaded
+  // does not block the user, because the search itself says when there is no hub.
+  if (gateways.isPending) {
+    return <SkeletonCard label="Memuat WATTLINK Hub" />;
+  }
+  if (gateways.data?.items.length === 0) {
+    return <Navigate to={`${addPath}/hub`} replace />;
+  }
 
   return (
     <StepFrame

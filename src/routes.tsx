@@ -135,6 +135,13 @@ export const routes: RouteObject[] = [
                     ),
                   },
                   {
+                    path: 'hub',
+                    ...lazyPage(
+                      () => import('@/pages/pasang-alat/hub-page'),
+                      (module) => module.HubPage,
+                    ),
+                  },
+                  {
                     path: 'peringatan',
                     ...lazyPage(
                       () => import('@/pages/pasang-alat/peringatan-page'),
