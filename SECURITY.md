@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-The latest release (0.1.0 at the time of writing) and the `main` branch receive security fixes. Earlier releases do not.
+The latest release and the `main` branch receive security fixes. Earlier releases do not. The releases are listed on the GitHub Releases page.
 
 ## Reporting a vulnerability
 
