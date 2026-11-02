@@ -10,7 +10,10 @@ import { devicesKey } from '@/api/devices';
 export const deviceKinds = ['plug', 'clamp'] as const;
 export type DeviceKind = (typeof deviceKinds)[number];
 
-const roomsSchema = z.object({ items: z.array(z.object({ id: z.string(), name: z.string() })) });
+const roomSchema = z.object({ id: z.string(), name: z.string() });
+const roomsSchema = z.object({ items: z.array(roomSchema) });
+
+export const roomNameLength = { max: 40 } as const;
 
 const pairingSchema = z.object({
   // The API keeps looking for the device and says when it gives up
@@ -32,6 +35,26 @@ export function useRooms() {
   return useQuery({
     queryKey: roomsKey,
     queryFn: ({ signal }) => apiRequest('/v1/rooms', roomsSchema, { signal }),
+  });
+}
+
+// Adds a room. A business with no room cannot add a device, so the form of the device offers this call.
+export function useCreateRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (room: { name: string }) =>
+      apiRequest('/v1/rooms', roomSchema, { method: 'POST', body: room }),
+    // The form of the device reads the list when the user comes back, so the list holds the new room by then. The API orders
+    // the rooms by name, and the list does the same.
+    onSuccess: (room) => {
+      queryClient.setQueryData(roomsKey, (old: z.infer<typeof roomsSchema> | undefined) => ({
+        items: [...(old?.items.filter((item) => item.id !== room.id) ?? []), room].sort((a, b) =>
+          a.name.localeCompare(b.name, 'id'),
+        ),
+      }));
+    },
+    gcTime: 0,
   });
 }
 

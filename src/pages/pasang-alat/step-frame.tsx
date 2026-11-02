@@ -7,7 +7,8 @@ export const addPath = '/alat/tambah';
 
 interface StepFrameProps {
   title: string;
-  subtitle: string;
+  // A step whose title says enough has none
+  subtitle?: string;
   // Where the Kembali button leads
   backTo: string;
   children: ReactNode;
@@ -25,7 +26,7 @@ export function StepFrame({ title, subtitle, backTo, children }: StepFrameProps)
       </div>
       <div className="flex flex-col gap-1">
         <h1 className="text-h2 text-text-heading lg:text-title">{title}</h1>
-        <p className="text-body text-text-2">{subtitle}</p>
+        {subtitle ? <p className="text-body text-text-2">{subtitle}</p> : null}
       </div>
       {children}
     </div>

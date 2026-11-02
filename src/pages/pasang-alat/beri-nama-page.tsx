@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { TextInput } from '@/components/ui/text-input';
+import { TextLink } from '@/components/ui/text-link';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 import { useWizard } from '@/pages/pasang-alat/wizard-context';
 
@@ -67,6 +68,7 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
   const {
     register,
     control,
+    getValues,
     handleSubmit,
     formState: { errors },
   } = useForm<Values>({
@@ -118,6 +120,17 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
           />
         )}
       />
+      {/* The name that the user typed stays in the steps while the room is added */}
+      <TextLink
+        to={`${addPath}/ruangan`}
+        className="self-start"
+        onClick={() => {
+          wizard.setName(getValues('name'));
+          wizard.setRoomId(getValues('roomId'));
+        }}
+      >
+        Tambah ruangan
+      </TextLink>
       {start.error instanceof ApiError && start.error.code === 'no_gateway' ? (
         // The hub was removed after the first step, or the list of hubs could not be read there
         <Banner
