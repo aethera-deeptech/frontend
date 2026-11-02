@@ -17,7 +17,9 @@ export function RequireSession() {
   }
   // A read that fails in the background, for example on a lost connection, keeps the user where they are
   if (session.data) {
-    return <Outlet />;
+    // Another user can sign in from a second tab. The screens below start over for that user, so state that belongs to the
+    // first one, such as the link of a downloaded report, does not carry over.
+    return <Outlet key={session.data.email} />;
   }
   if (session.isPending) {
     return <AppLoading />;
