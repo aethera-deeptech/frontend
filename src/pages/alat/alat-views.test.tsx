@@ -163,7 +163,7 @@ describe('AlatDetailView, normal', () => {
   it('shows the information about the device and a link to rename it', () => {
     renderDetail();
 
-    expect(screen.getByText('Colokan pintar')).toBeInTheDocument();
+    expect(screen.getByText('WATTLINK Plug')).toBeInTheDocument();
     expect(screen.getByText('29 Okt 2026, 14:32')).toBeInTheDocument();
     expect(screen.getByText('Baik')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ganti nama' })).toHaveAttribute(
@@ -186,7 +186,7 @@ describe('AlatDetailView, anomaly', () => {
     expect(
       screen.getByText('Abu-abu berarti kisaran biasa. Merah berarti anomali.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Penjepit arus (dijepit di kabel)')).toBeInTheDocument();
+    expect(screen.getByText('WATTLINK Clamp (dijepit di kabel)')).toBeInTheDocument();
   });
 
   it('names the day of an anomaly that is not from today', () => {

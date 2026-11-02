@@ -87,7 +87,7 @@ export function BerandaView({
       {data.phase === 'no-devices' ? (
         <EmptyState
           headline="Belum ada alat terpasang"
-          message="Pasang colokan pintar atau penjepit arus agar sistem bisa menghitung energi dan menyarankan penghematan dalam rupiah."
+          message="Pasang WATTLINK Plug atau WATTLINK Clamp agar sistem bisa menghitung energi dan menyarankan penghematan dalam rupiah."
           action={<AddDeviceButton />}
         />
       ) : null}

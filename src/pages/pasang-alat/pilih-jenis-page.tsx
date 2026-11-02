@@ -8,13 +8,13 @@ import { useWizard } from '@/pages/pasang-alat/wizard-context';
 const choices: { kind: DeviceKind; title: string; hint: string; next: string }[] = [
   {
     kind: 'plug',
-    title: 'Colokan pintar',
+    title: 'WATTLINK Plug',
     hint: 'Untuk mesin yang dicolok ke stopkontak',
     next: `${addPath}/persetujuan`,
   },
   {
     kind: 'clamp',
-    title: 'Penjepit arus',
+    title: 'WATTLINK Clamp',
     hint: 'Dipasang di panel listrik',
     next: `${addPath}/peringatan`,
   },

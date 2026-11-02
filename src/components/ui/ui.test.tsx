@@ -154,7 +154,7 @@ describe('ListRow', () => {
   it('is a plain row without a link', () => {
     render(
       <ul>
-        <ListRow title="Mesin jahit 1" secondary="Colokan pintar" status="nyala" value="86 W" />
+        <ListRow title="Mesin jahit 1" secondary="WATTLINK Plug" status="nyala" value="86 W" />
       </ul>,
     );
 
@@ -181,7 +181,7 @@ describe('EmptyState', () => {
     render(
       <EmptyState
         headline="Belum ada alat terpasang"
-        message="Pasang colokan pintar."
+        message="Pasang WATTLINK Plug."
         action={<Button kind="accent">Tambah alat</Button>}
       />,
     );
@@ -220,7 +220,7 @@ describe('StatTile and KeyValueRow', () => {
       <>
         <StatTile label="Hari ini" value="4,2 kWh" />
         <dl>
-          <KeyValueRow label="Jenis" value="Colokan pintar" />
+          <KeyValueRow label="Jenis" value="WATTLINK Plug" />
         </dl>
       </>,
     );
@@ -228,6 +228,6 @@ describe('StatTile and KeyValueRow', () => {
     expect(screen.getByText('Hari ini')).toBeInTheDocument();
     expect(screen.getByText('4,2 kWh')).toBeInTheDocument();
     expect(screen.getByText('Jenis')).toBeInTheDocument();
-    expect(screen.getByText('Colokan pintar')).toBeInTheDocument();
+    expect(screen.getByText('WATTLINK Plug')).toBeInTheDocument();
   });
 });

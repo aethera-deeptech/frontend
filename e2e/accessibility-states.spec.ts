@@ -199,7 +199,7 @@ for (const state of states) {
 
 async function startPlug(page: Page) {
   await page.goto('/alat/tambah');
-  await page.getByRole('button', { name: /Colokan pintar/ }).click();
+  await page.getByRole('button', { name: /WATTLINK Plug/ }).click();
   await page.getByRole('checkbox', { name: 'Saya setuju data listrik alat ini dibaca' }).click();
   await page.getByRole('button', { name: 'Lanjut' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Beri nama alat' })).toBeVisible();
@@ -253,7 +253,7 @@ test('the list of rooms, open, has no accessibility violations', async ({ page }
 test('the consent for a clamp has no accessibility violations', async ({ page }, testInfo) => {
   onlyOnStateDevices(testInfo.project.name);
   await page.goto('/alat/tambah');
-  await page.getByRole('button', { name: /Penjepit arus/ }).click();
+  await page.getByRole('button', { name: /WATTLINK Clamp/ }).click();
   await page.getByRole('checkbox', { name: 'Saya tahu cara memasang dengan aman' }).click();
   await page.getByRole('button', { name: 'Lanjut' }).click();
   await expect(

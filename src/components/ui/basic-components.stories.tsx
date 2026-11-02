@@ -105,14 +105,14 @@ export const List: Story = {
     <ul>
       <ListRow
         title="Mesin jahit 1"
-        secondary="Colokan pintar"
+        secondary="WATTLINK Plug"
         status="nyala"
         value="86 W"
         valueNote="4,2 kWh hari ini"
         to="/alat/1"
       />
       <ListRow title="Kipas gudang" status="offline" secondary="Menunggu data" to="/alat/2" />
-      <ListRow title="Jenis" secondary="Colokan pintar" />
+      <ListRow title="Jenis" secondary="WATTLINK Plug" />
     </ul>
   ),
 };
@@ -120,7 +120,7 @@ export const List: Story = {
 export const KeyValues: Story = {
   render: () => (
     <dl className="flex flex-col gap-1">
-      <KeyValueRow label="Jenis" value="Colokan pintar" />
+      <KeyValueRow label="Jenis" value="WATTLINK Plug" />
       <KeyValueRow label="Ruangan" value="Ruang jahit" />
     </dl>
   ),
@@ -131,7 +131,7 @@ export const EmptyAndLoading: Story = {
     <div className="flex flex-col gap-3">
       <EmptyState
         headline="Belum ada alat terpasang"
-        message="Pasang colokan pintar atau penjepit arus."
+        message="Pasang WATTLINK Plug atau WATTLINK Clamp."
         action={<Button kind="accent">Tambah alat</Button>}
       />
       <SkeletonCard />

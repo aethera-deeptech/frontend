@@ -18,7 +18,7 @@ export function PeringatanPage() {
 
   return (
     <StepFrame
-      title="Sebelum memasang penjepit arus"
+      title="Sebelum memasang WATTLINK Clamp"
       subtitle="Pemasangan ini berhubungan dengan listrik."
       backTo={addPath}
     >
