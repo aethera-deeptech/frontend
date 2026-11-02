@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { ApiError, apiRequest } from '@/api/client';
@@ -31,15 +31,6 @@ export function isPlausibleToken(token: string): boolean {
 }
 
 export const sessionKey = ['session'] as const;
-
-// Who is signed in. A 401 means nobody, and that is an answer and not a failure, so it does not retry.
-export function useSession() {
-  return useQuery({
-    queryKey: sessionKey,
-    queryFn: ({ signal }) => apiRequest('/v1/auth/me', meSchema, { signal }),
-    retry: false,
-  });
-}
 
 interface Credentials {
   email: string;

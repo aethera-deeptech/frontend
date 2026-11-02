@@ -259,6 +259,54 @@ describe('Masuk', () => {
     expect(await screen.findByText('Periksa isian Anda')).toBeVisible();
   });
 
+  it('does nothing when the form is sent again while the first call runs', async () => {
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123{Enter}');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), '{Enter}');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not send the verification email twice while the first one is on its way', async () => {
+    const fetchMock = vi.fn((input: string) =>
+      new URL(input).pathname === '/v1/auth/login'
+        ? Promise.resolve(
+            new Response(JSON.stringify({ code: 'email_not_verified', message: 'No' }), {
+              status: 403,
+            }),
+          )
+        : new Promise<Response>(() => undefined),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+    const resend = await screen.findByRole('button', { name: 'Kirim ulang email' });
+    await userEvent.click(resend);
+    await userEvent.click(resend);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('says to try later when the limit names no wait', async () => {
+    stubApi({
+      'POST /v1/auth/login': { status: 429, body: { code: 'rate_limited', message: 'Slow' } },
+    });
+    renderAt('/masuk');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+
+    expect(await screen.findByText('Coba lagi nanti.')).toBeVisible();
+  });
+
   it('says that the connection is lost', async () => {
     stubApi({});
     renderAt('/masuk');
@@ -315,6 +363,43 @@ describe('Daftar', () => {
     expect(screen.getByLabelText('Kata sandi')).toHaveAccessibleDescription('Isi kata sandi Anda.');
     expect(screen.getByLabelText('Nama usaha')).toHaveFocus();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('focuses the email when it is the first field that is wrong', async () => {
+    const fetchMock = stubApi({});
+    renderAt('/daftar');
+
+    await userEvent.type(screen.getByLabelText('Nama usaha'), 'Maju');
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi');
+    await userEvent.click(screen.getByRole('button', { name: 'Daftar' }));
+
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Isi email yang valid.');
+    expect(screen.getByLabelText('Email')).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('focuses the password when it is the first field that is wrong', async () => {
+    stubApi({});
+    renderAt('/daftar');
+
+    await userEvent.type(screen.getByLabelText('Nama usaha'), 'Maju');
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Daftar' }));
+
+    expect(screen.getByLabelText('Kata sandi')).toHaveFocus();
+  });
+
+  it('does nothing when the form is sent again while the first call runs', async () => {
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt('/daftar');
+
+    await userEvent.type(screen.getByLabelText('Nama usaha'), 'Maju');
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123{Enter}');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), '{Enter}');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('asks for at least 8 characters in the password', async () => {
@@ -432,6 +517,15 @@ describe('Verifikasi', () => {
       'aria-disabled',
       'true',
     );
+  });
+
+  it('does not call the API when the button is pressed while it waits', async () => {
+    const fetchMock = stubApi({});
+    renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 60 });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim ulang dalam 60 detik' }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('sends the email again when the wait is over and starts the wait again', async () => {
@@ -568,6 +662,47 @@ describe('Verify email link', () => {
     expect(bodyOf(fetchMock, '/v1/auth/resend-verification')).toEqual({
       email: 'dewi@example.com',
     });
+  });
+
+  it('opens the timer screen with the wait of the API when the new link came too soon', async () => {
+    stubApi({
+      'POST /v1/auth/resend-verification': {
+        status: 429,
+        body: { code: 'resend_too_soon', message: 'Wait', retryAfterSeconds: 45 },
+      },
+    });
+    const router = renderAt('/verify-email');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan baru' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/verifikasi');
+    });
+    expect(
+      await screen.findByRole('button', { name: /^Kirim ulang dalam 4\d detik$/ }),
+    ).toBeVisible();
+  });
+
+  it('shows that the new link could not be sent when the API fails', async () => {
+    stubApi({});
+    renderAt('/verify-email');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Kirim tautan baru' }));
+
+    expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
+  });
+
+  it('sends the new link once when the button is pressed twice', async () => {
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt('/verify-email');
+
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com{Enter}');
+    await userEvent.type(screen.getByLabelText('Email'), '{Enter}');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('offers to try again when the connection was lost, and keeps the token for it', async () => {
