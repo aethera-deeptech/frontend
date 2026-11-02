@@ -228,6 +228,33 @@ describe('AlatDetailView, the kind of anomaly', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Faktor daya rata-rata 0,62.');
   });
 
+  it('shows the number of a surge in the chart and no number for the other kinds', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AlatDetailView detail={withKind('surge')} now={now} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('img', { name: /ada anomali/ })).toHaveTextContent('Anomali 2.000 W');
+    unmount();
+
+    renderDetail(withKind('overload'));
+
+    expect(screen.getByRole('img', { name: /ada anomali/ })).not.toHaveTextContent(
+      'Anomali 2.000 W',
+    );
+    expect(screen.getByRole('img', { name: /ada anomali/ })).toHaveTextContent('Anomali');
+  });
+
+  it('names the day when the anomaly is from another day', () => {
+    render(
+      <MemoryRouter>
+        <AlatDetailView detail={withKind('overload')} now={new Date(2026, 10, 2, 12, 0)} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Beban berlebih 29 Okt pukul 02:10');
+  });
+
   it('says a degradation that the device reported without a power factor', () => {
     renderDetail(withKind('degradation'));
 
@@ -245,6 +272,17 @@ describe('the schema of the anomaly', () => {
     const parsed = deviceDetailSchema.shape.anomaly.parse(base);
 
     expect(parsed?.kind).toBe('surge');
+  });
+
+  it.each([null, -0.1, 1.2, '0.5'])('drops the power factor %s', (powerFactor) => {
+    const parsed = deviceDetailSchema.shape.anomaly.parse({
+      ...base,
+      kind: 'degradation',
+      powerFactor,
+    });
+
+    expect(parsed?.kind).toBe('degradation');
+    expect(parsed?.powerFactor).toBeUndefined();
   });
 
   it('reads a kind that it does not know as a surge and drops a power factor out of range', () => {

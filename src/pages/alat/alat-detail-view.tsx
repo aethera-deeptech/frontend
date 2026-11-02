@@ -162,7 +162,11 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
             ? {
                 from: shownAnomaly.from,
                 to: shownAnomaly.to,
-                label: `Anomali ${formatWatts(shownAnomaly.peak)}`,
+                // The power that the API sends is the peak of a surge only, so the other kinds show no number
+                label:
+                  detail.anomaly?.kind === 'surge'
+                    ? `Anomali ${formatWatts(shownAnomaly.peak)}`
+                    : 'Anomali',
               }
             : undefined
         }
