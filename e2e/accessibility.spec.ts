@@ -26,6 +26,7 @@ const screens = [
   { name: 'Pengaturan, business name', path: '/lainnya/pengaturan/nama' },
   { name: 'Pengaturan, tariff', path: '/lainnya/pengaturan/tarif' },
   { name: 'Pengaturan, work hours', path: '/lainnya/pengaturan/jam-kerja' },
+  { name: 'Pengaturan, time zone', path: '/lainnya/pengaturan/zona-waktu' },
   { name: 'Pengaturan, sensitivity', path: '/lainnya/pengaturan/kepekaan' },
   { name: 'Keluar', path: '/lainnya/keluar' },
   { name: 'Masuk', path: '/masuk' },

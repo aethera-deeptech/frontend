@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -333,8 +333,9 @@ describe('Beri nama alat, with no hub', () => {
     expect(await screen.findByText('WATTLINK Hub belum terhubung')).toBeVisible();
 
     await userEvent.click(screen.getByRole('link', { name: 'Hubungkan WATTLINK Hub' }));
-    await act(async () => undefined);
 
-    expect(router.state.location.pathname).toBe('/alat/tambah/hub');
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/alat/tambah/hub');
+    });
   });
 });

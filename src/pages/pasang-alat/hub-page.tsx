@@ -9,6 +9,7 @@ import {
   useClaimGateway,
 } from '@/api/gateways';
 import { ApiError } from '@/api/client';
+import { countCharacters } from '@/lib/characters';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
@@ -34,7 +35,7 @@ function checkName(value: string): string | undefined {
     return 'Isi nama WATTLINK Hub.';
   }
   // The API counts characters and not the units of the string, so an emoji counts once
-  return [...name].length > gatewayNameLength.max
+  return countCharacters(name) > gatewayNameLength.max
     ? `Nama paling panjang ${gatewayNameLength.max.toString()} huruf.`
     : undefined;
 }
@@ -150,6 +151,10 @@ export function HubPage() {
           error={nameError}
           onChange={(event) => {
             setName(event.target.value);
+            // An answer about the fields goes away when the user edits one of them
+            if (failure === 'invalid-input') {
+              claim.reset();
+            }
           }}
         />
         <Button

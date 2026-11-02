@@ -79,7 +79,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `anomaly` with `at` and `peakW`, only while the status is `anomali`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
-`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. A 409 `no_gateway` says that the business has no hub, and the form offers the hub step. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
+`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
 
 ## Laporan
 
@@ -115,8 +115,9 @@ A `ready` report has the fields below.
 - `workHours` with `days`, which is `mon-fri`, `mon-sat` or `daily`, and `start` and `end`, written `HH:MM`.
 - `tariff` with `rpPerKwh`, `isDefault` and `defaultRpPerKwh`. `isDefault` is true while the user has not filled in a tariff, and then `rpPerKwh` is the default.
 - `anomalySensitivity`, which is `rendah`, `sedang` or `tinggi`.
+- `timeZone`, an IANA zone name such as `Asia/Jakarta`. The API accepts only places with a whole hour offset from UTC, so the screen offers `Asia/Jakarta` (WIB), `Asia/Makassar` (WITA) and `Asia/Jayapura` (WIT). A zone that the API sends and the screen does not list shows its own name.
 
-`PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh` and `anomalySensitivity`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices and the report again, because the tariff and the sensitivity change their numbers.
+`PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh`, `anomalySensitivity` and `timeZone`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices, the production records and the report again, because the tariff, the sensitivity and the zone change their numbers.
 
 ## Pasang alat
 
@@ -128,6 +129,6 @@ A `ready` report has the fields below.
 
 `POST /v1/rooms` with the body `{ "name": "Ruang cetak" }` adds a room, from the link Tambah ruangan under the room field of the form of the device. The name is 1 to 40 characters after the spaces at both ends are removed. The 201 answer is the room, and the frontend adds it to the list it holds and chooses it in the form. A 409 `room_exists` marks the name field, a 409 `too_many_rooms` says that the business has 100 rooms and holds the button, and a 422 shows a general banner.
 
-`POST /v1/pairings` with the body `{ "kind": "plug", "name": "Mesin jahit 2", "roomId": "jahit" }` starts the search for a new device and answers `{ "id": "..." }`. The `kind` is `plug` for a smart plug or `clamp` for a current clamp. The name is 1 to 40 characters long after the spaces at both ends are removed.
+`POST /v1/pairings` with the body `{ "kind": "plug", "name": "Mesin jahit 2", "roomId": "jahit" }` starts the search for a new device and answers `{ "id": "..." }`. The `kind` is `plug` for a smart plug or `clamp` for a current clamp. The name is 1 to 40 characters long after the spaces at both ends are removed. A 409 `no_gateway` says that the business has no hub, and the form offers the hub step.
 
 `GET /v1/pairings/{id}` returns `{ "status": "searching" | "connected" | "failed" }`. The frontend asks again every 3 seconds while the status is `searching`, and the API decides when to give up and answer `failed`. When the status turns `connected` the frontend loads the devices and the home screen again.

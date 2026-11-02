@@ -18,7 +18,7 @@ export function LainnyaPage() {
             />
             <ListRow
               title="Pengaturan"
-              secondary="Nama usaha, jam kerja, tarif dan kepekaan"
+              secondary="Nama usaha, jam kerja, zona waktu, tarif dan kepekaan"
               to="/lainnya/pengaturan"
             />
           </ul>
