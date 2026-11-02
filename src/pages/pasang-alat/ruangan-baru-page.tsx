@@ -7,6 +7,7 @@ import { roomNameLength, useCreateRoom } from '@/api/pairing';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
+import { countCharacters } from '@/lib/characters';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 import { useWizard } from '@/pages/pasang-alat/wizard-context';
@@ -18,7 +19,7 @@ function checkName(value: string): string | undefined {
     return 'Isi nama ruangan.';
   }
   // The API counts characters and not the units of the string, so an emoji counts once
-  return [...name].length > roomNameLength.max
+  return countCharacters(name) > roomNameLength.max
     ? `Nama ruangan paling panjang ${roomNameLength.max.toString()} huruf.`
     : undefined;
 }
