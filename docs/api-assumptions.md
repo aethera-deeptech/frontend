@@ -79,7 +79,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `anomaly` with `at` and `peakW`, only while the status is `anomali`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
-`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
+`PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. A 409 `no_gateway` says that the business has no hub, and the form offers the hub step. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
 
 ## Laporan
 
@@ -119,6 +119,10 @@ A `ready` report has the fields below.
 `PATCH /v1/settings` changes the settings. The body has only the fields that change, which are `businessName`, `workHours`, `tariffRpPerKwh` and `anomalySensitivity`. A `tariffRpPerKwh` of `null` goes back to the default tariff. The answer may have any body. After a change the frontend loads the settings, the home screen, the tips, the devices and the report again, because the tariff and the sensitivity change their numbers.
 
 ## Pasang alat
+
+`GET /v1/gateways` returns `items`, the gateways of the business, each with `id`, `name` and `lastSeenAt`. The screens call a gateway the WATTLINK Hub. The first step of Tambah alat reads the list. A business with no hub goes to the step `/alat/tambah/hub`, and a list that cannot be loaded does not block the choice of the device.
+
+`POST /v1/gateways` with the body `{ "claimCode": "K7M2Q9XA", "name": "Hub pabrik" }` claims a hub with the code that its display shows. The code has 8 characters, capital letters and the digits 2 to 9, works once and for 10 minutes. The screen turns small letters into capitals and removes spaces and dashes before it sends the code. The 201 answer is the gateway, and the frontend adds it to the list it holds. A 404 `claim_code_unknown` says that the code is wrong, used or expired. A 409 `gateway_claimed_elsewhere` says that another business has the hub, and a 409 `too_many_gateways` says that the business has 10 hubs. A 422 shows a general banner, and a 429 holds the button for `retryAfterSeconds`.
 
 `GET /v1/rooms` returns `items`, the rooms of the business, each with `id` and `name`. The user picks one when a device is added.
 
