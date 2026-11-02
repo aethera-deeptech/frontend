@@ -1,5 +1,5 @@
-import { useRef, useState, type SubmitEvent } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
+import { Link, useBlocker, useLocation, useNavigate } from 'react-router';
 
 import { authFailure, useChangeEmail } from '@/api/auth';
 import { ApiError } from '@/api/client';
@@ -39,6 +39,17 @@ export function GantiEmailPage() {
       (failure === 'email-taken' ? 'Email ini sudah terdaftar.' : undefined))
     : undefined;
   const waiting = left > 0;
+  // True from the press of the button until the API answers. A ref and not the state of the mutation, because the move to the
+  // next screen starts inside the success callback, before the page renders again.
+  const sending = useRef(false);
+  // The user must not leave while the call runs. The account moves when it succeeds, and a page that is gone cannot say so.
+  const blocker = useBlocker(() => sending.current);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      blocker.reset();
+    }
+  }, [blocker]);
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -62,10 +73,12 @@ export function GantiEmailPage() {
     }
     const address = newEmail.trim();
 
+    sending.current = true;
     change.mutate(
       { email: email.trim(), password, newEmail: address },
       {
         onSuccess: ({ retryAfterSeconds }) => {
+          sending.current = false;
           // The new address goes in the history entry of this visit and not in any storage of ours, like after the sign up
           // The form leaves the history, so Back from the next screen does not open an empty form
           void navigate('/verifikasi', {
@@ -74,12 +87,20 @@ export function GantiEmailPage() {
           });
         },
         onError: (error) => {
+          sending.current = false;
           if (error instanceof ApiError && error.status === 429) {
             setReadyAt(Date.now() + (error.retryAfterSeconds ?? 60) * 1000);
           }
         },
       },
     );
+  };
+
+  // The banner about the credentials goes away when the user edits one of them. The wait after a 429 keeps its own timer.
+  const clearCredentialFailure = () => {
+    if (failure === 'invalid-credentials') {
+      change.reset();
+    }
   };
 
   // The screen opens from the verification screen, so one step back is that screen. A visit with no history has no such screen.
@@ -136,6 +157,7 @@ export function GantiEmailPage() {
             error={emailError}
             onChange={(event) => {
               setEmail(event.target.value);
+              clearCredentialFailure();
             }}
           />
           <PasswordField
@@ -146,6 +168,7 @@ export function GantiEmailPage() {
             error={passwordError}
             onChange={(event) => {
               setPassword(event.target.value);
+              clearCredentialFailure();
             }}
           />
           <TextInput

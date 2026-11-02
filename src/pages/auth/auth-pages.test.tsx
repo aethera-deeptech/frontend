@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -749,6 +749,40 @@ describe('Ganti email', () => {
       'aria-disabled',
       'true',
     );
+  });
+
+  it('does not let the user leave while the call runs', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)),
+    );
+    const router = renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+    await act(async () => {
+      await router.navigate('/masuk');
+    });
+
+    expect(router.state.location.pathname).toBe('/ganti-email');
+  });
+
+  it('clears the banner about the credentials when the user edits the password', async () => {
+    stubApi({
+      'POST /v1/auth/change-email': {
+        status: 401,
+        body: { code: 'invalid_credentials', message: 'No' },
+      },
+    });
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+    expect(await screen.findByText('Tidak bisa mengganti email')).toBeVisible();
+
+    await userEvent.type(screen.getByLabelText('Kata sandi'), '4');
+
+    expect(screen.queryByText('Tidak bisa mengganti email')).not.toBeInTheDocument();
   });
 
   it('says that the email or the password does not match, without naming which', async () => {
