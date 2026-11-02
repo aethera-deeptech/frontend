@@ -51,11 +51,7 @@ export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewPr
       </div>
 
       {detail.status === 'anomali' && detail.anomaly ? (
-        <Banner
-          tone="danger"
-          title={`Daya naik mendadak ${isSameDay(parseMoment(detail.anomaly.at), now) ? 'hari ini' : formatDate(parseMoment(detail.anomaly.at))} pukul ${formatTime(parseMoment(detail.anomaly.at))}`}
-          message={`${detail.name} sempat menarik ${formatWatts(detail.anomaly.peakW)}, jauh di atas kisaran biasa. Periksa apakah ada beban berlebih. Anda yang memutuskan langkah berikutnya.`}
-        />
+        <Banner tone="danger" {...anomalyText(detail.name, detail.anomaly, now)} />
       ) : null}
       {detail.status === 'offline' ? (
         <Banner
@@ -106,6 +102,36 @@ export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewPr
   );
 }
 
+// The words of the banner for each kind of anomaly. The title says when, by the clock of the business.
+function anomalyText(
+  name: string,
+  anomaly: NonNullable<DeviceDetail['anomaly']>,
+  now: Date,
+): { title: string; message: string } {
+  const at = parseMoment(anomaly.at);
+  const when = `${isSameDay(at, now) ? 'hari ini' : formatDate(at)} pukul ${formatTime(at)}`;
+
+  if (anomaly.kind === 'overload') {
+    return {
+      title: `Beban berlebih ${when}`,
+      message: 'Alat melaporkan beban di atas batasnya. Periksa mesin yang terhubung ke alat.',
+    };
+  }
+  if (anomaly.kind === 'degradation') {
+    return {
+      title: `Motor bekerja kurang efisien ${when}`,
+      message:
+        anomaly.powerFactor === undefined
+          ? 'Alat melaporkan motor bekerja kurang efisien. Pertimbangkan pemeriksaan.'
+          : `Faktor daya rata-rata ${formatFixed(anomaly.powerFactor, 2)}. Angka yang rendah berarti sebagian arus motor tidak terpakai untuk bekerja. Pertimbangkan pemeriksaan.`,
+    };
+  }
+  return {
+    title: `Daya naik mendadak ${when}`,
+    message: `${name} sempat menarik ${formatWatts(anomaly.peakW)}, jauh di atas kisaran biasa. Periksa apakah ada beban berlebih. Anda yang memutuskan langkah berikutnya.`,
+  };
+}
+
 function PowerSection({ detail }: { detail: DeviceDetail }) {
   const pattern = detail.powerPattern;
 
@@ -136,7 +162,11 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
             ? {
                 from: shownAnomaly.from,
                 to: shownAnomaly.to,
-                label: `Anomali ${formatWatts(shownAnomaly.peak)}`,
+                // The power that the API sends is the peak of a surge only, so the other kinds show no number
+                label:
+                  detail.anomaly?.kind === 'surge'
+                    ? `Anomali ${formatWatts(shownAnomaly.peak)}`
+                    : 'Anomali',
               }
             : undefined
         }
