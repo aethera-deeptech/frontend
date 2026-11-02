@@ -262,3 +262,130 @@ test('the consent for a clamp has no accessibility violations', async ({ page },
 
   await expectNoViolations(page);
 });
+
+// The screens before the login, in the states that need an answer from the API or a try with empty fields
+const longToken = 'a'.repeat(43);
+const signedIn = {
+  email: 'dewi@example.com',
+  emailVerified: true,
+  businessName: 'Konveksi Maju Jaya',
+};
+
+async function signIn(page: Page) {
+  await page.goto('/masuk');
+  await page.getByLabel('Email', { exact: true }).fill('dewi@example.com');
+  await page.getByLabel('Kata sandi', { exact: true }).fill('rahasia123');
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click();
+}
+
+async function signUp(page: Page) {
+  await page.goto('/daftar');
+  await page.getByLabel('Nama usaha').fill('Konveksi Maju Jaya');
+  await page.getByLabel('Email', { exact: true }).fill('dewi@example.com');
+  await page.getByLabel('Kata sandi', { exact: true }).fill('rahasia123');
+  await page.getByRole('button', { name: 'Daftar', exact: true }).click();
+}
+
+test.describe('Masuk with a wrong password', () => {
+  test.use({
+    apiOverrides: {
+      'POST /v1/auth/login': { status: 401, body: { code: 'invalid_credentials', message: 'No' } },
+    },
+  });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await signIn(page);
+    await expect(page.getByText('Email atau kata sandi tidak cocok.')).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
+test.describe('Masuk with an email that is not verified', () => {
+  test.use({
+    apiOverrides: {
+      'POST /v1/auth/login': { status: 403, body: { code: 'email_not_verified', message: 'No' } },
+    },
+  });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await signIn(page);
+    await expect(page.getByText('Email belum diverifikasi')).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
+test('Daftar with every field empty has no accessibility violations', async ({
+  page,
+}, testInfo) => {
+  onlyOnStateDevices(testInfo.project.name);
+  await page.goto('/daftar');
+  await page.getByRole('button', { name: 'Daftar', exact: true }).click();
+  await expect(page.getByText('Isi nama usaha.')).toBeVisible();
+
+  await expectNoViolations(page);
+});
+
+test.describe('Daftar with an email that has an account', () => {
+  test.use({
+    apiOverrides: {
+      'POST /v1/auth/register': { status: 409, body: { code: 'email_taken', message: 'No' } },
+    },
+  });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await signUp(page);
+    await expect(page.getByText('Email sudah terdaftar', { exact: true })).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
+test.describe('the screen after a sign up', () => {
+  test.use({
+    apiOverrides: { 'POST /v1/auth/register': { status: 201, body: { retryAfterSeconds: 60 } } },
+  });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await signUp(page);
+    await expect(page.getByRole('heading', { level: 1, name: 'Periksa email Anda' })).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
+test.describe('the link of the verification email that works', () => {
+  test.use({ apiOverrides: { 'POST /v1/auth/verify-email': { body: signedIn } } });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await page.goto(`/verify-email?token=${longToken}`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Akun Anda aktif' })).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});
+
+test.describe('the link of the verification email that was used', () => {
+  test.use({
+    apiOverrides: {
+      'POST /v1/auth/verify-email': {
+        status: 410,
+        body: { code: 'token_invalid_or_expired', message: 'No' },
+      },
+    },
+  });
+
+  test('has no accessibility violations', async ({ page }, testInfo) => {
+    onlyOnStateDevices(testInfo.project.name);
+    await page.goto(`/verify-email?token=${longToken}`);
+    await expect(page.getByText('Tautan tidak berlaku')).toBeVisible();
+
+    await expectNoViolations(page);
+  });
+});

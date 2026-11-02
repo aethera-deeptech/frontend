@@ -4,6 +4,19 @@ The backend publishes its contract as `openapi.yaml` in the [backend repository]
 
 Only the files in `src/api` know these paths and shapes. When the backend differs, change those files and this page. A response that does not match its schema is shown to the user like a failed request.
 
+## Account
+
+The screens Masuk, Daftar, Verifikasi and the page of the email link use these paths. The text of an error is never shown. The screens read the `code` of the error body (a short lowercase word) and the status, and they write their own texts.
+
+| Call                                | Used for                                                                                                | Answers the screens react to                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `POST /v1/auth/register`            | Daftar sends `businessName`, `email` and `password`. The 201 answer has `retryAfterSeconds`.            | 409 `email_taken`, 429                                                       |
+| `POST /v1/auth/login`               | Masuk sends `email` and `password`. The 200 answer is the user and the cookie is set.                   | 401 `invalid_credentials`, 403 `email_not_verified`, 429                     |
+| `POST /v1/auth/resend-verification` | The button that sends the email again, from Masuk, Verifikasi and the page of a link that does not work | 202 with `retryAfterSeconds`, 429 `resend_too_soon` with `retryAfterSeconds` |
+| `POST /v1/auth/verify-email`        | The page `/verify-email?token=` sends the token once. The 200 answer is the user and the cookie is set. | 410 `token_invalid_or_expired`, 429                                          |
+
+The user is `{ email, emailVerified, businessName }`. After a sign in or a verification the app drops everything it cached and keeps the user as the session, so the data of another account never shows. The address of the sign up goes to the screen after it in the history entry of that visit. The app stores nothing itself, but the browser keeps the entry over a reload, and a visit with no such entry goes back to Daftar. The other account calls (Google, logout, me, change email, forgot and reset password) are not used yet.
+
 ## Beranda
 
 `GET /v1/beranda` returns the data of the home screen. The field `phase` tells which shape follows.

@@ -40,6 +40,20 @@ export const routes: RouteObject[] = [
         ),
       },
       {
+        path: 'verifikasi',
+        ...lazyPage(
+          () => import('@/pages/auth/verifikasi-page'),
+          (module) => module.VerifikasiPage,
+        ),
+      },
+      {
+        path: 'verify-email',
+        ...lazyPage(
+          () => import('@/pages/auth/verify-email-page'),
+          (module) => module.VerifyEmailPage,
+        ),
+      },
+      {
         element: <AppShell />,
         children: [
           {

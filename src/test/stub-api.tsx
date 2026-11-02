@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { vi } from 'vitest';
@@ -32,15 +33,25 @@ export function stubApi(answers: Record<string, Answer | (() => Answer)>) {
   return fetchMock;
 }
 
-// Renders the real routes at a path with a query client that does not retry
-export function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
+// Renders the real routes at a path with a query client that does not retry. The state is what the visit carries, as a
+// navigation from another screen would leave it. The app runs in strict mode, which runs every effect twice in development,
+// so a test can ask for it.
+export function renderAt(
+  path: string,
+  state?: unknown,
+  options: { strict?: boolean; client?: QueryClient } = {},
+) {
+  const router = createMemoryRouter(routes, {
+    initialEntries: [state === undefined ? path : { pathname: path, state }],
+  });
+  const client =
+    options.client ?? new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const app = (
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+  render(options.strict ? <StrictMode>{app}</StrictMode> : app);
   return router;
 }
 

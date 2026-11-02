@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -7,7 +8,11 @@ import { routes } from '@/routes';
 
 // This file does not load the pages first, so it runs the lazy path of the real app. Every other test file loads them.
 function renderAt(path: string) {
-  render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />);
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
+    </QueryClientProvider>,
+  );
 }
 
 describe('the lazy routes', () => {
