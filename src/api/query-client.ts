@@ -23,8 +23,8 @@ export function createQueryClient(): QueryClient {
   // A 401 on any call except the account calls means that the session ended while the screen was open, for example after
   // 30 days or after a password reset on another device. The session is read again, and the guard sends the user to Masuk.
   const sessionEnded = () => {
-    // Several queries that fail together would each restart the read, so a read that runs is left alone
-    void client.invalidateQueries({ queryKey: sessionKey }, { cancelRefetch: false });
+    // A read that started before the 401 may answer for a session that has ended since, so the read starts again
+    void client.invalidateQueries({ queryKey: sessionKey });
   };
   const client: QueryClient = new QueryClient({
     queryCache: new QueryCache({

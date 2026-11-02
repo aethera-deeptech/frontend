@@ -61,6 +61,36 @@ describe('Keluar', () => {
     });
   });
 
+  it('still ends the session in the browser when the user leaves the screen while the call runs', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            answer = resolve;
+          }),
+      ),
+    );
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['beranda'], { businessName: 'Maju' });
+    const router = renderAt('/lainnya/keluar', undefined, { client });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Keluar' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Batal' }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/lainnya');
+    });
+    answer(new Response(null, { status: 204 }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/masuk');
+    });
+    await waitFor(() => {
+      expect(client.getQueryData(['beranda'])).toBeUndefined();
+    });
+  });
+
   it('counts a 401 as done, because no session is left to end', async () => {
     stubApi({
       'POST /v1/auth/logout': { status: 401, body: { code: 'unauthorized', message: 'No' } },

@@ -20,15 +20,18 @@ export function KeluarPage() {
     if (logout.isPending) {
       return;
     }
-    logout.mutate(undefined, {
-      onSuccess: () => {
-        // Nothing of this business may stay in the browser for the next person. The cache is emptied after the move, when
-        // no screen of the app is left to ask for its data again.
-        void Promise.resolve(navigate('/masuk', { replace: true })).then(() => {
-          queryClient.clear();
-        });
-      },
-    });
+    // The steps after the call run from this promise and not from a callback of the hook, because a user who presses Batal
+    // while the call runs leaves this screen, and a callback of the screen would never run. The session is gone on the
+    // server by then, so nothing of this business may stay in the browser for the next person. The cache is emptied after
+    // the move, when no screen of the app is left to ask for its data again.
+    logout
+      .mutateAsync()
+      .then(() => navigate('/masuk', { replace: true }))
+      .then(() => {
+        queryClient.clear();
+      })
+      // The screen shows the failure of the call. Nothing else can go wrong here, so there is nothing more to say.
+      .catch(() => undefined);
   };
 
   return (

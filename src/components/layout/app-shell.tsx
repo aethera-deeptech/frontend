@@ -73,7 +73,7 @@ export function AppShell() {
             ))}
           </ul>
         </nav>
-        <div className="border-border-1 flex flex-col gap-2 border-t p-4">
+        <aside aria-label="Akun" className="border-border-1 flex flex-col gap-2 border-t p-4">
           <Link
             to="/lainnya/keluar"
             className="text-button text-text-1 hover:bg-bg-3 flex h-10 items-center rounded-md px-3"
@@ -81,7 +81,7 @@ export function AppShell() {
             Keluar
           </Link>
           {businessName ? <p className="text-label text-text-2 px-3">{businessName}</p> : null}
-        </div>
+        </aside>
       </div>
 
       <main
