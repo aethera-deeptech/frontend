@@ -634,6 +634,240 @@ describe('Verifikasi', () => {
   });
 });
 
+describe('Ganti email', () => {
+  async function fill(current = 'dewi@example.com', next = 'dewi@example.org') {
+    await userEvent.type(screen.getByLabelText('Email saat ini'), current);
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.type(screen.getByLabelText('Email baru'), next);
+  }
+
+  it('opens from the verification screen', async () => {
+    stubApi({});
+    const router = renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 60 });
+
+    await userEvent.click(screen.getByRole('link', { name: 'Ganti email' }));
+
+    expect(router.state.location.pathname).toBe('/ganti-email');
+    expect(screen.getByRole('heading', { level: 1, name: 'Ganti email' })).toHaveFocus();
+    expect(screen.getByText('Pakai ini jika email Anda salah ketik.')).toBeVisible();
+    expect(screen.getByLabelText('Email baru')).toHaveAccessibleDescription(
+      'Sistem mengirim tautan verifikasi ke email baru.',
+    );
+    expect(document.title).toBe('Ganti email · WATTLINK');
+  });
+
+  it('names every field that is empty and focuses the first one', async () => {
+    const fetchMock = stubApi({});
+    renderAt('/ganti-email');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(screen.getByLabelText('Email saat ini')).toHaveAccessibleDescription(
+      'Isi email Anda saat ini.',
+    );
+    expect(screen.getByLabelText('Kata sandi')).toHaveAccessibleDescription('Isi kata sandi Anda.');
+    expect(screen.getByLabelText('Email baru')).toHaveAccessibleDescription('Isi email baru Anda.');
+    expect(screen.getByLabelText('Email saat ini')).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('asks for another address when the new one is not valid or is the current one', async () => {
+    const fetchMock = stubApi({});
+    renderAt('/ganti-email');
+
+    await fill('dewi@example.com', 'Dewi@Example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(screen.getByLabelText('Email baru')).toHaveAccessibleDescription(
+      'Isi email yang benar, dan berbeda dari email saat ini.',
+    );
+    expect(screen.getByLabelText('Email baru')).toHaveFocus();
+
+    await userEvent.clear(screen.getByLabelText('Email baru'));
+    await userEvent.type(screen.getByLabelText('Email baru'), 'dewi');
+
+    expect(screen.getByLabelText('Email baru')).toHaveAccessibleDescription(
+      'Isi email yang benar, dan berbeda dari email saat ini.',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sends the three values and opens the verification screen for the new address', async () => {
+    const fetchMock = stubApi({
+      'POST /v1/auth/change-email': { status: 202, body: { retryAfterSeconds: 60 } },
+    });
+    const router = renderAt('/ganti-email');
+
+    await fill(' dewi@example.com ', ' dewi@example.org ');
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/verifikasi');
+    });
+    expect(bodyOf(fetchMock, '/v1/auth/change-email')).toEqual({
+      email: 'dewi@example.com',
+      password: 'rahasia123',
+      newEmail: 'dewi@example.org',
+    });
+    expect(router.state.location.state).toEqual({
+      email: 'dewi@example.org',
+      retryAfterSeconds: 60,
+    });
+    expect(screen.getByRole('heading', { level: 1, name: 'Periksa email Anda' })).toBeVisible();
+    expect(screen.queryByText(/dewi@/)).not.toBeInTheDocument();
+  });
+
+  it('does nothing when the form is sent again while the first call runs', async () => {
+    const fetchMock = vi.fn(() => new Promise(() => undefined));
+    vi.stubGlobal('fetch', fetchMock);
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.type(screen.getByLabelText('Email baru'), '{Enter}');
+    await userEvent.type(screen.getByLabelText('Email baru'), '{Enter}');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Sedang mengganti' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
+  it('says that the email or the password does not match, without naming which', async () => {
+    stubApi({
+      'POST /v1/auth/change-email': {
+        status: 401,
+        body: { code: 'invalid_credentials', message: 'No' },
+      },
+    });
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Tidak bisa mengganti email')).toBeVisible();
+    expect(
+      screen.getByText('Email saat ini atau kata sandi tidak cocok. Periksa lalu coba lagi.'),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Email saat ini')).not.toBeInvalid();
+    expect(screen.getByLabelText('Kata sandi')).not.toBeInvalid();
+  });
+
+  it('says that the new address has an account, and clears the text when it changes', async () => {
+    stubApi({
+      'POST /v1/auth/change-email': { status: 409, body: { code: 'email_taken', message: 'No' } },
+    });
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Email sudah terdaftar')).toBeVisible();
+    expect(screen.getByText('Pakai email lain.')).toBeVisible();
+    expect(screen.getByLabelText('Email baru')).toHaveAccessibleDescription(
+      'Email ini sudah terdaftar.',
+    );
+
+    await userEvent.type(screen.getByLabelText('Email baru'), 'x');
+
+    expect(screen.queryByText('Email sudah terdaftar')).not.toBeInTheDocument();
+  });
+
+  it('sends a verified account to Masuk, because it cannot change the email here', async () => {
+    stubApi({
+      'POST /v1/auth/change-email': {
+        status: 409,
+        body: { code: 'already_verified', message: 'No' },
+      },
+    });
+    const router = renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Email sudah terverifikasi')).toBeVisible();
+    expect(screen.queryByText('Email sudah terdaftar')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('link', { name: 'Masuk' }));
+
+    expect(router.state.location.pathname).toBe('/masuk');
+  });
+
+  it('holds the button while the API says to wait, and says how long', async () => {
+    freezeClock();
+    const fetchMock = stubApi({
+      'POST /v1/auth/change-email': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 60 },
+      },
+    });
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Terlalu banyak percobaan')).toBeVisible();
+    expect(screen.getByText('Coba lagi dalam 60 detik.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ganti email' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(fetchMock.mock.calls.filter(([url]) => url.endsWith('/change-email'))).toHaveLength(1);
+  });
+
+  it('says that the fields are not right when the API refuses them', async () => {
+    stubApi({
+      'POST /v1/auth/change-email': {
+        status: 422,
+        body: { code: 'validation_failed', message: 'No' },
+      },
+    });
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Periksa isian Anda')).toBeVisible();
+  });
+
+  it('says that the connection is lost', async () => {
+    stubApi({});
+    renderAt('/ganti-email');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Ganti email' }));
+
+    expect(await screen.findByText('Tidak bisa terhubung')).toBeVisible();
+  });
+
+  it('goes one step back to the verification screen', async () => {
+    stubApi({});
+    const router = renderAt('/verifikasi', { email: 'dewi@example.com', retryAfterSeconds: 60 });
+
+    await userEvent.click(screen.getByRole('link', { name: 'Ganti email' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Kembali' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/verifikasi');
+    });
+    expect(screen.getByRole('heading', { level: 1, name: 'Periksa email Anda' })).toBeVisible();
+  });
+
+  it('goes to Masuk when the screen was opened directly', async () => {
+    stubApi({});
+    const router = renderAt('/ganti-email');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Kembali' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/masuk');
+    });
+  });
+});
+
 describe('Lupa kata sandi', () => {
   it('is reached from Masuk and shows the form with the focus on the heading', async () => {
     stubApi({});

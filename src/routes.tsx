@@ -48,6 +48,13 @@ export const routes: RouteObject[] = [
         ),
       },
       {
+        path: 'ganti-email',
+        ...lazyPage(
+          () => import('@/pages/auth/ganti-email-page'),
+          (module) => module.GantiEmailPage,
+        ),
+      },
+      {
         path: 'lupa-kata-sandi',
         ...lazyPage(
           () => import('@/pages/auth/lupa-kata-sandi-page'),
