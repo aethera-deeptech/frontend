@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { ListRow } from '@/components/ui/list-row';
 
-// The menu of the screens that have no tab of their own. Keluar joins it when the login exists.
+// The menu of the screens that have no tab of their own, and the way out of the account
 export function LainnyaPage() {
   return (
     <>
@@ -21,6 +21,11 @@ export function LainnyaPage() {
               secondary="Nama usaha, jam kerja, tarif dan kepekaan"
               to="/lainnya/pengaturan"
             />
+          </ul>
+        </Card>
+        <Card className="gap-0 px-4 py-1 lg:max-w-lg">
+          <ul>
+            <ListRow title="Keluar" secondary="Akhiri sesi di perangkat ini" to="/lainnya/keluar" />
           </ul>
         </Card>
       </div>

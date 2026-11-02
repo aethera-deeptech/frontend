@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { Link } from 'react-router';
 
@@ -12,6 +12,13 @@ interface AuthFrameProps {
 
 // The frame of the screens before the login. It sits outside the app shell, so it has no menu.
 export function AuthFrame({ title, subtitle, children }: AuthFrameProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // A move to another screen of the account leaves the focus on a link that is gone, so the heading takes it
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col gap-4 p-4 lg:justify-center">
       <title>{`${title} · WATTLINK`}</title>
@@ -20,7 +27,9 @@ export function AuthFrame({ title, subtitle, children }: AuthFrameProps) {
         WATTLINK
       </Link>
       <div className="flex flex-col gap-1">
-        <h1 className="text-title text-text-heading">{title}</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="text-title text-text-heading outline-none">
+          {title}
+        </h1>
         <p className="text-body text-text-2">{subtitle}</p>
       </div>
       {children}

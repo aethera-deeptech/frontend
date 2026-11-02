@@ -4,12 +4,20 @@ import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
+import { sessionKey } from '@/api/auth';
 import { routes } from '@/routes';
 
 // This file does not load the pages first, so it runs the lazy path of the real app. Every other test file loads them.
 function renderAt(path: string) {
+  const client = new QueryClient();
+  // The user is signed in, so the guard does not ask the API
+  client.setQueryData(sessionKey, {
+    email: 'dewi@example.com',
+    emailVerified: true,
+    businessName: 'Maju',
+  });
   render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={client}>
       <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
     </QueryClientProvider>,
   );

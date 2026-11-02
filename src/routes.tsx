@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router';
 
 import { AppLoading } from '@/components/layout/app-loading';
 import { AppShell } from '@/components/layout/app-shell';
+import { RequireSession } from '@/components/layout/require-session';
 import { ErrorPage } from '@/pages/error-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 
@@ -53,173 +54,187 @@ export const routes: RouteObject[] = [
           (module) => module.VerifyEmailPage,
         ),
       },
+      // Every screen below needs a session
       {
-        element: <AppShell />,
+        element: <RequireSession />,
         children: [
+          // The question before the session ends has no menu, like the screens before the login
           {
-            index: true,
+            path: 'lainnya/keluar',
             ...lazyPage(
-              () => import('@/pages/beranda/beranda-page'),
-              (module) => module.BerandaPage,
+              () => import('@/pages/lainnya/keluar-page'),
+              (module) => module.KeluarPage,
             ),
           },
           {
-            path: 'saran',
-            ...lazyPage(
-              () => import('@/pages/saran/saran-layout'),
-              (module) => module.SaranLayout,
-            ),
-            children: [
-              {
-                path: ':id',
-                ...lazyPage(
-                  () => import('@/pages/saran/saran-detail-page'),
-                  (module) => module.SaranDetailPage,
-                ),
-              },
-              {
-                path: ':id/batalkan',
-                ...lazyPage(
-                  () => import('@/pages/saran/saran-cancel-page'),
-                  (module) => module.SaranCancelPage,
-                ),
-              },
-            ],
-          },
-          {
-            path: 'alat/tambah',
-            ...lazyPage(
-              () => import('@/pages/pasang-alat/wizard'),
-              (module) => module.TambahAlatLayout,
-            ),
+            element: <AppShell />,
             children: [
               {
                 index: true,
                 ...lazyPage(
-                  () => import('@/pages/pasang-alat/pilih-jenis-page'),
-                  (module) => module.PilihJenisPage,
+                  () => import('@/pages/beranda/beranda-page'),
+                  (module) => module.BerandaPage,
                 ),
               },
               {
-                path: 'peringatan',
+                path: 'saran',
                 ...lazyPage(
-                  () => import('@/pages/pasang-alat/peringatan-page'),
-                  (module) => module.PeringatanPage,
+                  () => import('@/pages/saran/saran-layout'),
+                  (module) => module.SaranLayout,
                 ),
+                children: [
+                  {
+                    path: ':id',
+                    ...lazyPage(
+                      () => import('@/pages/saran/saran-detail-page'),
+                      (module) => module.SaranDetailPage,
+                    ),
+                  },
+                  {
+                    path: ':id/batalkan',
+                    ...lazyPage(
+                      () => import('@/pages/saran/saran-cancel-page'),
+                      (module) => module.SaranCancelPage,
+                    ),
+                  },
+                ],
               },
               {
-                path: 'persetujuan',
+                path: 'alat/tambah',
                 ...lazyPage(
-                  () => import('@/pages/pasang-alat/persetujuan-page'),
-                  (module) => module.PersetujuanPage,
+                  () => import('@/pages/pasang-alat/wizard'),
+                  (module) => module.TambahAlatLayout,
                 ),
-              },
-              {
-                path: 'nama',
-                ...lazyPage(
-                  () => import('@/pages/pasang-alat/beri-nama-page'),
-                  (module) => module.BeriNamaPage,
-                ),
-              },
-              {
-                path: 'mencari/:id',
-                ...lazyPage(
-                  () => import('@/pages/pasang-alat/mencari-page'),
-                  (module) => module.MencariPage,
-                ),
-              },
-            ],
-          },
-          {
-            path: 'alat',
-            ...lazyPage(
-              () => import('@/pages/alat/alat-layout'),
-              (module) => module.AlatLayout,
-            ),
-            children: [
-              {
-                path: ':id',
-                ...lazyPage(
-                  () => import('@/pages/alat/alat-detail-page'),
-                  (module) => module.AlatDetailPage,
-                ),
-              },
-              {
-                path: ':id/ganti-nama',
-                ...lazyPage(
-                  () => import('@/pages/alat/alat-rename-page'),
-                  (module) => module.AlatRenamePage,
-                ),
-              },
-            ],
-          },
-          {
-            path: 'laporan',
-            ...lazyPage(
-              () => import('@/pages/laporan/laporan-page'),
-              (module) => module.LaporanPage,
-            ),
-          },
-          {
-            path: 'lainnya',
-            children: [
-              {
-                index: true,
-                ...lazyPage(
-                  () => import('@/pages/lainnya/lainnya-page'),
-                  (module) => module.LainnyaPage,
-                ),
-              },
-              {
-                path: 'produksi',
-                ...lazyPage(
-                  () => import('@/pages/produksi/produksi-page'),
-                  (module) => module.ProduksiPage,
-                ),
-              },
-              {
-                path: 'pengaturan',
                 children: [
                   {
                     index: true,
                     ...lazyPage(
-                      () => import('@/pages/pengaturan/pengaturan-page'),
-                      (module) => module.PengaturanPage,
+                      () => import('@/pages/pasang-alat/pilih-jenis-page'),
+                      (module) => module.PilihJenisPage,
+                    ),
+                  },
+                  {
+                    path: 'peringatan',
+                    ...lazyPage(
+                      () => import('@/pages/pasang-alat/peringatan-page'),
+                      (module) => module.PeringatanPage,
+                    ),
+                  },
+                  {
+                    path: 'persetujuan',
+                    ...lazyPage(
+                      () => import('@/pages/pasang-alat/persetujuan-page'),
+                      (module) => module.PersetujuanPage,
                     ),
                   },
                   {
                     path: 'nama',
                     ...lazyPage(
-                      () => import('@/pages/pengaturan/edit-name-page'),
-                      (module) => module.EditNamePage,
+                      () => import('@/pages/pasang-alat/beri-nama-page'),
+                      (module) => module.BeriNamaPage,
                     ),
                   },
                   {
-                    path: 'tarif',
+                    path: 'mencari/:id',
                     ...lazyPage(
-                      () => import('@/pages/pengaturan/edit-tariff-page'),
-                      (module) => module.EditTariffPage,
-                    ),
-                  },
-                  {
-                    path: 'jam-kerja',
-                    ...lazyPage(
-                      () => import('@/pages/pengaturan/edit-hours-page'),
-                      (module) => module.EditHoursPage,
-                    ),
-                  },
-                  {
-                    path: 'kepekaan',
-                    ...lazyPage(
-                      () => import('@/pages/pengaturan/edit-sensitivity-page'),
-                      (module) => module.EditSensitivityPage,
+                      () => import('@/pages/pasang-alat/mencari-page'),
+                      (module) => module.MencariPage,
                     ),
                   },
                 ],
               },
+              {
+                path: 'alat',
+                ...lazyPage(
+                  () => import('@/pages/alat/alat-layout'),
+                  (module) => module.AlatLayout,
+                ),
+                children: [
+                  {
+                    path: ':id',
+                    ...lazyPage(
+                      () => import('@/pages/alat/alat-detail-page'),
+                      (module) => module.AlatDetailPage,
+                    ),
+                  },
+                  {
+                    path: ':id/ganti-nama',
+                    ...lazyPage(
+                      () => import('@/pages/alat/alat-rename-page'),
+                      (module) => module.AlatRenamePage,
+                    ),
+                  },
+                ],
+              },
+              {
+                path: 'laporan',
+                ...lazyPage(
+                  () => import('@/pages/laporan/laporan-page'),
+                  (module) => module.LaporanPage,
+                ),
+              },
+              {
+                path: 'lainnya',
+                children: [
+                  {
+                    index: true,
+                    ...lazyPage(
+                      () => import('@/pages/lainnya/lainnya-page'),
+                      (module) => module.LainnyaPage,
+                    ),
+                  },
+                  {
+                    path: 'produksi',
+                    ...lazyPage(
+                      () => import('@/pages/produksi/produksi-page'),
+                      (module) => module.ProduksiPage,
+                    ),
+                  },
+                  {
+                    path: 'pengaturan',
+                    children: [
+                      {
+                        index: true,
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/pengaturan-page'),
+                          (module) => module.PengaturanPage,
+                        ),
+                      },
+                      {
+                        path: 'nama',
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/edit-name-page'),
+                          (module) => module.EditNamePage,
+                        ),
+                      },
+                      {
+                        path: 'tarif',
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/edit-tariff-page'),
+                          (module) => module.EditTariffPage,
+                        ),
+                      },
+                      {
+                        path: 'jam-kerja',
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/edit-hours-page'),
+                          (module) => module.EditHoursPage,
+                        ),
+                      },
+                      {
+                        path: 'kepekaan',
+                        ...lazyPage(
+                          () => import('@/pages/pengaturan/edit-sensitivity-page'),
+                          (module) => module.EditSensitivityPage,
+                        ),
+                      },
+                    ],
+                  },
+                ],
+              },
+              { path: '*', element: <NotFoundPage /> },
             ],
           },
-          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

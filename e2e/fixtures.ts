@@ -67,6 +67,9 @@ function answer(method: string, pathname: string): unknown {
   if (method !== 'GET') {
     return undefined;
   }
+  if (pathname === '/v1/auth/me') {
+    return { email: 'dewi@example.com', emailVerified: true, businessName: 'Konveksi Maju Jaya' };
+  }
   if (pathname === '/v1/beranda') {
     return beranda();
   }

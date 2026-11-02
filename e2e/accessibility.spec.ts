@@ -26,6 +26,7 @@ const screens = [
   { name: 'Pengaturan, tariff', path: '/lainnya/pengaturan/tarif' },
   { name: 'Pengaturan, work hours', path: '/lainnya/pengaturan/jam-kerja' },
   { name: 'Pengaturan, sensitivity', path: '/lainnya/pengaturan/kepekaan' },
+  { name: 'Keluar', path: '/lainnya/keluar' },
   { name: 'Masuk', path: '/masuk' },
   { name: 'Daftar', path: '/daftar' },
   { name: 'Halaman tidak ditemukan', path: '/halaman-yang-tidak-ada' },

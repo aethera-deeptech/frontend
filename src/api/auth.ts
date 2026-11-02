@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { ApiError, apiRequest } from '@/api/client';
@@ -32,6 +32,19 @@ export function isPlausibleToken(token: string): boolean {
 
 export const sessionKey = ['session'] as const;
 
+// The mutations of the account carry this first part of the key. A 401 on them is the answer of the form (a wrong password,
+// no session to end) and not a sign that the session ended, so the rule for a 401 skips them.
+export const authMutationKey = ['auth'] as const;
+
+// Who is signed in. A 401 means nobody, and that is an answer and not a failure, so it does not retry.
+export function useSession() {
+  return useQuery({
+    queryKey: sessionKey,
+    queryFn: ({ signal }) => apiRequest('/v1/auth/me', meSchema, { signal }),
+    retry: false,
+  });
+}
+
 interface Credentials {
   email: string;
   password: string;
@@ -52,6 +65,7 @@ export function useLogin() {
   const startSession = useStartSession();
 
   return useMutation({
+    mutationKey: [...authMutationKey, 'login'],
     mutationFn: (credentials: Credentials) =>
       apiRequest('/v1/auth/login', meSchema, { method: 'POST', body: credentials }),
     onSuccess: startSession,
@@ -61,6 +75,7 @@ export function useLogin() {
 
 export function useRegister() {
   return useMutation({
+    mutationKey: [...authMutationKey, 'register'],
     mutationFn: (account: Credentials & { businessName: string }) =>
       apiRequest('/v1/auth/register', verificationSentSchema, { method: 'POST', body: account }),
     gcTime: 0,
@@ -72,6 +87,7 @@ export function useVerifyEmail() {
   const startSession = useStartSession();
 
   return useMutation({
+    mutationKey: [...authMutationKey, 'verify-email'],
     mutationFn: (token: string) =>
       apiRequest('/v1/auth/verify-email', meSchema, { method: 'POST', body: { token } }),
     onSuccess: startSession,
@@ -81,11 +97,30 @@ export function useVerifyEmail() {
 
 export function useResendVerification() {
   return useMutation({
+    mutationKey: [...authMutationKey, 'resend'],
     mutationFn: (email: string) =>
       apiRequest('/v1/auth/resend-verification', verificationSentSchema, {
         method: 'POST',
         body: { email },
       }),
+  });
+}
+
+// Ends the session of this device. A 401 means that there is no session left, which is what the user asked for. The caller
+// moves to Masuk first and empties the cache after that, because the guard observes the session and would read it again
+// if the cache were emptied while the old screen is still on show.
+export function useLogout() {
+  return useMutation({
+    mutationKey: [...authMutationKey, 'logout'],
+    mutationFn: async () => {
+      try {
+        await apiRequest('/v1/auth/logout', z.null(), { method: 'POST' });
+      } catch (error) {
+        if (!(error instanceof ApiError && error.status === 401)) {
+          throw error;
+        }
+      }
+    },
   });
 }
 

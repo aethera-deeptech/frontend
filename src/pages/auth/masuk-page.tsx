@@ -1,5 +1,5 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { authFailure, useLogin, useResendVerification } from '@/api/auth';
 import { ApiError } from '@/api/client';
@@ -10,12 +10,14 @@ import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { PasswordField } from '@/pages/auth/password-field';
+import { returnPath } from '@/pages/auth/return-path';
 import { checkEmail, checkPasswordPresent } from '@/pages/auth/validation';
 
 const googleNoteId = 'masuk-google-note';
 
 export function MasukPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const login = useLogin();
   const resend = useResendVerification();
   const [email, setEmail] = useState('');
@@ -49,7 +51,7 @@ export function MasukPage() {
       { email: email.trim(), password },
       {
         onSuccess: () => {
-          void navigate('/', { replace: true });
+          void navigate(returnPath(location.state), { replace: true });
         },
       },
     );

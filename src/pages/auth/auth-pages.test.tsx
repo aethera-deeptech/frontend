@@ -43,6 +43,13 @@ describe('Masuk', () => {
     expect(document.title).toBe('Masuk · WATTLINK');
   });
 
+  it('puts the focus on the heading, because the screen can open from a link that is gone', () => {
+    stubApi({});
+    renderAt('/masuk');
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Masuk' })).toHaveFocus();
+  });
+
   it('links the brand to the home page', () => {
     stubApi({});
     renderAt('/masuk');

@@ -1,9 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { describe, expect, it } from 'vitest';
 
+import { sessionKey } from '@/api/auth';
 import { AppShell } from '@/components/layout/app-shell';
 
 describe('AppShell while a page loads', () => {
@@ -27,7 +29,17 @@ describe('AppShell while a page loads', () => {
       ],
       { initialEntries: ['/'] },
     );
-    const { container } = render(<RouterProvider router={router} />);
+    const client = new QueryClient();
+    client.setQueryData(sessionKey, {
+      email: 'dewi@example.com',
+      emailVerified: true,
+      businessName: 'Maju',
+    });
+    const { container } = render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
     const main = screen.getByRole('main');
 
     expect(main).toHaveAttribute('aria-busy', 'false');

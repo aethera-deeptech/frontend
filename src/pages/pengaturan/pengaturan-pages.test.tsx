@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -58,7 +58,10 @@ describe('Pengaturan', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Pengaturan tidak bisa dimuat');
     await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
 
-    expect(await screen.findByText('Konveksi Maju Jaya')).toBeInTheDocument();
+    // The sidebar shows the name as well, so the question is about the overview
+    expect(
+      await within(screen.getByRole('main')).findByText('Konveksi Maju Jaya'),
+    ).toBeInTheDocument();
   });
 });
 
@@ -66,6 +69,14 @@ describe('Nama usaha', () => {
   it('saves the name and confirms it on the overview', async () => {
     let saved = false;
     const fetchMock = stubApi({
+      // The sidebar shows the name from the session, which the save reads again
+      'GET /v1/auth/me': () => ({
+        body: {
+          email: 'dewi@example.com',
+          emailVerified: true,
+          businessName: saved ? 'Konveksi Maju Sejahtera' : 'Konveksi Maju Jaya',
+        },
+      }),
       'GET /v1/settings': () => ({
         body: saved
           ? { ...sampleSettings(), businessName: 'Konveksi Maju Sejahtera' }
@@ -86,8 +97,13 @@ describe('Nama usaha', () => {
 
     expect(await screen.findByText('Nama usaha sudah diperbarui.')).toBeInTheDocument();
     // The overview asks again and shows the new name
-    expect(await screen.findByText('Konveksi Maju Sejahtera')).toBeInTheDocument();
-    expect(screen.queryByText('Konveksi Maju Jaya')).not.toBeInTheDocument();
+    const overview = within(screen.getByRole('main'));
+    expect(await overview.findByText('Konveksi Maju Sejahtera')).toBeInTheDocument();
+    expect(overview.queryByText('Konveksi Maju Jaya')).not.toBeInTheDocument();
+    // The sidebar shows the new name too, because the save reads the session again
+    await waitFor(() => {
+      expect(screen.getAllByText('Konveksi Maju Sejahtera')).toHaveLength(2);
+    });
     expect(router.state.location.pathname).toBe('/lainnya/pengaturan');
     expect(patchBody(fetchMock)).toEqual({ businessName: 'Konveksi Maju Sejahtera' });
   });
