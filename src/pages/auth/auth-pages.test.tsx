@@ -705,6 +705,19 @@ describe('Verify email link', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('offers to try again when the API limits the tries, because the token left the address', async () => {
+    stubApi({
+      'POST /v1/auth/verify-email': {
+        status: 429,
+        body: { code: 'rate_limited', message: 'Slow', retryAfterSeconds: 20 },
+      },
+    });
+    renderAt(`/verify-email?token=${token}`);
+
+    expect(await screen.findByText('Coba lagi dalam 20 detik.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Coba lagi' })).toBeVisible();
+  });
+
   it('offers to try again when the connection was lost, and keeps the token for it', async () => {
     let calls = 0;
     const fetchMock = stubApi({

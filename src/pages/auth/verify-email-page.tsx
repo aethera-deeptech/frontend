@@ -66,16 +66,14 @@ export function VerifyEmailPage() {
             verify.error instanceof ApiError ? verify.error.retryAfterSeconds : undefined
           }
           action={
-            failure === 'rate-limited' ? undefined : (
-              <Button
-                size="lg"
-                onClick={() => {
-                  verify.mutate(token);
-                }}
-              >
-                Coba lagi
-              </Button>
-            )
+            <Button
+              size="lg"
+              onClick={() => {
+                verify.mutate(token);
+              }}
+            >
+              Coba lagi
+            </Button>
           }
         />
       ) : (
@@ -113,7 +111,7 @@ function NewLink() {
         void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
       },
       onError: (error) => {
-        if (error instanceof ApiError && error.code === 'resend_too_soon') {
+        if (error instanceof ApiError && error.status === 429) {
           void navigate('/verifikasi', {
             state: { email: address, retryAfterSeconds: error.retryAfterSeconds ?? 60 },
           });
@@ -129,8 +127,7 @@ function NewLink() {
         title="Tautan tidak berlaku"
         message="Tautan sudah dipakai atau kedaluwarsa."
       />
-      {resend.isError &&
-      !(resend.error instanceof ApiError && resend.error.code === 'resend_too_soon') ? (
+      {resend.isError && !(resend.error instanceof ApiError && resend.error.status === 429) ? (
         <FailureBanner failure={authFailure(resend.error)} />
       ) : null}
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">

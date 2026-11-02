@@ -56,7 +56,7 @@ export function MasukPage() {
   };
 
   // The account exists but is not verified. The verification screen has the timer, and it also takes the answer of a resend
-  // that came too soon, because that answer says how long is left.
+  // that the API limited, because that answer says how long is left.
   const sendAgain = () => {
     if (resend.isPending) {
       return;
@@ -69,7 +69,7 @@ export function MasukPage() {
         void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
       },
       onError: (error) => {
-        if (error instanceof ApiError && error.code === 'resend_too_soon') {
+        if (error instanceof ApiError && error.status === 429) {
           void navigate('/verifikasi', {
             state: { email: address, retryAfterSeconds: error.retryAfterSeconds ?? 60 },
           });
@@ -105,8 +105,7 @@ export function MasukPage() {
           }
         />
       ) : null}
-      {resend.isError &&
-      !(resend.error instanceof ApiError && resend.error.code === 'resend_too_soon') ? (
+      {resend.isError && !(resend.error instanceof ApiError && resend.error.status === 429) ? (
         <FailureBanner failure={authFailure(resend.error)} />
       ) : null}
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">

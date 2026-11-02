@@ -39,6 +39,7 @@ export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBan
           tone="warning"
           title="Terlalu banyak percobaan"
           message={`Coba lagi ${waitText(retryAfterSeconds)}.`}
+          action={action}
         />
       );
     case 'invalid-input':
