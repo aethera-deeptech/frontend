@@ -106,6 +106,20 @@ export function useResendVerification() {
   });
 }
 
+// Moves an account that is not verified to another address. The user is not signed in, so the call carries the current email
+// and the password. The API sends the new verification email to the new address.
+export function useChangeEmail() {
+  return useMutation({
+    mutationKey: [...authMutationKey, 'change-email'],
+    mutationFn: (change: { email: string; password: string; newEmail: string }) =>
+      apiRequest('/v1/auth/change-email', verificationSentSchema, {
+        method: 'POST',
+        body: change,
+      }),
+    gcTime: 0,
+  });
+}
+
 // Asks for the email with the link to a new password. The answer is the same for every address, so the screen cannot tell
 // whether the account exists.
 export function useForgotPassword() {
@@ -159,6 +173,7 @@ export type AuthFailure =
   | 'invalid-credentials'
   | 'email-not-verified'
   | 'email-taken'
+  | 'already-verified'
   | 'rate-limited'
   | 'invalid-input'
   | 'invalid-token'
@@ -175,6 +190,10 @@ export function authFailure(error: unknown): AuthFailure {
   }
   if (error.code === 'email_not_verified') {
     return 'email-not-verified';
+  }
+  // Another 409 of the same route, so it must come before the fallback for the status
+  if (error.code === 'already_verified') {
+    return 'already-verified';
   }
   if (error.code === 'email_taken' || error.status === 409) {
     return 'email-taken';
