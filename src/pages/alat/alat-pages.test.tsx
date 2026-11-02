@@ -308,7 +308,9 @@ describe('the day of an anomaly', () => {
     await openAnomalyAt('Asia/Jakarta');
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Daya naik mendadak hari ini pukul 02:10');
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Daya naik mendadak hari ini pukul 02:10',
+      );
     });
   });
 
