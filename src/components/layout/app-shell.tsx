@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import { useSession } from '@/api/auth';
-import { useSettings } from '@/api/settings';
 import { navItems } from '@/components/layout/nav-items';
 import { PendingIndicator } from '@/components/layout/pending-indicator';
 import { useNavigationPending } from '@/hooks/use-navigation-pending';
@@ -13,8 +12,6 @@ export function AppShell() {
   const { pathname } = useLocation();
   const pending = useNavigationPending();
   const businessName = useSession().data?.businessName;
-  // The settings give the zone for every moment on the screens. The screens that show moments follow it with useBusinessZone.
-  useSettings();
   const mainRef = useRef<HTMLElement>(null);
   const openPath = useRef(pathname);
 

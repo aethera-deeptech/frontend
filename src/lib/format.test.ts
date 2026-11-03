@@ -151,13 +151,6 @@ describe('parseMoment', () => {
     );
   });
 
-  it.each(['2026-10-29T09:30:00+0700', '2026-10-29T09:30:00+07', '2026-10-29T09:30+07:00'])(
-    'reads the offset written as %s',
-    (moment) => {
-      expect(parseMoment(moment).getTime()).toBe(parseMoment('2026-10-29T02:30:00Z').getTime());
-    },
-  );
-
   it('reads fractional seconds and drops them', () => {
     const date = parseMoment('2026-11-03T05:45:35.123456Z');
 

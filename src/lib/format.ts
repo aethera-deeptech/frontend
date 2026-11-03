@@ -73,33 +73,16 @@ export function subscribeBusinessZone(listener: () => void): () => void {
   };
 }
 
-const offsetMoment =
-  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}(?::?\d{2})?)$/;
-
-// The instant of a moment with an offset. The offset is written in full, with seconds, so every browser reads it: Z, +07,
-// +0700 and +07:00 all work. Nothing comes back for a text that has no offset or is not a date.
-function instantOf(iso: string): Date | undefined {
-  const parts = offsetMoment.exec(iso);
-
-  if (!parts) {
-    return undefined;
-  }
-  const [, clock = '', seconds = '00', fraction = '', rawOffset = 'Z'] = parts;
-  const digits = rawOffset.replace(':', '');
-  const offset =
-    rawOffset === 'Z' ? 'Z' : `${digits.slice(0, 3)}:${digits.length > 3 ? digits.slice(3) : '00'}`;
-  const instant = new Date(`${clock}:${seconds}${fraction}${offset}`);
-
-  return Number.isNaN(instant.getTime()) ? undefined : instant;
-}
+// The API writes a moment as RFC 3339, with seconds and an offset (Z or +07:00), and the schemas of the screens refuse anything else
+const offsetMoment = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 
 // A moment from the API, such as 2026-10-29T09:30:00+07:00 or 2026-10-29T02:30:00Z, read by the clock of the business and not
 // by the clock of the device. The API writes some moments in UTC and some with the offset of the business, and both name the
 // same instant, so the instant is turned into the clock of the business zone. A moment without an offset is read as it is.
 export function parseMoment(iso: string): Date {
-  const instant = instantOf(iso);
+  const instant = offsetMoment.test(iso) ? new Date(iso) : undefined;
 
-  if (instant) {
+  if (instant && !Number.isNaN(instant.getTime())) {
     return businessNow(instant, businessZone);
   }
   const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);

@@ -1,12 +1,24 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
+import { useState, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { useBusinessZone } from '@/hooks/use-business-zone';
 import { setBusinessZone } from '@/lib/format';
 
+function wrapper({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      {children}
+    </QueryClientProvider>
+  );
+}
+
 describe('useBusinessZone', () => {
   it('starts with the zone of a new business and follows the zone that arrives', () => {
-    const { result } = renderHook(() => useBusinessZone());
+    const { result } = renderHook(() => useBusinessZone(), { wrapper });
     expect(result.current).toBe('Asia/Jakarta');
 
     act(() => {
@@ -21,19 +33,23 @@ describe('useBusinessZone', () => {
   });
 
   it('keeps the state of the screen when the zone changes', () => {
-    let renders = 0;
-    const { result } = renderHook(() => {
-      renders += 1;
-      return useBusinessZone();
-    });
-    const before = renders;
+    const { result } = renderHook(
+      () => {
+        const [count, setCount] = useState(0);
+        return { count, setCount, zone: useBusinessZone() };
+      },
+      { wrapper },
+    );
 
+    act(() => {
+      result.current.setCount(3);
+    });
     act(() => {
       setBusinessZone('Asia/Makassar');
     });
 
-    expect(result.current).toBe('Asia/Makassar');
-    expect(renders).toBe(before + 1);
+    expect(result.current.zone).toBe('Asia/Makassar');
+    expect(result.current.count).toBe(3);
     setBusinessZone(undefined);
   });
 });
