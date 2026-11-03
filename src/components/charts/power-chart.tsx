@@ -57,13 +57,16 @@ export function PowerChart({
         height={HEIGHT}
         className="block max-w-full overflow-visible"
       >
-        {ticks.map((y, index) => (
-          <g key={y}>
-            <line x1="0" x2={width} y1={y} y2={y} className="stroke-border-2" strokeWidth="1" />
-            <text x={width} y={y - 4} textAnchor="end" className="fill-text-2 text-label">
-              {yLabels[ticks.length - 1 - index]}
-            </text>
-          </g>
+        {ticks.map((y) => (
+          <line
+            key={y}
+            x1="0"
+            x2={width}
+            y1={y}
+            y2={y}
+            className="stroke-border-2"
+            strokeWidth="1"
+          />
         ))}
         {band ? <path d={band} className="fill-bg-3 stroke-border-field" strokeWidth="1" /> : null}
         <path
@@ -85,6 +88,20 @@ export function PowerChart({
         {bad.length === 1 && bad[0] ? (
           <circle cx={bad[0][0]} cy={bad[0][1]} r="3.5" className="fill-chart-anomaly" />
         ) : null}
+        {/* The labels come after the band and the line, which would hide them at the right edge. The halo keeps them readable on the line. */}
+        {ticks.map((y, index) => (
+          <text
+            key={y}
+            x={width}
+            y={y - 4}
+            textAnchor="end"
+            strokeWidth="3"
+            strokeLinejoin="round"
+            className="fill-text-2 stroke-bg-1 text-label [paint-order:stroke]"
+          >
+            {yLabels[ticks.length - 1 - index]}
+          </text>
+        ))}
         {anomaly ? (
           <text
             x={labelAtEnd ? spanStart - 8 : spanStart + 8}
