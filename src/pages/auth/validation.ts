@@ -1,4 +1,5 @@
 import { businessNameLength, passwordLength } from '@/api/auth';
+import { countCharacters } from '@/lib/characters';
 
 // The checks of the forms before the API is called. Each one returns the text under the field, or undefined when the value is
 // fine. The API checks again, so these only save a round trip.
@@ -31,12 +32,6 @@ export function checkNewEmail(value: string, current: string): string | undefine
   return email.toLowerCase() === current.trim().toLowerCase() ? wrong : undefined;
 }
 
-// The API counts characters and not the units of the string, so an emoji is one. The length of a string in JavaScript counts an
-// emoji as two, and four emoji would pass a minimum of 8 and be refused by the API.
-function characters(value: string): number {
-  return Array.from(value).length;
-}
-
 // The login accepts any password that is not empty, so a password from before a rule change still works
 export function checkPasswordPresent(value: string): string | undefined {
   return value === '' ? 'Isi kata sandi Anda.' : undefined;
@@ -49,10 +44,13 @@ export function checkNewPassword(value: string): string | undefined {
   if (value === '') {
     return 'Isi kata sandi Anda.';
   }
-  if (characters(value) < passwordLength.min) {
+  // The API counts characters and not the units of the string, so four emoji are four and not eight
+  const length = countCharacters(value);
+
+  if (length < passwordLength.min) {
     return `Minimal ${passwordLength.min.toString()} karakter.`;
   }
-  return characters(value) > passwordLength.max
+  return length > passwordLength.max
     ? `Maksimal ${passwordLength.max.toString()} karakter.`
     : undefined;
 }
@@ -63,7 +61,7 @@ export function checkBusinessName(value: string): string | undefined {
   if (name === '') {
     return 'Isi nama usaha.';
   }
-  return characters(name) > businessNameLength.max
+  return countCharacters(name) > businessNameLength.max
     ? `Maksimal ${businessNameLength.max.toString()} karakter.`
     : undefined;
 }
