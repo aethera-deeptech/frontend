@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { businessNow } from '@/lib/format';
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
+import { RelayCard } from '@/pages/alat/relay-card';
 
 export function AlatDetailPage() {
   const { id = '' } = useParams();
@@ -17,8 +18,16 @@ export function AlatDetailPage() {
   const settings = useSettings();
 
   if (query.data) {
+    const now = businessNow(undefined, settings.data?.timeZone);
+
     return (
-      <AlatDetailView detail={query.data} now={businessNow(undefined, settings.data?.timeZone)} />
+      <AlatDetailView
+        detail={query.data}
+        now={now}
+        switchCard={
+          <RelayCard deviceId={query.data.id} offline={query.data.status === 'offline'} now={now} />
+        }
+      />
     );
   }
 
