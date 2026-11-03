@@ -9,8 +9,14 @@ import { TextInput } from '@/components/ui/text-input';
 import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
+import { focusUnlessMoved } from '@/pages/auth/focus';
 import { PasswordField } from '@/pages/auth/password-field';
-import { checkBusinessName, checkEmail, checkNewPassword } from '@/pages/auth/validation';
+import {
+  checkBusinessName,
+  checkEmail,
+  checkNewPassword,
+  commonPasswordText,
+} from '@/pages/auth/validation';
 
 const googleNoteId = 'daftar-google-note';
 
@@ -21,6 +27,8 @@ export function DaftarPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tried, setTried] = useState(false);
+  // The password that the API refused as too common. The text shows only while the field still holds that password.
+  const [refused, setRefused] = useState<string>();
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -31,7 +39,9 @@ export function DaftarPage() {
     ? (checkEmail(email) ?? (failure === 'email-taken' ? 'Email sudah terdaftar.' : undefined))
     : undefined;
   // The helper stays until the user tries, then it turns into the error
-  const passwordError = tried ? checkNewPassword(password) : undefined;
+  const passwordError = tried
+    ? (checkNewPassword(password) ?? (refused === password ? commonPasswordText : undefined))
+    : undefined;
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -54,6 +64,7 @@ export function DaftarPage() {
       return;
     }
     const address = email.trim();
+    const activeAtStart = document.activeElement;
 
     register.mutate(
       { businessName: businessName.trim(), email: address, password },
@@ -61,6 +72,13 @@ export function DaftarPage() {
         onSuccess: ({ retryAfterSeconds }) => {
           // The address goes in the history entry of this visit and not in any storage of ours. A reload of the next screen keeps it.
           void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
+        },
+        // The refusal is about the password, so the focus goes to the field that has the text
+        onError: (error, variables) => {
+          if (authFailure(error) === 'common-password') {
+            setRefused(variables.password);
+            focusUnlessMoved(passwordRef.current, activeAtStart);
+          }
         },
       },
     );
@@ -79,7 +97,7 @@ export function DaftarPage() {
             </Button>
           }
         />
-      ) : failure ? (
+      ) : failure && failure !== 'common-password' ? (
         <FailureBanner
           failure={failure}
           retryAfterSeconds={

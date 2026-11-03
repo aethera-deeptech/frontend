@@ -180,6 +180,7 @@ export type AuthFailure =
   | 'already-verified'
   | 'rate-limited'
   | 'invalid-input'
+  | 'common-password'
   | 'invalid-token'
   | 'offline'
   | 'other';
@@ -207,6 +208,10 @@ export function authFailure(error: unknown): AuthFailure {
   }
   if (error.status === 429) {
     return 'rate-limited';
+  }
+  // A new password that the API refuses because many people use it. The screen says so under the password field.
+  if (error.status === 422 && error.fields.password === 'too_common') {
+    return 'common-password';
   }
   if (error.status === 422) {
     return 'invalid-input';

@@ -10,7 +10,8 @@ import { TextInput } from '@/components/ui/text-input';
 import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
-import { checkNewPassword } from '@/pages/auth/validation';
+import { focusUnlessMoved } from '@/pages/auth/focus';
+import { checkNewPassword, commonPasswordText } from '@/pages/auth/validation';
 
 // The page that the link of the reset email opens. The token works once, and the API only checks it when the new password
 // is sent. The page takes the token out of the address at once, so a reload or a shared screenshot does not hold it.
@@ -23,10 +24,14 @@ export function ResetPasswordPage() {
   const [again, setAgain] = useState('');
   const [shown, setShown] = useState(false);
   const [tried, setTried] = useState(false);
+  // The password that the API refused as too common. The text shows only while the field still holds that password.
+  const [refused, setRefused] = useState<string>();
   const passwordRef = useRef<HTMLInputElement>(null);
   const againRef = useRef<HTMLInputElement>(null);
   const failure = reset.isError ? authFailure(reset.error) : undefined;
-  const passwordError = tried ? checkNewPassword(password) : undefined;
+  const passwordError = tried
+    ? (checkNewPassword(password) ?? (refused === password ? commonPasswordText : undefined))
+    : undefined;
   const againError =
     tried && !checkNewPassword(password) && again !== password
       ? 'Kata sandi tidak sama.'
@@ -89,12 +94,25 @@ export function ResetPasswordPage() {
       againRef.current?.focus();
       return;
     }
-    reset.mutate({ token, password });
+    const activeAtStart = document.activeElement;
+
+    reset.mutate(
+      { token, password },
+      {
+        // The refusal is about the password, so the focus goes to the field that has the text
+        onError: (error) => {
+          if (authFailure(error) === 'common-password') {
+            setRefused(password);
+            focusUnlessMoved(passwordRef.current, activeAtStart);
+          }
+        },
+      },
+    );
   };
 
   return (
     <AuthFrame title="Atur ulang kata sandi" subtitle="Pilih kata sandi baru untuk akun Anda.">
-      {failure ? (
+      {failure && failure !== 'common-password' ? (
         <FailureBanner
           failure={failure}
           retryAfterSeconds={
