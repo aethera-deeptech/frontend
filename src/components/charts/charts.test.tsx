@@ -140,6 +140,61 @@ describe('PowerChart', () => {
     );
   });
 
+  it('ends the anomaly label before the top y label when the stretch is at the right edge', () => {
+    render(<PowerChart {...props} anomaly={{ from: 4, to: 4, label: 'Anomali 704 W' }} />);
+
+    const label = screen.getByText('Anomali 704 W');
+
+    // The chart is 324 px wide without a layout, and the y label "2.000 W" needs 57 px at the right edge (7 characters of 7 px and a gap of 8 px)
+    expect(label).toHaveAttribute('text-anchor', 'end');
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 57);
+  });
+
+  it('leaves more room at the right edge for a longer top y label', () => {
+    render(
+      <PowerChart
+        {...props}
+        yLabels={['0 W', '5.000 W', '10.000 W']}
+        anomaly={{ from: 4, to: 4, label: 'Anomali 704 W' }}
+      />,
+    );
+
+    // "10.000 W" is one character longer, so the anomaly label ends 7 px further left, at 64 px from the edge
+    expect(Number(screen.getByText('Anomali 704 W').getAttribute('x'))).toBeLessThanOrEqual(
+      324 - 64,
+    );
+  });
+
+  it('lets a label that is too long for the room run over the left edge and not into the y label', () => {
+    render(
+      <PowerChart
+        {...props}
+        anomaly={{
+          from: 0,
+          to: 0,
+          label: 'Anomali dengan teks yang sangat panjang sekali di sini',
+        }}
+      />,
+    );
+
+    expect(
+      Number(
+        screen
+          .getByText('Anomali dengan teks yang sangat panjang sekali di sini')
+          .getAttribute('x'),
+      ),
+    ).toBeLessThanOrEqual(324 - 57);
+  });
+
+  it('keeps the anomaly label to the right of the start of a stretch when there is room', () => {
+    render(<PowerChart {...props} anomaly={{ from: 1, to: 2, label: 'Anomali 704 W' }} />);
+
+    const label = screen.getByText('Anomali 704 W');
+
+    expect(label).toHaveAttribute('text-anchor', 'start');
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 57 - 80);
+  });
+
   it('keeps a stretch with wrong indexes inside the points', () => {
     const { container } = render(
       <PowerChart {...props} anomaly={{ from: -3, to: 99, label: 'Anomali 2.000 W' }} />,
