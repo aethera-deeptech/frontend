@@ -5,10 +5,13 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useConnection } from '@/hooks/use-connection';
+import { useBusinessZone } from '@/hooks/use-business-zone';
 import { BerandaView } from '@/pages/beranda/beranda-view';
 
 export function BerandaPage() {
   const query = useBeranda();
+  // The moments follow the zone of the business, so the page draws again when the zone arrives
+  useBusinessZone();
   const connection = useConnection();
   const decision = useRecommendationDecision();
 

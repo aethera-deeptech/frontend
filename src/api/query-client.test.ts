@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, ContractError, NetworkError } from '@/api/client';
 import { createQueryClient, shouldRetry } from '@/api/query-client';
+import { settingsKey } from '@/api/settings';
+import { getBusinessZone, setBusinessZone } from '@/lib/format';
 
 describe('shouldRetry', () => {
   it('does not try again after a client error', () => {
@@ -136,5 +138,30 @@ describe('createQueryClient', () => {
 
   it('uses the retry rule for every query', () => {
     expect(createQueryClient().getDefaultOptions().queries?.retry).toBe(shouldRetry);
+  });
+
+  it('follows the time zone of the settings, and forgets it when the settings go away', async () => {
+    const client = createQueryClient();
+
+    await client.query({
+      queryKey: settingsKey,
+      queryFn: () => Promise.resolve({ timeZone: 'Asia/Jayapura' }),
+    });
+    expect(getBusinessZone()).toBe('Asia/Jayapura');
+
+    client.removeQueries({ queryKey: settingsKey });
+    expect(getBusinessZone()).toBe('Asia/Jakarta');
+    setBusinessZone(undefined);
+  });
+
+  it('keeps the default zone when the settings have no usable zone', async () => {
+    const client = createQueryClient();
+
+    await client.query({
+      queryKey: settingsKey,
+      queryFn: () => Promise.resolve({ timeZone: 'Mars/Olympus' }),
+    });
+
+    expect(getBusinessZone()).toBe('Asia/Jakarta');
   });
 });

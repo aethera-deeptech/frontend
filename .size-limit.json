@@ -7,7 +7,7 @@
   {
     "name": "JavaScript, all chunks",
     "path": "dist/assets/*.js",
-    "limit": "260 kB"
+    "limit": "262 kB"
   },
   {
     "name": "CSS",

@@ -292,12 +292,16 @@ describe('the form to rename a device', () => {
 
 describe('the day of an anomaly', () => {
   // 23:00 in Jakarta is already 01:00 of the next day in Jayapura, and the anomaly came at 02:10 on 29 Oct
-  async function openAnomalyAt(timeZone: string) {
+  // The API writes the moment with the offset of the zone of the business, and 02:10 is the same instant in both
+  async function openAnomalyAt(timeZone: string, at: string) {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-10-29T16:00:00Z'));
+    const detail = sampleAnomaly();
     stubApi({
       'GET /v1/devices': { body: sampleDevices() },
-      'GET /v1/devices/d1': { body: sampleAnomaly() },
+      'GET /v1/devices/d1': {
+        body: { ...detail, anomaly: detail.anomaly && { ...detail.anomaly, at } },
+      },
       'GET /v1/settings': { body: sampleSettings({ timeZone }) },
     });
     renderAt('/alat/d1');
@@ -305,7 +309,7 @@ describe('the day of an anomaly', () => {
   }
 
   it('says today by the clock of the zone of the business', async () => {
-    await openAnomalyAt('Asia/Jakarta');
+    await openAnomalyAt('Asia/Jakarta', '2026-10-29T02:10:00+07:00');
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(
@@ -315,7 +319,7 @@ describe('the day of an anomaly', () => {
   });
 
   it('names the date when the zone of the business is already on the next day', async () => {
-    await openAnomalyAt('Asia/Jayapura');
+    await openAnomalyAt('Asia/Jayapura', '2026-10-29T02:10:00+09:00');
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Daya naik mendadak 29 Okt pukul 02:10');

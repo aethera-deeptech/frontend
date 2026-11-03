@@ -2,6 +2,8 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
 import { authMutationKey, meSchema, sessionKey } from '@/api/auth';
 import { ApiError, ContractError } from '@/api/client';
+import { settingsKey } from '@/api/settings';
+import { setBusinessZone } from '@/lib/format';
 
 // A request that failed with a 4xx status will fail again, and so will an answer in the wrong shape, so only the other
 // failures are tried once more.
@@ -51,6 +53,16 @@ export function createQueryClient(): QueryClient {
   let signedInEmail: string | undefined;
 
   client.getQueryCache().subscribe((event) => {
+    // The clock of every moment on the screens is the clock of the business zone, so the zone follows the settings as they load,
+    // change and go away with the account
+    const queryName = (event.query.queryKey as readonly unknown[])[0];
+
+    if (queryName === settingsKey[0]) {
+      const zone = (event.query.state.data as { timeZone?: unknown } | undefined)?.timeZone;
+
+      setBusinessZone(event.type === 'removed' || typeof zone !== 'string' ? undefined : zone);
+      return;
+    }
     if (event.type !== 'updated' || event.action.type !== 'success') {
       return;
     }

@@ -13,6 +13,7 @@ import { DecisionButtons, RecommendationCard } from '@/components/ui/recommendat
 import { Tag } from '@/components/ui/tag';
 import type { ConnectionState } from '@/hooks/use-connection';
 import {
+  businessNow,
   formatDateTime,
   formatDayTime,
   formatDateWithYear,
@@ -56,7 +57,7 @@ export function BerandaView({
   onDecision,
   busyId,
   decisionFailed = false,
-  now = new Date(),
+  now = businessNow(),
 }: BerandaViewProps) {
   const asOf = parseMoment(data.asOf);
 
