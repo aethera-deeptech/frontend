@@ -21,6 +21,9 @@ const HEIGHT = 144;
 const TOP = 22;
 const PLOT = 90;
 const FALLBACK_WIDTH = 324;
+// The room that the top y label takes at the right edge, and the width of one character of the 12 px label text
+const Y_LABEL_ROOM = 56;
+const LABEL_CHAR_WIDTH = 6.5;
 
 export function PowerChart({
   points,
@@ -43,8 +46,15 @@ export function PowerChart({
   const to = anomaly ? Math.min(Math.max(anomaly.to, from), Math.max(count - 1, 0)) : 0;
   const bad = anomaly ? line.slice(from, to + 1) : [];
   const spanStart = at(0, from)[0];
-  // A label that starts near the right edge would be cut off, so it ends at the start of the span instead
-  const labelAtEnd = spanStart > width * 0.6;
+  // The top y label sits at the right edge on nearly the same line, so the anomaly label has to end before it. A label that starts
+  // near the right edge, or that would run into the y label, ends at the start of the span instead. The width of the text is
+  // estimated, because the SVG cannot measure it before it is drawn.
+  const labelRight = width - Y_LABEL_ROOM;
+  const labelWidth = anomaly ? anomaly.label.length * LABEL_CHAR_WIDTH : 0;
+  const labelAtEnd = spanStart > width * 0.6 || spanStart + 8 + labelWidth > labelRight;
+  const labelX = labelAtEnd
+    ? Math.max(Math.min(spanStart - 8, labelRight), labelWidth)
+    : spanStart + 8;
   const ticks = [TOP, TOP + PLOT / 2, TOP + PLOT] as const;
 
   return (
@@ -104,7 +114,7 @@ export function PowerChart({
         ))}
         {anomaly ? (
           <text
-            x={labelAtEnd ? spanStart - 8 : spanStart + 8}
+            x={labelX}
             y="12"
             textAnchor={labelAtEnd ? 'end' : 'start'}
             className="fill-text-danger text-label"

@@ -140,6 +140,25 @@ describe('PowerChart', () => {
     );
   });
 
+  it('ends the anomaly label before the top y label when the stretch is at the right edge', () => {
+    render(<PowerChart {...props} anomaly={{ from: 4, to: 4, label: 'Anomali 704 W' }} />);
+
+    const label = screen.getByText('Anomali 704 W');
+
+    // The chart is 324 px wide without a layout, and the y label needs 56 px at the right edge
+    expect(label).toHaveAttribute('text-anchor', 'end');
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 56);
+  });
+
+  it('keeps the anomaly label to the right of the start of a stretch when there is room', () => {
+    render(<PowerChart {...props} anomaly={{ from: 1, to: 2, label: 'Anomali 704 W' }} />);
+
+    const label = screen.getByText('Anomali 704 W');
+
+    expect(label).toHaveAttribute('text-anchor', 'start');
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 56 - 80);
+  });
+
   it('keeps a stretch with wrong indexes inside the points', () => {
     const { container } = render(
       <PowerChart {...props} anomaly={{ from: -3, to: 99, label: 'Anomali 2.000 W' }} />,
