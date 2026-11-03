@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { sampleSettings } from '@/pages/pengaturan/sample-settings';
 import { renderAt, sampleGateway, stubApi } from '@/test/stub-api';
 
 vi.mock('@/lib/env', () => ({
@@ -42,11 +43,13 @@ describe('Tambah alat, the first step', () => {
     let answer: (response: Response) => void = () => undefined;
     vi.stubGlobal(
       'fetch',
-      vi.fn(
-        () =>
-          new Promise<Response>((resolve) => {
-            answer = resolve;
-          }),
+      // The settings that the shell reads are answered at once, so the call under test is the one that waits
+      vi.fn((input: string) =>
+        input.endsWith('/v1/settings')
+          ? Promise.resolve(new Response(JSON.stringify(sampleSettings())))
+          : new Promise<Response>((resolve) => {
+              answer = resolve;
+            }),
       ),
     );
     const router = renderAt('/alat/tambah');
