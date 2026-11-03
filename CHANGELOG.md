@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.7.0](https://github.com/aethera-deeptech/frontend/compare/v0.6.0...v0.7.0) (2026-11-03)
+
+
+### Features
+
+* **alat:** add the page that asks before the energy total starts again ([737a4b2](https://github.com/aethera-deeptech/frontend/commit/737a4b27174064c25949d1ebe178a5bf5f2e040f))
+* **alat:** let the owner start the energy total of a device again ([#90](https://github.com/aethera-deeptech/frontend/issues/90)) ([39a3984](https://github.com/aethera-deeptech/frontend/commit/39a3984a2b5f48a37e13d8211548bc0a2e09bd77))
+* **alat:** say that a plug switched itself off after an overload ([5f3e7c6](https://github.com/aethera-deeptech/frontend/commit/5f3e7c69ad0fd362861d49a737e6bdf9df66000f))
+* **alat:** say that a plug switched itself off after an overload ([#89](https://github.com/aethera-deeptech/frontend/issues/89)) ([4229914](https://github.com/aethera-deeptech/frontend/commit/42299143121406cf67ce79e72712842b2398bed0))
+* **alat:** say that WATTLINK Hub is not connected when the API says so ([d81aed1](https://github.com/aethera-deeptech/frontend/commit/d81aed190897eb60740716eec26f53f328f009db))
+* **alat:** say that WATTLINK Hub is not connected when the API says so ([#88](https://github.com/aethera-deeptech/frontend/issues/88)) ([8707133](https://github.com/aethera-deeptech/frontend/commit/87071331d54d5d2c92c240d322c2b50b8e4c0bee))
+* **alat:** show the card Total energi on the page of a device ([2650d4a](https://github.com/aethera-deeptech/frontend/commit/2650d4a7d6b6098d237af7911d608378edfc0280))
+* **api:** read the energy total of a device and start it again ([9196490](https://github.com/aethera-deeptech/frontend/commit/919649080318b3fd9092e5247aaa12c01ad58a6e))
+
+
+### Bug Fixes
+
+* **alat:** do not say that nothing changed when the answer of the reset was lost ([06ea3ce](https://github.com/aethera-deeptech/frontend/commit/06ea3cefe1266e46ceeb54f95c4a3dda5d6ea434))
+* **alat:** hedge the claim that the plug switched itself off ([a06fc6e](https://github.com/aethera-deeptech/frontend/commit/a06fc6ee6809a1ede19d4a2946777fb8eb0d19f3))
+* **alat:** hide the line about the schedule while the plug shows that it cut itself ([1943f9a](https://github.com/aethera-deeptech/frontend/commit/1943f9a300afa6ec8d18ff13bc9ad862cd6952a1))
+* **alat:** hide the line about the wait while a command already waits ([3cfdecf](https://github.com/aethera-deeptech/frontend/commit/3cfdecff2eed91dc81d112a0c548c6e3d9ce1274))
+* **alat:** keep Batal inert while the reset runs and say when the device is gone ([5e333b4](https://github.com/aethera-deeptech/frontend/commit/5e333b444bb11b4689891cc5feae9406542a45ea))
+* **alat:** keep three decimals for a total under 1 kWh ([34457cc](https://github.com/aethera-deeptech/frontend/commit/34457cc5b459133088b5a40685691262c63507c6))
+* **alat:** start the count at the first whole hour on the instant and keep decimals for a young total ([0115e7c](https://github.com/aethera-deeptech/frontend/commit/0115e7c60e9f6427590bc62777e89ea01eb9d6c4))
+* **api:** show the new total at once after a reset and read the device in the background ([7ba093c](https://github.com/aethera-deeptech/frontend/commit/7ba093c964cb2bad944670eeabd5b7e3581a2d4d))
+* **auth:** count the characters of a password and a business name like the API does ([65f40d0](https://github.com/aethera-deeptech/frontend/commit/65f40d0cc5710f9db61cbdd63fc153428155cab1))
+* **auth:** count the characters of a password and a business name like the API does ([#85](https://github.com/aethera-deeptech/frontend/issues/85)) ([46ab487](https://github.com/aethera-deeptech/frontend/commit/46ab487ac1e655aa5454b8a957be7734ad025da5))
+* **auth:** use the character counter of the app and count a password once ([7299065](https://github.com/aethera-deeptech/frontend/commit/729906583b1d9ba96c81bb1ad1ab3b363e610f08))
+* **pengaturan:** count the characters of the business name like the API does ([ea79f11](https://github.com/aethera-deeptech/frontend/commit/ea79f112a1bba5b92862fdcc6c40bcb5bc8b0da9))
+
+
+### Performance Improvements
+
+* **alat:** do not ask for the switch of a device that the API says is a clamp ([95a3373](https://github.com/aethera-deeptech/frontend/commit/95a3373034897b050d0134e8734df6d7e65c79bd))
+* **alat:** do not ask for the switch of a device that the API says is a clamp ([#86](https://github.com/aethera-deeptech/frontend/issues/86)) ([c92b21a](https://github.com/aethera-deeptech/frontend/commit/c92b21a733764906be9d76147bcfd737cf9c5ff1))
+
 ## [0.6.0](https://github.com/aethera-deeptech/frontend/compare/v0.5.0...v0.6.0) (2026-11-03)
 
 
