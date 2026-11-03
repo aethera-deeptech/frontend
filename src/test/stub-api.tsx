@@ -43,7 +43,12 @@ export function stubApi(overrides: Record<string, Answer | (() => Answer)>) {
   const fetchMock = vi.fn((input: string, init?: RequestInit) => {
     const path = new URL(input).pathname;
     const method = init?.method ?? 'GET';
-    const answer = answers[`${method} ${path}`];
+    // A device answers 409 on its switch unless a test gives it one, like a clamp does
+    const answer =
+      answers[`${method} ${path}`] ??
+      (method === 'GET' && /^\/v1\/devices\/[^/]+\/relay$/.test(path)
+        ? { status: 409, body: { code: 'no_relay' } }
+        : undefined);
 
     if (!answer) {
       return Promise.reject(new TypeError(`No answer for ${method} ${path}`));

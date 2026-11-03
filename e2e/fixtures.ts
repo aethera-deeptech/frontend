@@ -60,6 +60,7 @@ function beranda() {
 function answer(method: string, pathname: string): unknown {
   const tip = /^\/v1\/recommendations\/([^/]+)$/.exec(pathname)?.[1];
   const device = /^\/v1\/devices\/([^/]+)$/.exec(pathname)?.[1];
+  const relay = /^\/v1\/devices\/([^/]+)\/relay$/.test(pathname);
 
   if (method === 'POST' && pathname === '/v1/pairings') {
     return { id: 'p1' };
@@ -90,6 +91,15 @@ function answer(method: string, pathname: string): unknown {
   }
   if (pathname === '/v1/devices') {
     return sampleDevices();
+  }
+  if (relay) {
+    return {
+      state: 'on',
+      reportedAt: '2026-10-29T14:30:00+07:00',
+      pending: null,
+      last: null,
+      schedule: null,
+    };
   }
   if (device) {
     return device === 'd1'
