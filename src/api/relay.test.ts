@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError, NetworkError } from '@/api/client';
-import { hasNoRelay, relaySchema } from '@/api/relay';
+import { hasNoRelay, pendingPollMs, relayPoll, relaySchema } from '@/api/relay';
+import { livePollMs } from '@/api/live';
 
 const base = {
   state: 'on',
@@ -75,5 +76,28 @@ describe('hasNoRelay', () => {
   it('is false for a failure that may go away', () => {
     expect(hasNoRelay(new ApiError(500))).toBe(false);
     expect(hasNoRelay(new NetworkError())).toBe(false);
+  });
+});
+
+describe('relayPoll', () => {
+  const pending = {
+    id: 'c1',
+    action: 'off',
+    status: 'pending',
+    expiresAt: '2026-10-29T09:40:00+07:00',
+  } as const;
+
+  it('asks every 5 seconds while a command waits', () => {
+    expect(relayPoll({ state: { data: relaySchema.parse({ ...base, pending }) } })).toBe(
+      pendingPollMs,
+    );
+  });
+
+  it('follows the beat of the readings when nothing waits', () => {
+    expect(relayPoll({ state: { data: relaySchema.parse(base) } })).toBe(livePollMs);
+  });
+
+  it('does not ask again for a first read that failed', () => {
+    expect(relayPoll({ state: { data: undefined } })).toBe(false);
   });
 });

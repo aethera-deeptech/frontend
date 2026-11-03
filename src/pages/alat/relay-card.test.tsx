@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Relay } from '@/api/relay';
+import { createQueryClient } from '@/api/query-client';
+import { relayKey, type Relay } from '@/api/relay';
 import { RelayCardView } from '@/pages/alat/relay-card';
 import { sampleNormal } from '@/pages/alat/sample-alat';
 import { sampleRelay } from '@/pages/alat/sample-relay';
@@ -230,6 +231,22 @@ describe('RelayCardView, the result of the last command', () => {
     expect(screen.queryByText(/Menurut status terakhir/)).not.toBeInTheDocument();
   });
 
+  it('keeps a result that the screen saw appear, whatever the clock of the phone says', () => {
+    renderCard(
+      sampleRelay({
+        last: {
+          action: 'off',
+          status: 'applied',
+          source: 'owner',
+          at: '2026-10-29T08:00:00+07:00',
+        },
+      }),
+      { resultIsNew: true },
+    );
+
+    expect(screen.getByText('Colokan sudah dimatikan')).toBeVisible();
+  });
+
   it('drops a result that is no longer news', () => {
     renderCard(
       sampleRelay({
@@ -377,5 +394,59 @@ describe('RelayCard on the page of a device', () => {
     expect(
       await screen.findByText(/Alat tidak terhubung\. Jika Anda menekan Matikan/),
     ).toBeVisible();
+  });
+
+  it('says a minute when the service gives no wait time with the 429', async () => {
+    stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal() },
+      'GET /v1/devices/d4/relay': { body: relayBody },
+      'POST /v1/devices/d4/relay': { status: 429, body: { code: 'rate_limited' } },
+    });
+    renderAt('/alat/d4');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Matikan' }));
+
+    expect(await screen.findByText(/dalam 1\smenit\./)).toBeVisible();
+  });
+
+  it('leaves the card out when the command finds that the plug is gone', async () => {
+    let gone = false;
+    stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal() },
+      'GET /v1/devices/d4/relay': () =>
+        gone ? { status: 409, body: { code: 'no_relay' } } : { body: relayBody },
+      'POST /v1/devices/d4/relay': () => {
+        gone = true;
+        return { status: 409, body: { code: 'no_relay' } };
+      },
+    });
+    renderAt('/alat/d4');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Matikan' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Saklar' })).not.toBeInTheDocument();
+    });
+    expect(screen.queryByText('Perintah belum terkirim')).not.toBeInTheDocument();
+  });
+
+  it('leaves the card out when a later read finds that the plug is gone', async () => {
+    let gone = false;
+    const client = createQueryClient();
+    stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal() },
+      'GET /v1/devices/d4/relay': () => (gone ? { status: 404 } : { body: relayBody }),
+    });
+    renderAt('/alat/d4', undefined, { client });
+
+    await screen.findByRole('button', { name: 'Matikan' });
+    gone = true;
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: relayKey('d4') });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Saklar' })).not.toBeInTheDocument();
+    });
   });
 });
