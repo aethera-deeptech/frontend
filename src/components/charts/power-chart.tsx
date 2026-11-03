@@ -21,6 +21,10 @@ const HEIGHT = 144;
 const TOP = 22;
 const PLOT = 90;
 const FALLBACK_WIDTH = 324;
+// A safe width of one character of the 12 px label text. A digit is about 7 px and a wide capital such as W is about 9.5 px, and the
+// letters of the label are narrower, so the sum stays above the real width of the labels that the chart draws.
+const LABEL_CHAR_WIDTH = 7;
+const LABEL_GAP = 8;
 
 export function PowerChart({
   points,
@@ -43,8 +47,16 @@ export function PowerChart({
   const to = anomaly ? Math.min(Math.max(anomaly.to, from), Math.max(count - 1, 0)) : 0;
   const bad = anomaly ? line.slice(from, to + 1) : [];
   const spanStart = at(0, from)[0];
-  // A label that starts near the right edge would be cut off, so it ends at the start of the span instead
-  const labelAtEnd = spanStart > width * 0.6;
+  // The top y label sits at the right edge on nearly the same line, so the anomaly label has to end before it. A label that starts
+  // near the right edge, or that would run into the y label, ends at the start of the span instead. The widths of the texts are
+  // estimated, because the SVG cannot measure them before it is drawn.
+  const labelRight = width - (yLabels[2].length * LABEL_CHAR_WIDTH + LABEL_GAP);
+  const labelWidth = anomaly ? anomaly.label.length * LABEL_CHAR_WIDTH : 0;
+  const labelAtEnd = spanStart > width * 0.6 || spanStart + LABEL_GAP + labelWidth > labelRight;
+  // A label that is too long for the room runs over the left edge, where nothing else is drawn
+  const labelX = labelAtEnd
+    ? Math.min(Math.max(spanStart - LABEL_GAP, labelWidth), labelRight)
+    : spanStart + LABEL_GAP;
   const ticks = [TOP, TOP + PLOT / 2, TOP + PLOT] as const;
 
   return (
@@ -104,7 +116,7 @@ export function PowerChart({
         ))}
         {anomaly ? (
           <text
-            x={labelAtEnd ? spanStart - 8 : spanStart + 8}
+            x={labelX}
             y="12"
             textAnchor={labelAtEnd ? 'end' : 'start'}
             className="fill-text-danger text-label"
