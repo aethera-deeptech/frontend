@@ -193,6 +193,13 @@ export const routes: RouteObject[] = [
                     ),
                   },
                   {
+                    path: ':id/jadwal',
+                    ...lazyPage(
+                      () => import('@/pages/alat/alat-schedule-page'),
+                      (module) => module.AlatSchedulePage,
+                    ),
+                  },
+                  {
                     path: ':id/ganti-nama',
                     ...lazyPage(
                       () => import('@/pages/alat/alat-rename-page'),

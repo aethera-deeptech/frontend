@@ -95,3 +95,45 @@ export function useSendRelay(id: string) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
   });
 }
+
+export interface ScheduleInput {
+  offAt: string;
+  onAt: string | null;
+  days: ScheduleDays;
+  enabled: boolean;
+}
+
+// The service replaces the whole schedule with the one that is sent, and answers with it
+export function useSaveSchedule(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: ScheduleInput) =>
+      apiRequest(`/v1/devices/${encodeURIComponent(id)}/schedule`, scheduleSchema, {
+        method: 'PUT',
+        body: input,
+      }),
+    onSuccess: async (schedule) => {
+      await queryClient.cancelQueries({ queryKey: relayKey(id) });
+      queryClient.setQueryData<Relay>(relayKey(id), (old) => (old ? { ...old, schedule } : old));
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
+  });
+}
+
+// A plug that has no schedule answers 204 as well, so deleting twice is fine
+export function useDeleteSchedule(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiRequest(`/v1/devices/${encodeURIComponent(id)}/schedule`, z.null(), { method: 'DELETE' }),
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: relayKey(id) });
+      queryClient.setQueryData<Relay>(relayKey(id), (old) =>
+        old ? { ...old, schedule: null } : old,
+      );
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
+  });
+}
