@@ -21,8 +21,9 @@ const HEIGHT = 144;
 const TOP = 22;
 const PLOT = 90;
 const FALLBACK_WIDTH = 324;
-// The width of one character of the 12 px label text, and the gap between two labels
-const LABEL_CHAR_WIDTH = 6.5;
+// A safe width of one character of the 12 px label text. A digit is about 7 px and a wide capital such as W is about 9.5 px, and the
+// letters of the label are narrower, so the sum stays above the real width of the labels that the chart draws.
+const LABEL_CHAR_WIDTH = 7;
 const LABEL_GAP = 8;
 
 export function PowerChart({
