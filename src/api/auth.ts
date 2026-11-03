@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { ApiError, apiRequest } from '@/api/client';
+import { livePoll } from '@/api/live';
 
 // The paths and shapes in this file follow openapi.yaml of the backend (tag Account).
 
@@ -42,6 +43,9 @@ export function useSession() {
     queryKey: sessionKey,
     queryFn: ({ signal }) => apiRequest('/v1/auth/me', meSchema, { signal }),
     retry: false,
+    // The readings poll with the cookie of the browser, so the identity is read on the same beat. When another tab signed in
+    // as someone else, this tab notices within the interval and drops what it cached for the first account.
+    refetchInterval: livePoll,
   });
 }
 

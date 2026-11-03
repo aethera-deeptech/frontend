@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { berandaKey, useBeranda } from '@/api/beranda';
 import { devicesKey, useDevice, useDevices } from '@/api/devices';
-import { createQueryClient, livePoll, livePollMs } from '@/api/query-client';
+import { livePoll, livePollMs } from '@/api/live';
+import { createQueryClient } from '@/api/query-client';
+import { sessionKey, useSession } from '@/api/auth';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -36,6 +38,10 @@ describe('live refresh of the readings', () => {
 
   it('asks for one device again on its own', () => {
     expect(intervalOf([...devicesKey, 'abc'], () => useDevice('abc'))).toBe(livePoll);
+  });
+
+  it('asks who is signed in on the same beat, so another account in another tab is noticed', () => {
+    expect(intervalOf(sessionKey, useSession)).toBe(livePoll);
   });
 
   it('asks every 30 seconds when the query holds data', () => {

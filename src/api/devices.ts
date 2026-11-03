@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { apiRequest } from '@/api/client';
 import { berandaKey } from '@/api/beranda';
-import { livePoll } from '@/api/query-client';
+import { livePoll } from '@/api/live';
 
 // The paths and shapes in this file are an assumption of the frontend, see docs/api-assumptions.md.
 
