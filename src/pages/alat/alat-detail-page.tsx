@@ -29,13 +29,16 @@ export function AlatDetailPage() {
         detail={query.data}
         now={now}
         notice={scheduleNotice(state)}
+        // A clamp has no switch, and the API would answer 409 to the read, so the page does not ask. A device without a kind still asks.
         switchCard={
-          <RelayCard
-            key={query.data.id}
-            deviceId={query.data.id}
-            offline={query.data.status === 'offline'}
-            now={now}
-          />
+          query.data.kind === 'clamp' ? undefined : (
+            <RelayCard
+              key={query.data.id}
+              deviceId={query.data.id}
+              offline={query.data.status === 'offline'}
+              now={now}
+            />
+          )
         }
       />
     );
