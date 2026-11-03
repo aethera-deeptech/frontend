@@ -119,6 +119,31 @@ describe('Nama usaha', () => {
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
   });
 
+  it('counts characters like the API does, so 80 emoji are saved and 81 are not', async () => {
+    const fetchMock = stubApi({
+      'GET /v1/settings': { body: sampleSettings() },
+      'PATCH /v1/settings': { status: 204 },
+    });
+    renderAt('/lainnya/pengaturan/nama');
+
+    const input = await screen.findByRole('textbox', { name: 'Nama usaha' });
+    await userEvent.clear(input);
+    await userEvent.click(input);
+    await userEvent.paste('😀'.repeat(81));
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Nama usaha paling panjang 80 huruf.')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(false);
+
+    await userEvent.clear(input);
+    await userEvent.paste('😀'.repeat(80));
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true);
+    });
+  });
+
   it('goes back without saving on Batal', async () => {
     stubApi({ 'GET /v1/settings': { body: sampleSettings() } });
     const router = renderAt('/lainnya/pengaturan/nama');

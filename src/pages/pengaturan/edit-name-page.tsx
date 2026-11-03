@@ -3,8 +3,10 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
+import { businessNameLength } from '@/api/auth';
 import { useUpdateSettings } from '@/api/settings';
 import { TextInput } from '@/components/ui/text-input';
+import { countCharacters } from '@/lib/characters';
 import { EditForm, settingsPath } from '@/pages/pengaturan/edit-form';
 import { SettingsGate } from '@/pages/pengaturan/settings-gate';
 
@@ -13,7 +15,11 @@ const schema = z.object({
     .string()
     .trim()
     .min(1, 'Nama usaha wajib diisi.')
-    .max(80, 'Nama usaha paling panjang 80 huruf.'),
+    // The API counts characters, so an emoji is one and not two
+    .refine(
+      (value) => countCharacters(value) <= businessNameLength.max,
+      `Nama usaha paling panjang ${businessNameLength.max.toString()} huruf.`,
+    ),
 });
 
 type Values = z.infer<typeof schema>;
