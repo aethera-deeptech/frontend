@@ -95,6 +95,21 @@ describe('PowerChart', () => {
     expect(screen.getByText('Abu-abu berarti kisaran biasa.')).toBeInTheDocument();
   });
 
+  it('draws the axis labels on top of the usual range and the line', () => {
+    const { container } = render(
+      <PowerChart
+        {...props}
+        expected={{ low: [90, 100, 100, 100, 90], high: [200, 220, 2400, 220, 200] }}
+      />,
+    );
+    const band = container.querySelector('path.fill-bg-3');
+    const label = screen.getByText('1.000 W');
+
+    expect(band).not.toBeNull();
+    // A later node in the SVG is painted over an earlier one
+    expect(band?.compareDocumentPosition(label)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('names the stretch that is not normal and draws it on its own', () => {
     const { container } = render(
       <PowerChart {...props} anomaly={{ from: 1, to: 3, label: 'Anomali 2.000 W' }} />,
