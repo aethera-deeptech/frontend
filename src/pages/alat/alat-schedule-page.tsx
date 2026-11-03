@@ -276,8 +276,8 @@ function ScheduleForm({
         )}
       />
       <p className="text-label text-text-2">
-        Perubahan berlaku mulai sekarang. Jam yang sudah lewat hari ini tidak dijalankan. Colokan
-        bisa berganti sampai satu menit setelah jam itu.
+        Perubahan berlaku mulai sekarang. Jam yang sudah lewat hari ini tidak dijalankan. Jika
+        WATTLINK Hub terhubung, colokan berganti dalam sekitar satu menit.
       </p>
       <Button type="submit" kind="accent" size="lg" disabled={busy}>
         {save.isPending ? 'Sedang menyimpan' : 'Simpan'}
