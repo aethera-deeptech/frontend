@@ -14,7 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const schedule = { enabled: true, offAt: '17:30', onAt: '08:00', days: 'mon-fri' };
+const schedule = { enabled: true, offAt: '17:30', onAt: '08:00', days: 'mon-fri' as const };
 
 function answers(relay = sampleRelay()) {
   return {
