@@ -46,7 +46,7 @@ A 422 answer has `fields`, which names the code of each field that failed, for e
 - `recommendations` is a list of `id`, `title`, `deviceName` and `savingPerMonthRp`.
 - `bill` has `dailyTotalRp`, which holds one running total in rupiah for each day from the first day of the month until the day of `asOf`. It also has `projectedTotalRp` and `potentialTotalRp` for the end of the month, without and with the tips.
 - `topDevices` is a list of `name` and `kwh`, the largest users first.
-- `energyPerPiece` is `verified` or `estimate` with `beforeKwh` and `afterKwh`, or `collecting` with `collectedDays` and `neededDays`.
+- `energyPerPiece` is `verified` or `estimate` with `beforeKwh` and `afterKwh`, or `collecting` with `collectedDays` and `neededDays`. The backend leaves it out of a `ready` answer until a tip is verified, and it does not send `estimate` or `collecting` yet, so the field is optional. Without it the card says how to get the figure, with the text of the `collecting` state and no progress.
 - Every amount of money is a whole number of rupiah.
 
 ## Decisions on a tip

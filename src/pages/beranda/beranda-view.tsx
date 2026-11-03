@@ -214,7 +214,12 @@ function Ready({ data, asOf, connection, onDecision, busyId, now }: ReadyProps) 
           <TopDevices devices={data.topDevices} />
         </Card>
         <Card title="Energi per potong, seluruh bengkel">
-          {data.energyPerPiece.status === 'collecting' ? (
+          {data.energyPerPiece === undefined ? (
+            <p className="text-body text-text-2">
+              Catat produksi harian agar energi per potong bisa dihitung. Hasil hemat muncul 14 hari
+              setelah Anda menandai saran diterapkan.
+            </p>
+          ) : data.energyPerPiece.status === 'collecting' ? (
             <BeforeAfter
               status="collecting"
               collectedDays={data.energyPerPiece.collectedDays}

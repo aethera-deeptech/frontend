@@ -45,6 +45,20 @@ describe('BerandaPage', () => {
     expect(document.title).toBe('Beranda · WATTLINK');
   });
 
+  it('shows the page for a business that has no verified tip, which the API answers without the energy of a piece', async () => {
+    // JSON leaves a key out when its value is undefined, like the API does
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(json(sampleReady({ energyPerPiece: undefined }))),
+    );
+    renderPage();
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Konveksi Maju Jaya' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Data tidak bisa dimuat')).not.toBeInTheDocument();
+  });
+
   it('asks for the data of Beranda', async () => {
     const fetchMock = vi.fn().mockResolvedValue(json(sampleReady()));
     vi.stubGlobal('fetch', fetchMock);
