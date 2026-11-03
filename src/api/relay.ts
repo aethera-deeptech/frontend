@@ -39,6 +39,10 @@ export const scheduleSchema = z.object({
   days: z.enum(scheduleDays),
 });
 
+// The plug cut its own relay after an overload. The API only gives an indication, so a reason that this version does not
+// know leaves it out.
+const cutByDeviceSchema = z.object({ reason: z.literal('overload'), at: moment });
+
 export const relaySchema = z.object({
   state: z.enum([...relayActions, 'unknown']).catch('unknown'),
   reportedAt: moment.nullable(),
@@ -49,6 +53,8 @@ export const relaySchema = z.object({
   // False when the gateway of this plug stored no batch in the last 15 minutes. It tells about the hub and not about the
   // plug. An API that does not send it (before 0.5.0) leaves it out.
   gatewayOnline: z.boolean().optional().catch(undefined),
+  // Set while the relay is off after an overload that the plug answered by itself. An API before 0.7.0 leaves it out.
+  cutByDevice: cutByDeviceSchema.nullable().default(null).catch(null),
 });
 
 export type Relay = z.infer<typeof relaySchema>;

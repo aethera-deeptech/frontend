@@ -63,6 +63,13 @@ export function RelayCardView({
           ? 'Alat belum pernah melapor status saklar.'
           : `Status dari alat pukul ${formatTime(parseMoment(relay.reportedAt))}`}
       </p>
+      {relay.state === 'off' && relay.cutByDevice && !relay.pending ? (
+        // The anomaly banner of the page says when and how high, so this says what it means for the switch
+        <p className="text-body text-text-1">
+          Colokan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri
+          lagi jika beban masih terlalu tinggi.
+        </p>
+      ) : null}
       {scheduled && relay.last ? (
         <p className="text-label text-text-2">
           {`Terakhir diganti oleh jadwal pukul ${formatTime(parseMoment(relay.last.at))}.`}
