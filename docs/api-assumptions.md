@@ -4,7 +4,7 @@ The backend publishes its contract as `openapi.yaml` in the [backend repository]
 
 Only the files in `src/api` know these paths and shapes. When the backend differs, change those files and this page. A response that does not match its schema is shown to the user like a failed request.
 
-The home screen, the list of devices and one device are read again every 30 seconds while the tab is visible, because the gateway sends a batch every 10 to 60 seconds. A hidden tab and a lost connection pause the reads, and a screen that opens or a tab that comes back reads again when its data is older than 30 seconds. Nothing is pushed to the app, so a value on the screen can be older than the newest batch by up to a minute or so.
+The home screen, the list of devices and one device are read again every 30 seconds while the tab is visible, because the gateway sends a batch every 10 to 60 seconds. A hidden tab and a lost connection pause the reads, and a screen that opens or a tab that comes back reads again when its data is older than 30 seconds. A read that failed before any data arrived is not repeated on its own, so the error stays on the screen until the user presses the retry button. Nothing is pushed to the app, so a value on the screen can be older than the newest batch by up to a minute or so.
 
 ## Account
 

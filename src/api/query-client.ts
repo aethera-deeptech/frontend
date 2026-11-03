@@ -23,6 +23,12 @@ function isUnauthorized(error: Error): boolean {
 // seconds, so a shorter interval would only repeat the same answer. A hidden tab and a lost connection pause it.
 export const livePollMs = 30_000;
 
+// A query with no data is a first read that failed, and a read that starts again turns the failure banner back into the
+// loading state. So only a query that holds data is read again on its own, and the retry button covers the rest.
+export function livePoll(query: { state: { data: unknown } }): number | false {
+  return query.state.data === undefined ? false : livePollMs;
+}
+
 export function createQueryClient(): QueryClient {
   // A 401 on any call except the account calls means that the session ended while the screen was open, for example after
   // 30 days or after a password reset on another device. The session is read again, and the guard sends the user to Masuk.

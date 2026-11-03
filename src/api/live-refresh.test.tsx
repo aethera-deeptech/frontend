@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { berandaKey, useBeranda } from '@/api/beranda';
 import { devicesKey, useDevice, useDevices } from '@/api/devices';
-import { createQueryClient, livePollMs } from '@/api/query-client';
+import { createQueryClient, livePoll, livePollMs } from '@/api/query-client';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -26,16 +26,24 @@ function intervalOf(key: readonly unknown[], hook: () => unknown) {
 }
 
 describe('live refresh of the readings', () => {
-  it('asks for the home screen again every 30 seconds', () => {
+  it('asks for the home screen again on its own', () => {
+    expect(intervalOf(berandaKey, useBeranda)).toBe(livePoll);
+  });
+
+  it('asks for the list of devices again on its own', () => {
+    expect(intervalOf(devicesKey, useDevices)).toBe(livePoll);
+  });
+
+  it('asks for one device again on its own', () => {
+    expect(intervalOf([...devicesKey, 'abc'], () => useDevice('abc'))).toBe(livePoll);
+  });
+
+  it('asks every 30 seconds when the query holds data', () => {
     expect(livePollMs).toBe(30_000);
-    expect(intervalOf(berandaKey, useBeranda)).toBe(livePollMs);
+    expect(livePoll({ state: { data: { phase: 'ready' } } })).toBe(livePollMs);
   });
 
-  it('asks for the list of devices again every 30 seconds', () => {
-    expect(intervalOf(devicesKey, useDevices)).toBe(livePollMs);
-  });
-
-  it('asks for one device again every 30 seconds', () => {
-    expect(intervalOf([...devicesKey, 'abc'], () => useDevice('abc'))).toBe(livePollMs);
+  it('does not ask again for a query that has no data, so a failure stays on the screen', () => {
+    expect(livePoll({ state: { data: undefined } })).toBe(false);
   });
 });
