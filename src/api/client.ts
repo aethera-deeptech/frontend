@@ -10,13 +10,19 @@ export class ApiError extends Error {
   readonly code: string | undefined;
   // How long the API asks the client to wait, in seconds, on a 429
   readonly retryAfterSeconds: number | undefined;
+  // The code of each field that failed, for example `{ password: 'too_common' }`. Only short names and codes are kept.
+  readonly fields: Readonly<Record<string, string>>;
 
-  constructor(status: number, details: { code?: string; retryAfterSeconds?: number } = {}) {
+  constructor(
+    status: number,
+    details: { code?: string; retryAfterSeconds?: number; fields?: Record<string, string> } = {},
+  ) {
     super(`The API answered with status ${status.toString()}.`);
     this.name = 'ApiError';
     this.status = status;
     this.code = details.code;
     this.retryAfterSeconds = details.retryAfterSeconds;
+    this.fields = details.fields ?? {};
   }
 }
 
@@ -67,11 +73,27 @@ const errorCodePattern = /^[a-z][a-z_]{0,63}$/;
 // A day is longer than any wait that the API asks for, so a bigger number is not a wait
 const longestWaitSeconds = 86_400;
 
-// The body of an error answer is `{ code, message, retryAfterSeconds? }`. A body that is missing, is not JSON or has another
-// shape gives no details, and the status alone still tells what happened.
+const fieldNamePattern = /^[A-Za-z][A-Za-z0-9_]{0,63}$/;
+
+// The `fields` of a 422 answer, as name and code pairs. A name or a code in another shape is left out.
+function readFields(value: unknown): Record<string, string> {
+  const fields: Record<string, string> = {};
+
+  if (typeof value === 'object' && value !== null) {
+    for (const [name, code] of Object.entries(value)) {
+      if (fieldNamePattern.test(name) && typeof code === 'string' && errorCodePattern.test(code)) {
+        fields[name] = code;
+      }
+    }
+  }
+  return fields;
+}
+
+// The body of an error answer is `{ code, message, fields?, retryAfterSeconds? }`. A body that is missing, is not JSON or has
+// another shape gives no details, and the status alone still tells what happened.
 async function readErrorDetails(
   response: Response,
-): Promise<{ code?: string; retryAfterSeconds?: number }> {
+): Promise<{ code?: string; retryAfterSeconds?: number; fields?: Record<string, string> }> {
   try {
     const body: unknown = JSON.parse(await response.text());
 
@@ -80,8 +102,10 @@ async function readErrorDetails(
     }
     const code = 'code' in body && typeof body.code === 'string' ? body.code : undefined;
     const wait = 'retryAfterSeconds' in body ? body.retryAfterSeconds : undefined;
+    const fields = 'fields' in body ? readFields(body.fields) : undefined;
 
     return {
+      fields,
       code: code !== undefined && errorCodePattern.test(code) ? code : undefined,
       retryAfterSeconds:
         typeof wait === 'number' &&

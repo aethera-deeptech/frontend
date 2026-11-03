@@ -499,6 +499,98 @@ describe('Daftar, other answers', () => {
     expect(await screen.findByText('Coba lagi dalam 5 menit.')).toBeVisible();
   });
 
+  it('says under the password that it is too common, puts the focus there and keeps the other fields', async () => {
+    stubApi({
+      'POST /v1/auth/register': {
+        status: 422,
+        body: { code: 'validation_failed', message: 'No', fields: { password: 'too_common' } },
+      },
+    });
+    renderAt('/daftar');
+
+    await fillAndSend();
+
+    expect(
+      await screen.findByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Kata sandi')).toHaveFocus();
+    expect(screen.getByLabelText('Kata sandi')).toBeInvalid();
+    expect(screen.queryByText('Periksa isian Anda')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Nama usaha')).toHaveValue('Maju');
+    expect(screen.getByLabelText('Email')).toHaveValue('dewi@example.com');
+  });
+
+  it('takes the common password text away when the password changes', async () => {
+    stubApi({
+      'POST /v1/auth/register': {
+        status: 422,
+        body: { code: 'validation_failed', message: 'No', fields: { password: 'too_common' } },
+      },
+    });
+    renderAt('/daftar');
+
+    await fillAndSend();
+    await screen.findByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), '9');
+
+    expect(
+      screen.queryByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Minimal 8 karakter.')).toBeVisible();
+  });
+
+  it('does not put the refusal under a password that was typed while the call ran', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) =>
+        new URL(input).pathname === '/v1/auth/register'
+          ? new Promise<Response>((resolve) => {
+              answer = resolve;
+            })
+          : Promise.resolve(new Response(JSON.stringify(me))),
+      ),
+    );
+    renderAt('/daftar');
+
+    await fillAndSend();
+    await userEvent.clear(screen.getByLabelText('Kata sandi'));
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'jarang-dipakai-91');
+    answer(
+      new Response(
+        JSON.stringify({
+          code: 'validation_failed',
+          message: 'No',
+          fields: { password: 'too_common' },
+        }),
+        { status: 422 },
+      ),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Daftar' })).toBeVisible();
+    expect(
+      screen.queryByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Kata sandi')).toHaveValue('jarang-dipakai-91');
+  });
+
+  it('still shows the banner for a 422 that is not about a common password', async () => {
+    stubApi({
+      'POST /v1/auth/register': {
+        status: 422,
+        body: { code: 'validation_failed', message: 'No', fields: { email: 'invalid' } },
+      },
+    });
+    renderAt('/daftar');
+
+    await fillAndSend();
+
+    expect(await screen.findByText('Periksa isian Anda')).toBeVisible();
+    expect(
+      screen.queryByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).not.toBeInTheDocument();
+  });
+
   it.each([0, -5])(
     'reads a wait of %i in the answer as the usual minute and not as an error',
     async (wait) => {
@@ -1128,6 +1220,35 @@ describe('Reset password link', () => {
     expect(screen.getByRole('link', { name: 'Masuk' })).toHaveAttribute('href', '/masuk');
     // The form is gone, so the heading of the next screen takes the focus
     expect(screen.getByRole('heading', { level: 1, name: 'Kata sandi diperbarui' })).toHaveFocus();
+  });
+
+  it('says under the new password that it is too common and keeps the repeat field', async () => {
+    stubApi({
+      'POST /v1/auth/reset-password': {
+        status: 422,
+        body: { code: 'validation_failed', message: 'No', fields: { password: 'too_common' } },
+      },
+    });
+    const router = renderAt(`/reset-password?token=${resetToken}`);
+    await waitFor(() => {
+      expect(router.state.location.search).toBe('');
+    });
+
+    await fill('qwerty123', 'qwerty123');
+
+    expect(
+      await screen.findByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Kata sandi baru')).toHaveFocus();
+    expect(screen.queryByText('Periksa isian Anda')).not.toBeInTheDocument();
+    expect(screen.queryByText('Kata sandi tidak sama.')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Ulangi kata sandi')).toHaveValue('qwerty123');
+
+    await userEvent.type(screen.getByLabelText('Kata sandi baru'), '9');
+
+    expect(
+      screen.queryByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).not.toBeInTheDocument();
   });
 
   it('drops the cached session after the reset, because the API ended every session', async () => {

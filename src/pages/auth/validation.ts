@@ -36,6 +36,9 @@ export function checkPasswordPresent(value: string): string | undefined {
   return value === '' ? 'Isi kata sandi Anda.' : undefined;
 }
 
+// The text under the password field when the API refuses a password that is on its list of common ones
+export const commonPasswordText = 'Kata sandi ini terlalu umum. Pilih kata sandi lain.';
+
 export function checkNewPassword(value: string): string | undefined {
   if (value === '') {
     return 'Isi kata sandi Anda.';
