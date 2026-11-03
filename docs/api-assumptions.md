@@ -73,7 +73,7 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 ## Alat
 
-`GET /v1/devices` returns `items`, a list of the devices. An empty list means that no device is installed. Each item has `id`, `name`, `status`, `currentPowerW` and `todayKwh`. The status is `nyala`, `mati`, `siaga`, `offline` or `anomali`. The power and the energy are `null` while the device does not answer. A device with an anomaly also has `anomalyAt`, and an offline device also has `lastSeenAt`. Both are moments in ISO 8601 with an offset.
+`GET /v1/devices` returns `items`, a list of the devices. An empty list means that no device is installed. Each item has `id`, `name`, `status`, `currentPowerW` and `todayKwh`. Since backend 0.5.0 it also has `kind`, which the frontend does not read yet. The status is `nyala`, `mati`, `siaga`, `offline` or `anomali`. The power and the energy are `null` while the device does not answer. A device with an anomaly also has `anomalyAt`, and an offline device also has `lastSeenAt`. Both are moments in ISO 8601 with an offset.
 
 `GET /v1/devices/{id}` returns one device with the fields below. The API answers 404 for an id that does not exist.
 
