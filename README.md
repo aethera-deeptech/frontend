@@ -111,7 +111,7 @@ The reasons behind the larger choices are in [docs/adr](docs/adr). Each file is 
 - [API assumptions](docs/api-assumptions.md) lists every call that the screens make and the answers that they react to.
 - [CI/CD](docs/ci-cd.md) covers the workflows, the required checks, the rules of the `main` branch and how releases are made.
 - [Decision records](docs/adr) explain why the site is on Cloudflare Pages and in an image, why the settings are fixed at build time, why only signed merge commits are used, why only the release App creates tags, why the image is signed before it is tagged and why the tool versions are pinned.
-- [Credits](docs/credits.md) credits the design kits that the design system draws on.
+- [Credits](docs/credits.md) names the design kits that the design system draws on, with their licenses.
 - [ACCESSIBILITY.md](ACCESSIBILITY.md) says what the design aims for.
 
 ## Project layout
