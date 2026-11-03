@@ -15,10 +15,12 @@
 [![React](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/react?label=react)](package.json)
 [![TypeScript](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/dev/typescript?label=typescript)](package.json)
 [![Vite](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/dev/vite?label=vite)](package.json)
+[![Node](https://img.shields.io/badge/node-%5E24.15%20%7C%7C%20%3E%3D26-5FA04E?logo=nodedotjs)](package.json)
 
 [![Site](https://img.shields.io/website?url=https%3A%2F%2Faethera.syafahadyan.com&label=site)](https://aethera.syafahadyan.com)
 [![Docker pulls](https://img.shields.io/docker/pulls/syafa/aethera-frontend)](https://hub.docker.com/r/syafa/aethera-frontend)
 [![Docker image size](https://img.shields.io/docker/image-size/syafa/aethera-frontend/latest)](https://hub.docker.com/r/syafa/aethera-frontend)
+[![GHCR](https://img.shields.io/badge/ghcr.io-aethera--deeptech%2Ffrontend-2088FF?logo=github)](https://github.com/aethera-deeptech/frontend/pkgs/container/frontend)
 
 [![Last commit](https://img.shields.io/github/last-commit/aethera-deeptech/frontend)](https://github.com/aethera-deeptech/frontend/commits/main)
 [![Conventional Commits](https://img.shields.io/badge/conventional%20commits-1.0.0-FE5196)](https://www.conventionalcommits.org)
