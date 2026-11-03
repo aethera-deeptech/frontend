@@ -91,6 +91,47 @@ describe('apiRequest', () => {
     await expect(apiRequest('/v1/usaha', schema)).rejects.toBeInstanceOf(ApiError);
   });
 
+  it('keeps the code of each field that the API names in a 422', async () => {
+    vi.stubGlobal(
+      'fetch',
+      answer(
+        JSON.stringify({
+          code: 'validation_failed',
+          message: 'No',
+          fields: { password: 'too_common', businessName: 'too_long' },
+        }),
+        422,
+      ),
+    );
+
+    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({
+      status: 422,
+      fields: { password: 'too_common', businessName: 'too_long' },
+    });
+  });
+
+  it('leaves out a field name or a code that is not a short word, and has no fields without them', async () => {
+    vi.stubGlobal(
+      'fetch',
+      answer(
+        JSON.stringify({
+          code: 'validation_failed',
+          fields: { password: 'Too common!', 'bad name': 'invalid', email: 'invalid', age: 5 },
+        }),
+        422,
+      ),
+    );
+
+    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({
+      fields: { email: 'invalid' },
+    });
+
+    vi.stubGlobal('fetch', answer(JSON.stringify({ code: 'validation_failed', fields: 'x' }), 422));
+    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({ fields: {} });
+    vi.stubGlobal('fetch', answer('{}', 422));
+    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({ fields: {} });
+  });
+
   it('keeps the code and the wait time that the API names in an error', async () => {
     vi.stubGlobal(
       'fetch',
