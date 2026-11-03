@@ -182,6 +182,24 @@ describe('the form of the schedule', () => {
     );
   });
 
+  it('clears the clash message when the off time moves away from the on time', async () => {
+    stubApi(answers());
+    renderAt('/alat/d4/jadwal');
+
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Nyalakan lagi otomatis' }));
+    await userEvent.click(screen.getByRole('combobox', { name: 'Mati pukul' }));
+    await userEvent.click(await screen.findByRole('option', { name: '08:00' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+    expect(await screen.findByText('Jam nyala harus beda dari jam mati.')).toBeVisible();
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Mati pukul' }));
+    await userEvent.click(await screen.findByRole('option', { name: '09:00' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Jam nyala harus beda dari jam mati.')).not.toBeInTheDocument();
+    });
+  });
+
   it('shows the schedule that runs and lets the owner pause it', async () => {
     const fetchMock = stubApi({
       ...answers(sampleRelay({ schedule: { ...schedule } })),
@@ -268,6 +286,35 @@ describe('the form of the schedule', () => {
 
     expect(await screen.findByText('Jadwal belum dihapus')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Hapus jadwal' })).toBeEnabled();
+  });
+
+  it('names the call that failed last when the removal and then the save fail', async () => {
+    stubApi({
+      ...answers(sampleRelay({ schedule: { ...schedule } })),
+      'DELETE /v1/devices/d4/schedule': { status: 500, body: { code: 'internal' } },
+      'PUT /v1/devices/d4/schedule': { status: 500, body: { code: 'internal' } },
+    });
+    renderAt('/alat/d4/jadwal');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Hapus jadwal' }));
+    expect(await screen.findByText('Jadwal belum dihapus')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Jadwal belum tersimpan')).toBeVisible();
+    expect(screen.queryByText('Jadwal belum dihapus')).not.toBeInTheDocument();
+  });
+
+  it('says that the plug has no switch when the save finds it gone', async () => {
+    stubApi({
+      ...answers(),
+      'PUT /v1/devices/d4/schedule': { status: 409, body: { code: 'no_relay' } },
+    });
+    renderAt('/alat/d4/jadwal');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Alat ini tidak punya saklar')).toBeVisible();
+    expect(screen.queryByText('Periksa sambungan Anda, lalu coba lagi.')).not.toBeInTheDocument();
   });
 
   it('goes back to the plug without saving', async () => {
