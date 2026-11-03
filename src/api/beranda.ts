@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { apiRequest } from '@/api/client';
+import { livePoll } from '@/api/live';
 
 // The shape of GET /v1/beranda is an assumption of the frontend until the backend publishes its contract.
 // It is written down in docs/api-assumptions.md. Only this file knows it, so a change stays here.
@@ -78,5 +79,6 @@ export function useBeranda() {
   return useQuery({
     queryKey: berandaKey,
     queryFn: ({ signal }) => apiRequest('/v1/beranda', berandaSchema, { signal }),
+    refetchInterval: livePoll,
   });
 }
