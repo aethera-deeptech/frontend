@@ -179,6 +179,7 @@ The bot cannot read a tool that is named inside a `run` step, so the tools of th
 
 - `.github/tools/Dockerfile` has one stage for each image that a job starts with `docker run`, which are actionlint, zizmor, gitleaks, hadolint, shellcheck and dotenv-linter. Nothing builds it. The jobs ask `.github/tools/image.sh` for the image of a stage, so the version of a bump is the version the jobs run.
 - The ls-lint and Renovate versions sit in `env` of their steps. A comment such as `# renovate: datasource=npm depName=@ls-lint/ls-lint` right above the line tells Renovate where to look, so keep the comment when you edit the line.
+- The Renovate config job runs on Node 24 and not on the version of `.node-version`, because the `renovate` package accepts only Node 24 in its `engines` field. Move it when Renovate supports Node 26.
 
 ## File names
 

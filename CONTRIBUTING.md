@@ -6,7 +6,7 @@ Everyone who takes part in this project follows the [Code of Conduct](CODE_OF_CO
 
 ## Set up
 
-The app needs Node.js 24 (the version is in `.node-version`) and npm. Install the packages with `npm ci`, copy `.env.example` to `.env` and start the dev server with `npm run dev`. The `VITE_` settings are public values that end up in the build. An empty `VITE_GOOGLE_CLIENT_ID` means Google sign-in is not configured.
+The app needs Node.js 26 (the version is in `.node-version`, and 24.15 or newer also works) and npm. Install the packages with `npm ci`, copy `.env.example` to `.env` and start the dev server with `npm run dev`. The `VITE_` settings are public values that end up in the build. An empty `VITE_GOOGLE_CLIENT_ID` means Google sign-in is not configured.
 
 `.npmrc` saves exact versions and does not run the install scripts of dependencies. The npm scripts you run are listed in `package.json`. The checks that CI runs are `typecheck`, `lint`, `format:check`, `test:coverage`, `build` and `test:e2e`. The end to end tests need the Playwright browsers, which `npx playwright install` downloads once. Run `npm run format` to fix the formatting of your changes.
 
