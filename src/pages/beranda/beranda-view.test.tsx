@@ -118,6 +118,8 @@ describe('BerandaView, ready', () => {
     ).toBeVisible();
     expect(screen.queryByText('Terverifikasi')).not.toBeInTheDocument();
     expect(screen.queryByText('Perkiraan')).not.toBeInTheDocument();
+    // No progress is drawn, because the API says nothing about the days
+    expect(screen.queryByText(/Hari ke-/)).not.toBeInTheDocument();
   });
 
   it('shows the progress while the energy for each piece is still collected', () => {
