@@ -172,6 +172,41 @@ describe('RelayCardView, a command on its way', () => {
       expect(screen.queryByText(/mati sendiri/)).not.toBeInTheDocument();
     });
 
+    it('leaves out the line about the schedule, which would read as the cause of the cut', () => {
+      renderCard(
+        sampleRelay({
+          state: 'off',
+          cutByDevice: cut,
+          last: {
+            action: 'on',
+            status: 'applied',
+            source: 'schedule',
+            at: '2026-10-29T07:00:00+07:00',
+          },
+        }),
+      );
+
+      expect(screen.getByText(line)).toBeVisible();
+      expect(screen.queryByText(/Terakhir diganti oleh jadwal/)).not.toBeInTheDocument();
+    });
+
+    it('keeps the line about the schedule when nothing cut the plug', () => {
+      renderCard(
+        sampleRelay({
+          state: 'off',
+          cutByDevice: null,
+          last: {
+            action: 'off',
+            status: 'applied',
+            source: 'schedule',
+            at: '2026-10-29T07:00:00+07:00',
+          },
+        }),
+      );
+
+      expect(screen.getByText('Terakhir diganti oleh jadwal pukul 07:00.')).toBeVisible();
+    });
+
     it('leaves the line out while a command already waits', () => {
       renderCard(
         sampleRelay({
