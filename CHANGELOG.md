@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.6.0](https://github.com/aethera-deeptech/frontend/compare/v0.5.0...v0.6.0) (2026-11-03)
+
+
+### Features
+
+* **alat:** set, change, pause and remove the daily schedule of a plug ([d1ea9ad](https://github.com/aethera-deeptech/frontend/commit/d1ea9addc388687a875aba3c52efaec307577ab1))
+* **alat:** set, change, pause and remove the daily schedule of a plug ([#80](https://github.com/aethera-deeptech/frontend/issues/80)) ([d99ad68](https://github.com/aethera-deeptech/frontend/commit/d99ad6821a8e2908c43252f9d270284382967ba3))
+* **auth:** say under the password that it is too common when the API refuses it ([2ae4ea0](https://github.com/aethera-deeptech/frontend/commit/2ae4ea0f93effeeede852e447ef2186793cae38d))
+* **auth:** say under the password that it is too common when the API refuses it ([#82](https://github.com/aethera-deeptech/frontend/issues/82)) ([84b7a2d](https://github.com/aethera-deeptech/frontend/commit/84b7a2d422cbc9c53df2f6d22917e0a285038924))
+* **ui:** add a radio group for one choice out of a few ([f834556](https://github.com/aethera-deeptech/frontend/commit/f8345564c41d74c432caad0aff113544cd3cd0a9))
+
+
+### Bug Fixes
+
+* **alat:** name the failed call, clear the clash message and keep the time list of the schedule form ([dc06bd8](https://github.com/aethera-deeptech/frontend/commit/dc06bd8637c31ce885d1ec936f4a4f3bbcbbe8e7))
+* **auth:** keep the focus where the user moved it, measured against the control that had it when the call started ([304e406](https://github.com/aethera-deeptech/frontend/commit/304e406550b97e87f517d5facbf6636832661204))
+* **auth:** show the common password text only under the refused password and keep the focus where the user moved it ([220a34e](https://github.com/aethera-deeptech/frontend/commit/220a34e0d9ebfdb7aae12a3dca5b6f8fdb587f16))
+* **beranda:** accept a ready home screen without the energy of a piece and show how to get it ([8faf6f8](https://github.com/aethera-deeptech/frontend/commit/8faf6f87f3c30df2775e8a8354c36188681777b0))
+* **beranda:** accept a ready home screen without the energy of a piece and show how to get it ([#83](https://github.com/aethera-deeptech/frontend/issues/83)) ([1dbe300](https://github.com/aethera-deeptech/frontend/commit/1dbe30078cb960378d85f0f4773eaaac8a429051))
+* **charts:** draw the axis labels of the power chart over the usual range and the line ([#78](https://github.com/aethera-deeptech/frontend/issues/78)) ([222beb9](https://github.com/aethera-deeptech/frontend/commit/222beb9257ac6defe875554850769ca68820f5fb))
+* **charts:** end the anomaly label of the power chart before the top y label ([a433e36](https://github.com/aethera-deeptech/frontend/commit/a433e363ef18f1ea4a69b0f934f3eed9ecae4214))
+* **charts:** end the anomaly label of the power chart before the top y label ([#81](https://github.com/aethera-deeptech/frontend/issues/81)) ([da71421](https://github.com/aethera-deeptech/frontend/commit/da71421fda5e772248796cb27cf182ba76011e05))
+* **charts:** estimate the label width at 7 px a character so wide capitals stay clear of the axis label ([634f009](https://github.com/aethera-deeptech/frontend/commit/634f0098fbc77937bb983d075fb7f455299e19d1))
+* **charts:** size the room for the top y label from its text and keep the anomaly label right end clear of it ([bc38823](https://github.com/aethera-deeptech/frontend/commit/bc38823481ccb69457ea39d9dfc6457be507fbe5))
+
 ## [0.5.0](https://github.com/aethera-deeptech/frontend/compare/v0.4.0...v0.5.0) (2026-11-03)
 
 
