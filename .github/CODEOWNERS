@@ -1,0 +1,9 @@
+# The owner is asked to review every pull request. The ruleset of the default branch does not require a code owner
+# review, so this file only decides who is asked and never blocks a merge.
+* @SyafaHadyan
+
+# Files that a bot rewrites on its own have no owner, so a pull request that only touches them, such as a lockfile update of Renovate or a
+# changelog of Release Please, does not ask for a review. The last matching line wins.
+/package-lock.json
+/CHANGELOG.md
+/.release-please-manifest.json
