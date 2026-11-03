@@ -1,17 +1,49 @@
 # Frontend
 
+[![CI](https://github.com/aethera-deeptech/frontend/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/ci.yaml)
+[![Security](https://github.com/aethera-deeptech/frontend/actions/workflows/security.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/security.yaml)
+[![Docker](https://github.com/aethera-deeptech/frontend/actions/workflows/docker.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/docker.yaml)
+[![Docker Hub mirror](https://github.com/aethera-deeptech/frontend/actions/workflows/docker-hub-mirror.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/docker-hub-mirror.yaml)
+[![Config lint](https://github.com/aethera-deeptech/frontend/actions/workflows/config.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/config.yaml)
+[![Performance](https://github.com/aethera-deeptech/frontend/actions/workflows/performance.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/performance.yaml)
+[![Vale](https://github.com/aethera-deeptech/frontend/actions/workflows/vale.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/vale.yaml)
+[![Links](https://github.com/aethera-deeptech/frontend/actions/workflows/links.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/links.yaml)
+[![E2E all devices](https://github.com/aethera-deeptech/frontend/actions/workflows/e2e-devices.yaml/badge.svg?branch=main)](https://github.com/aethera-deeptech/frontend/actions/workflows/e2e-devices.yaml)
+
+[![Release](https://img.shields.io/github/v/release/aethera-deeptech/frontend?sort=semver)](https://github.com/aethera-deeptech/frontend/releases)
+[![License](https://img.shields.io/github/license/aethera-deeptech/frontend)](LICENSE)
+[![React](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/react?label=react)](package.json)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/dev/typescript?label=typescript)](package.json)
+[![Vite](https://img.shields.io/github/package-json/dependency-version/aethera-deeptech/frontend/dev/vite?label=vite)](package.json)
+[![Node](https://img.shields.io/badge/node-%5E24.15%20%7C%7C%20%3E%3D26-5FA04E?logo=nodedotjs)](package.json)
+
+[![Site](https://img.shields.io/website?url=https%3A%2F%2Faethera.syafahadyan.com&label=site)](https://aethera.syafahadyan.com)
+[![Docker pulls](https://img.shields.io/docker/pulls/syafa/aethera-frontend)](https://hub.docker.com/r/syafa/aethera-frontend)
+[![Docker image size](https://img.shields.io/docker/image-size/syafa/aethera-frontend/latest)](https://hub.docker.com/r/syafa/aethera-frontend)
+[![GHCR](https://img.shields.io/badge/ghcr.io-aethera--deeptech%2Ffrontend-2088FF?logo=github)](https://github.com/aethera-deeptech/frontend/pkgs/container/frontend)
+
+[![Last commit](https://img.shields.io/github/last-commit/aethera-deeptech/frontend)](https://github.com/aethera-deeptech/frontend/commits/main)
+[![Conventional Commits](https://img.shields.io/badge/conventional%20commits-1.0.0-FE5196)](https://www.conventionalcommits.org)
+[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen?logo=renovatebot)](https://docs.renovatebot.com/)
+
+[![codecov](https://codecov.io/gh/aethera-deeptech/frontend/graph/badge.svg?token=XJ7XEAUB9V)](https://codecov.io/gh/aethera-deeptech/frontend)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/aethera-deeptech/frontend/badge)](https://scorecard.dev/viewer/?uri=github.com/aethera-deeptech/frontend)
+
 Frontend of WATTLINK, an energy audit dashboard for small businesses (UMKM) in Indonesia, built for the UNS Innovation Hackathon 2026. The interface is in Indonesian. WATTLINK is the name of the app that users see. Aethera is the name of the organization and stays in the repository names, the API host and the settings.
 
 ## Status
 
-The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and the screens of the Mobile design. They are Beranda, Saran, Alat, Laporan, the Lainnya menu with Catat produksi and Pengaturan, the steps to add a device, and Masuk, Daftar, the verification of the email and the reset of a forgotten password, which call the API of the account. Every other screen needs a session, so a visitor without one is sent to Masuk and back to the screen after the sign in, and Keluar ends the session. The Google buttons stay disabled until a client id is set and the Google sign in is built. The backend does not exist yet, so the screens read a contract that the frontend assumes (see `docs/api-assumptions.md`), and nothing in the app uses sample data. Until the API answers, the screens show their loading, error and empty states.
+The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and every screen of the Mobile design, with a Desktop layout for the wide screen. They are Beranda, Saran, Alat, Laporan with the monthly and the weekly report, the Lainnya menu with Catat produksi and Pengaturan, the steps to add a WATTLINK Hub and a device, and Masuk, Daftar, the verification of the email, the change of the email and the reset of a forgotten password. Every other screen needs a session, so a visitor without one is sent to Masuk and back to the screen after the sign in, and Keluar ends the session. The Google buttons stay disabled in every build until the Google sign in is built. The screens call the API of the backend, and `docs/api-assumptions.md` lists every call and the answers that the screens react to. Nothing in the app uses sample data, so until the API answers, the screens show their loading, error and empty states.
 
 ## Stack
 
 What exists now:
 
 - React 19 and TypeScript, built with Vite
-- Tailwind CSS 4
+- React Router with a lazy chunk for each page
+- TanStack Query for the API calls, with zod to check every answer
+- Tailwind CSS 4 and Radix for the checkbox, the radio group, the select and the dialog
+- Sentry for errors, loaded as its own chunk
 - Vitest and Testing Library for unit tests
 - Playwright with axe for end to end and accessibility tests on 14 devices
 - ESLint and Prettier
@@ -20,13 +52,12 @@ What exists now:
 - Design tokens from the Figma file in `src/styles/tokens.css`, with Light and Dark themes
 - npm, with exact versions in `package-lock.json`
 - A Docker image (nginx, non-root), published signed to GitHub Container Registry and Docker Hub
+- cspell, Vale and ls-lint for the spelling, the prose and the file names
 - Release Please for the version and the changelog
 
 What is planned and not built yet:
 
-- Lazy loading of the routes
-- The Desktop variants of the master-detail screens
-- The other sign-in screens (email check, forgotten password, new password and business name after Google), which need the login
+- Google sign in, which waits for the route of the backend
 
 ## Run it
 
@@ -36,7 +67,18 @@ cp .env.example .env
 npm run dev
 ```
 
-The app needs Node.js 24 (24.15 or newer) or 26. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
+The app needs Node.js 26, and 24.15 or newer also works. [CONTRIBUTING.md](CONTRIBUTING.md) lists the checks that CI runs.
+
+## Configuration
+
+Every setting is a `VITE_` build variable, so it ends up in the files and a change needs a new build. A `.env` file is read when present, and `.env.example` shows the full list. The build stops with a message when `VITE_API_BASE_URL` is not a full URL.
+
+| Variable                  | Default        | Purpose                                                                                                                   |
+| :------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_API_BASE_URL`       | none, required | Address of the API, without a path. The example file uses `http://localhost:8080`.                                        |
+| `VITE_GOOGLE_CLIENT_ID`   | empty          | Client id for Google sign in. It has no effect yet, because the Google buttons stay disabled until that sign in is built. |
+| `VITE_SENTRY_DSN`         | empty          | Address that receives the errors. Empty means that no error is sent and that the Sentry chunk is never downloaded.        |
+| `VITE_SENTRY_ENVIRONMENT` | `production`   | Name that Sentry files the errors under, for example `preview`.                                                           |
 
 ## Docker
 
@@ -63,6 +105,29 @@ The design system draws on Sentry's Scraps and the Canva Apps SDK UI kit, and [d
 ## Decisions
 
 The reasons behind the larger choices are in [docs/adr](docs/adr). Each file is one decision with its context and its consequences.
+
+## Documentation
+
+- [API assumptions](docs/api-assumptions.md) lists every call that the screens make and the answers that they react to.
+- [CI/CD](docs/ci-cd.md) covers the workflows, the required checks, the rules of the `main` branch and how releases are made.
+- [Decision records](docs/adr) explain why the site is on Cloudflare Pages and in an image, why the settings are fixed at build time, why only signed merge commits are used, why only the release App creates tags, why the image is signed before it is tagged and why the tool versions are pinned.
+- [Credits](docs/credits.md) names the design kits that the design system draws on, with their licenses.
+- [ACCESSIBILITY.md](ACCESSIBILITY.md) says what the design aims for.
+
+## Project layout
+
+```
+src/api/                 one file for each part of the API, with the zod schemas of the answers
+src/pages/<screen>/      the pages, their views and their tests
+src/components/          ui, layout, charts and icons
+src/hooks/ and src/lib/  hooks and helpers such as the formats, the dates and the settings loader
+src/styles/              the Figma tokens (tokens.css), and the text styles are in src/index.css
+e2e/                     Playwright tests with axe
+nginx/                   the server configuration and the security headers of the image
+design/                  tests of the design tokens and the text styles
+.storybook/              the Storybook setup
+.github/                 workflows, templates, the Vale rules and the pinned tool versions
+```
 
 ## Contributing
 
