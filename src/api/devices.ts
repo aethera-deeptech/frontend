@@ -45,6 +45,9 @@ export const deviceDetailSchema = z.object({
   room: z.string(),
   // The type of the device as text, for example "WATTLINK Plug"
   kindLabel: z.string(),
+  // plug or clamp, since backend 0.5.0. An older API sends none, and a kind that this version does not know is left out, so the
+  // screen never fails over it. The text above is for the eyes and is never parsed.
+  kind: z.enum(['plug', 'clamp']).optional().catch(undefined),
   currentPowerW: watts.nullable(),
   todayKwh: kwh.nullable(),
   monthKwh: kwh.nullable(),
