@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0](https://github.com/aethera-deeptech/frontend/compare/v0.4.0...v0.5.0) (2026-11-03)
+
+
+### Features
+
+* **alat:** switch a plug on and off from its page and follow the command ([#75](https://github.com/aethera-deeptech/frontend/issues/75)) ([fe203bb](https://github.com/aethera-deeptech/frontend/commit/fe203bbcb6b3ffdc6870bb266fbd5a04ac4e7af3))
+
+
+### Bug Fixes
+
+* **alat:** count a result as news only after the service took the command and fix two tests ([5282700](https://github.com/aethera-deeptech/frontend/commit/5282700d197e79c9876e0fdf148a19b8ae2c4930))
+* **alat:** follow the service after a failed command and keep the card per device ([cb759e4](https://github.com/aethera-deeptech/frontend/commit/cb759e4b4ec96600ae9f5ca59f12c2731d0b616c))
+* **format:** follow the zone of the business without starting the pages again, and read every offset shape ([04e2b37](https://github.com/aethera-deeptech/frontend/commit/04e2b374c3a617e8bc6bbb1b0677202bdaf75f82))
+* **format:** read the settings in the app shell again and answer them in the two tests that wait on one call ([5fb4703](https://github.com/aethera-deeptech/frontend/commit/5fb47039c09dc74e929b657f26675ff892c2fd0d))
+* **format:** read the settings in the zone hook and accept only the moments that the API schemas accept ([c027686](https://github.com/aethera-deeptech/frontend/commit/c0276865a2e99a99b5c01045ff1792ba032a3323))
+* **format:** show every moment by the clock of the business zone, whether the API writes it in UTC or with an offset ([45d0931](https://github.com/aethera-deeptech/frontend/commit/45d09310d6d119243d700d2ca51ea39f9cc07969))
+* **format:** show every moment by the clock of the business zone, whether the API writes it in UTC or with an offset ([#77](https://github.com/aethera-deeptech/frontend/issues/77)) ([cd74758](https://github.com/aethera-deeptech/frontend/commit/cd747588ac63e8a690770ddf1996eda003adf194))
+* **format:** trim the zone code to bring the bundle back under its limit ([384b44d](https://github.com/aethera-deeptech/frontend/commit/384b44d1673bf60e9a0d4d3b1908767a9f56bac6))
+
 ## [0.4.0](https://github.com/aethera-deeptech/frontend/compare/v0.3.0...v0.4.0) (2026-11-03)
 
 
