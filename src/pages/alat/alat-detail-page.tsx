@@ -25,7 +25,12 @@ export function AlatDetailPage() {
         detail={query.data}
         now={now}
         switchCard={
-          <RelayCard deviceId={query.data.id} offline={query.data.status === 'offline'} now={now} />
+          <RelayCard
+            key={query.data.id}
+            deviceId={query.data.id}
+            offline={query.data.status === 'offline'}
+            now={now}
+          />
         }
       />
     );

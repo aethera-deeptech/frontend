@@ -58,12 +58,16 @@ export const relayKey = (id: string) => [...devicesKey, id, 'relay'] as const;
 // time it follows the beat of the readings.
 export const pendingPollMs = 5_000;
 
+export function relayPoll(query: { state: { data: Relay | undefined } }): number | false {
+  return query.state.data?.pending ? pendingPollMs : livePoll(query);
+}
+
 export function useRelay(id: string) {
   return useQuery({
     queryKey: relayKey(id),
     queryFn: ({ signal }) =>
       apiRequest(`/v1/devices/${encodeURIComponent(id)}/relay`, relaySchema, { signal }),
-    refetchInterval: (query) => (query.state.data?.pending ? pendingPollMs : livePoll(query)),
+    refetchInterval: relayPoll,
   });
 }
 
@@ -85,7 +89,9 @@ export function useSendRelay(id: string) {
       // A read that started before the command would bring back the old answer and hide the waiting state
       await queryClient.cancelQueries({ queryKey: relayKey(id) });
       queryClient.setQueryData<Relay>(relayKey(id), (old) => (old ? { ...old, pending } : old));
-      void queryClient.invalidateQueries({ queryKey: relayKey(id) });
     },
+    // Whatever the call ended with, the service knows the truth. A lost answer may hide a command that was queued, and a 404 or
+    // a 409 means that the plug is gone or is a clamp.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
   });
 }

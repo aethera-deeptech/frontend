@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ApiError } from '@/api/client';
 import { hasNoRelay, useRelay, useSendRelay, type Relay, type RelayAction } from '@/api/relay';
@@ -26,6 +26,8 @@ interface RelayCardViewProps {
   offline: boolean;
   // The moment on which the screen is read, by the clock of the business, to tell whether a result is new
   now: Date;
+  // The result appeared while this screen was open, so it is news whatever the clocks say
+  resultIsNew?: boolean;
   sending: boolean;
   // The command did not reach the service
   sendFailed: boolean;
@@ -38,6 +40,7 @@ export function RelayCardView({
   relay,
   offline,
   now,
+  resultIsNew = false,
   sending,
   sendFailed,
   waitSeconds,
@@ -86,7 +89,7 @@ export function RelayCardView({
           message={`Perintah ${actionLabels[relay.pending.action]} dikirim. Alat menjalankannya saat terhubung ke WATTLINK Hub, paling lama sampai ${formatTime(parseMoment(relay.pending.expiresAt))}.`}
         />
       ) : (
-        <Result relay={relay} now={now} />
+        <Result relay={relay} now={now} isNew={resultIsNew} />
       )}
 
       {offline ? (
@@ -96,9 +99,9 @@ export function RelayCardView({
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <Button
-            key={action}
+            key={index}
             size="lg"
             kind={action === 'on' ? 'accent' : 'neutral'}
             aria-disabled={blocked || undefined}
@@ -117,7 +120,7 @@ export function RelayCardView({
 }
 
 // The newest command that ended, for as long as it is news
-function Result({ relay, now }: { relay: Relay; now: Date }) {
+function Result({ relay, now, isNew }: { relay: Relay; now: Date; isNew: boolean }) {
   const last = relay.last;
 
   if (!last) {
@@ -126,7 +129,8 @@ function Result({ relay, now }: { relay: Relay; now: Date }) {
   const at = parseMoment(last.at);
   const age = now.getTime() - at.getTime();
 
-  if (age > resultLifeMs) {
+  // The clock of a phone can be far off, so a result that this screen saw appear stays until the screen closes
+  if (!isNew && age > resultLifeMs) {
     return null;
   }
   if (last.status === 'applied') {
@@ -173,21 +177,42 @@ export function RelayCard({
 }) {
   const query = useRelay(deviceId);
   const send = useSendRelay(deviceId);
+  const { reset: resetSend } = send;
   const [readyAt, setReadyAt] = useState(0);
   const waitSeconds = useCountdown(readyAt);
+  // A command that this screen saw wait, so the result that follows is news, whatever the clock of the phone says
+  const [sawCommand, setSawCommand] = useState(false);
+  const waiting = query.data?.pending != null;
 
+  if (waiting && !sawCommand) {
+    setSawCommand(true);
+  }
+  // The service now knows the command, so the failure of the call is no longer the news
+  useEffect(() => {
+    if (waiting) {
+      resetSend();
+    }
+  }, [waiting, resetSend]);
+
+  // A plug that was removed or replaced by a clamp while the screen was open has no card any more
+  if (hasNoRelay(query.error)) {
+    return null;
+  }
   if (query.data) {
-    const tooMany = send.error instanceof ApiError && send.error.status === 429;
+    const status = send.error instanceof ApiError ? send.error.status : undefined;
+    const tooMany = status === 429;
 
     return (
       <RelayCardView
         relay={query.data}
         offline={offline}
         now={now}
+        resultIsNew={sawCommand}
         sending={send.isPending}
-        sendFailed={send.isError && !tooMany}
+        sendFailed={send.isError && !tooMany && status !== 404 && status !== 409}
         waitSeconds={waitSeconds}
         onSend={(action) => {
+          setSawCommand(true);
           send.mutate(action, {
             onError: (error) => {
               if (error instanceof ApiError && error.status === 429) {
@@ -199,7 +224,7 @@ export function RelayCard({
       />
     );
   }
-  if (query.isPending || hasNoRelay(query.error)) {
+  if (query.isPending) {
     return null;
   }
 
