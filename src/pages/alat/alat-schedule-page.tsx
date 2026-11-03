@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
+import { ApiError } from '@/api/client';
 import {
   hasNoRelay,
   scheduleDays,
@@ -122,15 +124,23 @@ function ScheduleForm({
   const save = useSaveSchedule(id);
   const remove = useDeleteSchedule(id);
   const zone = zoneShortName(useBusinessZone());
-  const { control, handleSubmit, formState } = useForm<Values>({
+  const { control, handleSubmit, trigger, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: valuesOf(schedule),
   });
   const [withOn, enabled] = useWatch({ control, name: ['withOn', 'enabled'] });
-  const options = quarterHourOptions([schedule?.offAt, schedule?.onAt].filter((t) => t != null));
+  // The list is built once from the schedule that the form opened with, so a refresh of the schedule underneath cannot drop the
+  // time that the fields still hold
+  const [options] = useState(() =>
+    quarterHourOptions([schedule?.offAt, schedule?.onAt].filter((t) => t != null)),
+  );
   const busy = save.isPending || remove.isPending;
   const title = schedule ? 'Ubah jadwal' : 'Atur jadwal';
   const failed = save.isError || remove.isError;
+  // A plug that is gone or has become a clamp cannot take a schedule, so retrying would not help
+  const failure = save.isError ? save.error : remove.error;
+  const lostSwitch =
+    failure instanceof ApiError && (failure.status === 404 || failure.status === 409);
 
   return (
     <form
@@ -145,9 +155,11 @@ function ScheduleForm({
             enabled: values.enabled,
           };
 
+          remove.reset();
           save.mutate(input, {
             onSuccess: () => {
-              void navigate(back, { state: scheduleNoticeState(input) });
+              // The form leaves no entry behind, so Back from the plug goes past it
+              void navigate(back, { replace: true, state: scheduleNoticeState(input) });
             },
           });
         })(event);
@@ -168,8 +180,18 @@ function ScheduleForm({
       {failed ? (
         <Banner
           tone="danger"
-          title={remove.isError ? 'Jadwal belum dihapus' : 'Jadwal belum tersimpan'}
-          message="Periksa sambungan Anda, lalu coba lagi."
+          title={
+            lostSwitch
+              ? 'Alat ini tidak punya saklar'
+              : remove.isError
+                ? 'Jadwal belum dihapus'
+                : 'Jadwal belum tersimpan'
+          }
+          message={
+            lostSwitch
+              ? 'Jadwal hanya bisa diatur untuk WATTLINK Plug.'
+              : 'Periksa sambungan Anda, lalu coba lagi.'
+          }
         />
       ) : null}
       {schedule ? (
@@ -201,7 +223,13 @@ function ScheduleForm({
           <Select
             label="Mati pukul"
             value={field.value}
-            onValueChange={field.onChange}
+            onValueChange={(next) => {
+              field.onChange(next);
+              // An old error under the on time has to follow the new off time
+              if (formState.errors.onAt) {
+                void trigger('onAt');
+              }
+            }}
             options={options}
             helper={`Jam mengikuti zona waktu usaha Anda, ${zone}.`}
           />
@@ -263,9 +291,10 @@ function ScheduleForm({
           disabled={busy}
           className="text-body text-text-danger self-start rounded-md px-1 py-[13px] underline disabled:opacity-(--disabled-opacity)"
           onClick={() => {
+            save.reset();
             remove.mutate(undefined, {
               onSuccess: () => {
-                void navigate(back, { state: scheduleRemovedState });
+                void navigate(back, { replace: true, state: scheduleRemovedState });
               },
             });
           }}
