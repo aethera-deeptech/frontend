@@ -9,6 +9,7 @@ import { TextInput } from '@/components/ui/text-input';
 import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
+import { focusUnlessMoved } from '@/pages/auth/focus';
 import { PasswordField } from '@/pages/auth/password-field';
 import {
   checkBusinessName,
@@ -26,6 +27,8 @@ export function DaftarPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tried, setTried] = useState(false);
+  // The password that the API refused as too common. The text shows only while the field still holds that password.
+  const [refused, setRefused] = useState<string>();
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -37,8 +40,7 @@ export function DaftarPage() {
     : undefined;
   // The helper stays until the user tries, then it turns into the error
   const passwordError = tried
-    ? (checkNewPassword(password) ??
-      (failure === 'common-password' ? commonPasswordText : undefined))
+    ? (checkNewPassword(password) ?? (refused === password ? commonPasswordText : undefined))
     : undefined;
 
   const submit = (event: SubmitEvent) => {
@@ -71,9 +73,10 @@ export function DaftarPage() {
           void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
         },
         // The refusal is about the password, so the focus goes to the field that has the text
-        onError: (error) => {
+        onError: (error, variables) => {
           if (authFailure(error) === 'common-password') {
-            passwordRef.current?.focus();
+            setRefused(variables.password);
+            focusUnlessMoved(passwordRef.current);
           }
         },
       },
@@ -138,10 +141,6 @@ export function DaftarPage() {
             error={passwordError}
             onChange={(event) => {
               setPassword(event.target.value);
-              // The refusal belongs to the old password, so it goes away when the password changes
-              if (failure === 'common-password') {
-                register.reset();
-              }
             }}
           />
           <Button
