@@ -57,6 +57,13 @@ describe('relaySchema', () => {
     expect(relay.schedule).toBeNull();
   });
 
+  it('reads whether the hub is connected and leaves it out when the API does not say or says something odd', () => {
+    expect(relaySchema.parse({ ...base, gatewayOnline: false }).gatewayOnline).toBe(false);
+    expect(relaySchema.parse({ ...base, gatewayOnline: true }).gatewayOnline).toBe(true);
+    expect(relaySchema.parse(base).gatewayOnline).toBeUndefined();
+    expect(relaySchema.parse({ ...base, gatewayOnline: 'no' }).gatewayOnline).toBeUndefined();
+  });
+
   it('refuses a pending command without an expiry', () => {
     const result = relaySchema.safeParse({
       ...base,
