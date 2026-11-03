@@ -182,6 +182,74 @@ describe('the question Mulai dari nol', () => {
     expect(posts(fetchMock)).toHaveLength(2);
   });
 
+  it('does nothing on Batal while the call runs, so the news of the reset cannot be missed', async () => {
+    let finish: (response: Response) => void = () => undefined;
+    const fetchMock = stubApi(answers());
+    const base = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((input, init) =>
+      init?.method === 'POST'
+        ? new Promise<Response>((resolve) => {
+            finish = resolve;
+          })
+        : (base?.(input, init) ?? Promise.reject(new TypeError('No answer'))),
+    );
+    const router = renderAt('/alat/d4/mulai-dari-nol');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, mulai dari nol' }));
+    await screen.findByRole('button', { name: 'Sedang memulai' });
+    await userEvent.click(screen.getByRole('link', { name: 'Batal' }));
+
+    expect(router.state.location.pathname).toBe('/alat/d4/mulai-dari-nol');
+    finish(new Response(JSON.stringify({ resetAt }), { status: 200 }));
+    expect(await screen.findByText('Total energi mulai dari nol')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/alat/d4');
+  });
+
+  it('shows 0 kWh at once, without waiting for the device to be read again', async () => {
+    let reset = false;
+    const fetchMock = stubApi({
+      ...answers(),
+      'POST /v1/devices/d4/energy-reset': { body: { resetAt } },
+    });
+    const base = fetchMock.getMockImplementation();
+    // After the reset, the read of the device never answers
+    fetchMock.mockImplementation((input, init) => {
+      const path = new URL(input).pathname;
+
+      if (init?.method === 'POST') {
+        reset = true;
+      }
+      return reset && path === '/v1/devices/d4' && (init?.method ?? 'GET') === 'GET'
+        ? new Promise<Response>(() => undefined)
+        : (base?.(input, init) ?? Promise.reject(new TypeError('No answer')));
+    });
+    renderAt('/alat/d4/mulai-dari-nol');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, mulai dari nol' }));
+
+    expect(await screen.findByText('Total energi mulai dari nol')).toBeVisible();
+    // The cache tells the card in the next tick, and the read that follows never answers
+    expect(await screen.findByText('0 kWh')).toBeVisible();
+    expect(screen.getByText('Dihitung mulai 29 Okt 2026, 11:00')).toBeVisible();
+  });
+
+  it('says that the device is gone when the reset itself answers 404', async () => {
+    stubApi({
+      ...answers(),
+      'POST /v1/devices/d4/energy-reset': { status: 404, body: { code: 'not_found' } },
+    });
+    renderAt('/alat/d4/mulai-dari-nol');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, mulai dari nol' }));
+
+    expect(await screen.findByText('Alat tidak ditemukan')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Kembali ke daftar' })).toHaveAttribute(
+      'href',
+      '/alat',
+    );
+    expect(screen.queryByText('Total energi belum dimulai dari nol')).not.toBeInTheDocument();
+  });
+
   it('says that the device is gone for a 404 and links to the list', async () => {
     stubApi({
       'GET /v1/devices': { body: sampleDevices() },
