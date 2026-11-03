@@ -63,7 +63,8 @@ export const berandaSchema = z.discriminatedUnion('phase', [
     recommendations: z.array(recommendation),
     bill,
     topDevices: z.array(topDevice),
-    energyPerPiece,
+    // The backend leaves it out until a tip is verified, and the estimate and collecting shapes are not sent yet
+    energyPerPiece: energyPerPiece.optional(),
   }),
 ]);
 
