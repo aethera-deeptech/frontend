@@ -97,8 +97,7 @@ export function PowerChart({
             textAnchor="end"
             strokeWidth="3"
             strokeLinejoin="round"
-            style={{ paintOrder: 'stroke' }}
-            className="fill-text-2 stroke-bg-1 text-label"
+            className="fill-text-2 stroke-bg-1 text-label [paint-order:stroke]"
           >
             {yLabels[ticks.length - 1 - index]}
           </text>

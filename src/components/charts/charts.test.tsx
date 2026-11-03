@@ -103,11 +103,15 @@ describe('PowerChart', () => {
       />,
     );
     const band = container.querySelector('path.fill-bg-3');
+    const line = container.querySelector('path.stroke-chart-blurple');
     const label = screen.getByText('1.000 W');
 
     expect(band).not.toBeNull();
+    expect(line).not.toBeNull();
     // A later node in the SVG is painted over an earlier one
     expect(band?.compareDocumentPosition(label)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(line?.compareDocumentPosition(label)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(label).toHaveClass('stroke-bg-1');
   });
 
   it('names the stretch that is not normal and draws it on its own', () => {
