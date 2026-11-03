@@ -51,7 +51,9 @@ export function RelayCardView({
   const actions: RelayAction[] =
     relay.state === 'on' ? ['off'] : relay.state === 'off' ? ['on'] : ['on', 'off'];
   const blocked = sending || waitSeconds > 0 || relay.pending !== null;
-  const scheduled = relay.last?.status === 'applied' && relay.last.source === 'schedule';
+  const cut = relay.state === 'off' && Boolean(relay.cutByDevice) && !relay.pending;
+  // After a cut the last switch by a schedule is old news, and the line would read as the cause of the off state
+  const scheduled = !cut && relay.last?.status === 'applied' && relay.last.source === 'schedule';
 
   return (
     <Card title="Saklar">
@@ -63,8 +65,8 @@ export function RelayCardView({
           ? 'Alat belum pernah melapor status saklar.'
           : `Status dari alat pukul ${formatTime(parseMoment(relay.reportedAt))}`}
       </p>
-      {relay.state === 'off' && relay.cutByDevice && !relay.pending ? (
-        // The anomaly banner of the page says when and how high, so this says what it means for the switch
+      {cut ? (
+        // The anomaly banner of the page usually says when, so this says what it means for the switch
         <p className="text-body text-text-1">
           Colokan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri
           lagi jika beban masih terlalu tinggi.
