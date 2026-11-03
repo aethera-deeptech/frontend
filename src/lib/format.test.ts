@@ -151,6 +151,37 @@ describe('parseMoment', () => {
     );
   });
 
+  it.each(['2026-10-29T09:30:00+0700', '2026-10-29T09:30:00+07', '2026-10-29T09:30+07:00'])(
+    'reads the offset written as %s',
+    (moment) => {
+      expect(parseMoment(moment).getTime()).toBe(parseMoment('2026-10-29T02:30:00Z').getTime());
+    },
+  );
+
+  it('reads fractional seconds and drops them', () => {
+    const date = parseMoment('2026-11-03T05:45:35.123456Z');
+
+    expect([date.getHours(), date.getMinutes(), date.getSeconds()]).toEqual([12, 45, 0]);
+  });
+
+  it('reads a moment without an offset as it is written', () => {
+    const date = parseMoment('2026-10-29T09:30:00');
+
+    expect([date.getDate(), date.getHours(), date.getMinutes()]).toEqual([29, 9, 30]);
+  });
+
+  it('turns the last minute of the year in UTC into the first day of the next year', () => {
+    const date = parseMoment('2026-12-31T17:30:00Z');
+
+    expect([date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()]).toEqual([
+      2027, 0, 1, 0,
+    ]);
+  });
+
+  it('gives an invalid date for a text that is no moment', () => {
+    expect(Number.isNaN(parseMoment('not a moment').getTime())).toBe(true);
+  });
+
   it('moves a moment in UTC to the next day when the business clock has passed midnight', () => {
     const date = parseMoment('2026-10-28T20:30:00Z');
 
