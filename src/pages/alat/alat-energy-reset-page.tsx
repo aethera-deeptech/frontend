@@ -65,6 +65,7 @@ export function AlatEnergyResetPage() {
 
 function ResetQuestion({ id, name, back }: { id: string; name: string; back: string }) {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const reset = useResetEnergy();
 
   const start = () => {
@@ -82,7 +83,18 @@ function ResetQuestion({ id, name, back }: { id: string; name: string; back: str
 
   return (
     <AuthFrame title={title} subtitle={subtitle} eyebrow={name}>
-      {reset.isError ? (
+      {reset.error instanceof ApiError && reset.error.status === 404 ? (
+        <Banner
+          tone="warning"
+          title="Alat tidak ditemukan"
+          message="Alat ini sudah tidak ada. Pilih alat lain dari daftar."
+          action={
+            <Button asChild size="lg">
+              <Link to={`/alat${search}`}>Kembali ke daftar</Link>
+            </Button>
+          }
+        />
+      ) : reset.isError ? (
         <Banner
           tone="danger"
           title="Total energi belum dimulai dari nol"
@@ -114,7 +126,18 @@ function ResetQuestion({ id, name, back }: { id: string; name: string; back: str
           {reset.isPending ? 'Sedang memulai' : reset.isError ? 'Coba lagi' : 'Ya, mulai dari nol'}
         </Button>
         <Button asChild size="lg">
-          <Link to={back}>Batal</Link>
+          {/* The reset is for good once the call is sent, so Batal does nothing while it runs and the news cannot be missed */}
+          <Link
+            to={back}
+            aria-disabled={reset.isPending || undefined}
+            onClick={(event) => {
+              if (reset.isPending) {
+                event.preventDefault();
+              }
+            }}
+          >
+            Batal
+          </Link>
         </Button>
       </Card>
     </AuthFrame>
