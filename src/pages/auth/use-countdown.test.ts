@@ -10,7 +10,9 @@ afterEach(() => {
 describe('useCountdown', () => {
   it('counts the seconds to the end and stops at zero', () => {
     vi.useFakeTimers();
-    const { result } = renderHook(() => useCountdown(Date.now() + 3000));
+    // The end is fixed before the render, or each render would move it
+    const endsAt = Date.now() + 3000;
+    const { result } = renderHook(() => useCountdown(endsAt));
 
     expect(result.current).toBe(3);
 

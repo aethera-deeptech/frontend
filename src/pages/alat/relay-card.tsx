@@ -212,8 +212,11 @@ export function RelayCard({
         sendFailed={send.isError && !tooMany && status !== 404 && status !== 409}
         waitSeconds={waitSeconds}
         onSend={(action) => {
-          setSawCommand(true);
           send.mutate(action, {
+            // Only a command that the service took makes the next result news. A refused one leaves the old result as it is.
+            onSuccess: () => {
+              setSawCommand(true);
+            },
             onError: (error) => {
               if (error instanceof ApiError && error.status === 429) {
                 setReadyAt(Date.now() + (error.retryAfterSeconds ?? 60) * 1000);

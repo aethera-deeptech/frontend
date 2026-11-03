@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/api/query-client';
 import { relayKey, type Relay } from '@/api/relay';
 import { RelayCardView } from '@/pages/alat/relay-card';
-import { sampleNormal } from '@/pages/alat/sample-alat';
+import { sampleDevices, sampleNormal } from '@/pages/alat/sample-alat';
 import { sampleRelay } from '@/pages/alat/sample-relay';
 import { renderAt, stubApi } from '@/test/stub-api';
 
@@ -335,7 +335,17 @@ describe('RelayCard on the page of a device', () => {
   it('says how long to wait when the service has had too many commands', async () => {
     stubApi({
       'GET /v1/devices/d4': { body: sampleNormal() },
-      'GET /v1/devices/d4/relay': { body: relayBody },
+      'GET /v1/devices/d4/relay': {
+        body: {
+          ...relayBody,
+          last: {
+            action: 'off',
+            status: 'applied',
+            source: 'owner',
+            at: '2026-10-29T08:00:00+07:00',
+          },
+        },
+      },
       'POST /v1/devices/d4/relay': {
         status: 429,
         body: { code: 'rate_limited', retryAfterSeconds: 700 },
@@ -347,6 +357,8 @@ describe('RelayCard on the page of a device', () => {
 
     expect(await screen.findByText('Terlalu banyak perintah')).toBeVisible();
     expect(screen.getByText(/dalam 12\smenit\./)).toBeVisible();
+    // The command was refused, so an old result stays as old as it is
+    expect(screen.queryByText(/Colokan sudah/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Matikan' })).toHaveAttribute(
       'aria-disabled',
       'true',
@@ -368,6 +380,8 @@ describe('RelayCard on the page of a device', () => {
   it('tells the owner when the switch cannot be read and reads again on request', async () => {
     let calls = 0;
     stubApi({
+      // The list sits beside the device, and its own retry button must not be the one that the test finds
+      'GET /v1/devices': { body: sampleDevices() },
       'GET /v1/devices/d4': { body: sampleNormal() },
       'GET /v1/devices/d4/relay': () => {
         calls += 1;
@@ -376,7 +390,8 @@ describe('RelayCard on the page of a device', () => {
     });
     renderAt('/alat/d4');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
+    expect(await screen.findByText('Saklar tidak bisa dimuat')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Matikan' })).toBeVisible();
