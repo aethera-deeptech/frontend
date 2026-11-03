@@ -110,6 +110,16 @@ describe('BerandaView, ready', () => {
     expect(screen.queryByText('Terverifikasi')).not.toBeInTheDocument();
   });
 
+  it('shows how to get the energy for each piece when no tip is verified yet and the API sends none', () => {
+    renderView({ data: sampleReady({ energyPerPiece: undefined }) });
+
+    expect(
+      screen.getByText(/Catat produksi harian agar energi per potong bisa dihitung/),
+    ).toBeVisible();
+    expect(screen.queryByText('Terverifikasi')).not.toBeInTheDocument();
+    expect(screen.queryByText('Perkiraan')).not.toBeInTheDocument();
+  });
+
   it('shows the progress while the energy for each piece is still collected', () => {
     renderView({
       data: sampleReady({
