@@ -34,9 +34,41 @@ export function formatNumber(value: number, maxDecimals = 2): string {
   return `${sign}${trimmed ? `${grouped},${trimmed}` : grouped}`;
 }
 
-// A moment from the API, such as 2026-10-29T09:30:00+07:00, read by the clock of the business and not by the clock of the
-// device. The offset is dropped on purpose, so a device in another time zone shows the same day and hour.
+const defaultTimeZone = 'Asia/Jakarta';
+let businessZone = defaultTimeZone;
+
+function knowsZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-GB', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// The zone of the business, which the settings hold. Every moment of the API is shown by the clock of this zone. A name that
+// this browser does not know, and no name at all, give the zone of a new business, Asia/Jakarta.
+export function setBusinessZone(timeZone: string | undefined): void {
+  businessZone = timeZone !== undefined && knowsZone(timeZone) ? timeZone : defaultTimeZone;
+}
+
+export function getBusinessZone(): string {
+  return businessZone;
+}
+
+const offsetMoment = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/;
+
+// A moment from the API, such as 2026-10-29T09:30:00+07:00 or 2026-10-29T02:30:00Z, read by the clock of the business and not
+// by the clock of the device. The API writes some moments in UTC and some with the offset of the business, and both name the
+// same instant, so the instant is turned into the clock of the business zone. A moment without an offset is read as it is.
 export function parseMoment(iso: string): Date {
+  if (offsetMoment.test(iso)) {
+    const instant = new Date(iso);
+
+    if (!Number.isNaN(instant.getTime())) {
+      return businessNow(instant, businessZone);
+    }
+  }
   const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
   if (!parts) {
     return new Date(iso);
@@ -44,8 +76,6 @@ export function parseMoment(iso: string): Date {
   const [year = 0, month = 1, day = 1, hour = 0, minute = 0] = parts.slice(1).map(Number);
   return new Date(year, month - 1, day, hour, minute);
 }
-
-const defaultTimeZone = 'Asia/Jakarta';
 
 function clockParts(date: Date, timeZone: string): Intl.DateTimeFormatPart[] {
   return new Intl.DateTimeFormat('en-GB', {
@@ -63,7 +93,7 @@ function clockParts(date: Date, timeZone: string): Intl.DateTimeFormatPart[] {
 // zone is the one in the settings of the business (WIB, WITA or WIT), and the API moments carry its offset. The result holds
 // the business wall time in the local fields, like parseMoment. A zone name that this browser does not know falls back to
 // Asia/Jakarta, which is the zone of a new business.
-export function businessNow(date: Date = new Date(), timeZone: string = defaultTimeZone): Date {
+export function businessNow(date: Date = new Date(), timeZone: string = businessZone): Date {
   let parts: Intl.DateTimeFormatPart[];
 
   try {

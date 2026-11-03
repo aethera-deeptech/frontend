@@ -3,15 +3,21 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 
 import { useSession } from '@/api/auth';
+import { useSettings } from '@/api/settings';
 import { navItems } from '@/components/layout/nav-items';
 import { PendingIndicator } from '@/components/layout/pending-indicator';
 import { useNavigationPending } from '@/hooks/use-navigation-pending';
+import { getBusinessZone } from '@/lib/format';
 
 // The menu is a bottom bar on a phone and a sidebar from 1024 px, like the Mobile and Desktop frames.
 export function AppShell() {
   const { pathname } = useLocation();
   const pending = useNavigationPending();
   const businessName = useSession().data?.businessName;
+  // The settings give the zone for every moment on the screens. The screens read the zone when they render, so a business that is
+  // not in WIB sees them start again once when its zone arrives, and a business in WIB never does.
+  useSettings();
+  const zone = getBusinessZone();
   const mainRef = useRef<HTMLElement>(null);
   const openPath = useRef(pathname);
 
@@ -91,7 +97,7 @@ export function AppShell() {
         tabIndex={-1}
         className="p-4 pb-34 outline-none lg:p-6 lg:pb-24"
       >
-        <Outlet />
+        <Outlet key={zone} />
       </main>
 
       <nav
