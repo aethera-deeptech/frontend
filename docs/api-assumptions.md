@@ -81,6 +81,15 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 - `anomaly` with `at`, `peakW` and `kind`, only while the status is `anomali`. The `kind` is `surge` (far above the usual power of that hour), `overload` (the condition that the device reports) or `degradation` (a loaded motor with a poor power factor), and the banner says which. A degradation that the API found in the readings also has `powerFactor` from 0 to 1, which the banner shows. A response with no `kind`, or a kind that the frontend does not know, reads as `surge`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
+`GET /v1/devices/{id}/relay` returns the switch of a plug, shown as the card Saklar on the page of a device. A clamp answers 409 (`no_relay`) and an id that does not exist answers 404, and the page leaves the card out for both. The answer has these fields.
+
+- `state` is `on`, `off` or `unknown` (the plug never reported one), and `reportedAt` is when the plug said so.
+- `pending` is the command that waits for the gateway or that the gateway fetched and did not answer yet. It has `id`, `action` (`on` or `off`), `status` (`pending` or `sent`) and `expiresAt`, which is 10 minutes after the command.
+- `last` is the newest command that ended. It has `action`, `status` (`applied`, `failed` or `expired`), `source` (`owner` or `schedule`) and `at`. The screen shows the result for 11 minutes, and it shows the name of the schedule for as long as the last switch came from the schedule.
+- `schedule` is the daily schedule of the plug, or `null`.
+
+`POST /v1/devices/{id}/relay` with the body `{ "state": "on" }` or `{ "state": "off" }` queues a command and answers 202 with the `pending` object. The service always queues, also when the gateway is offline, and a command that no gateway fetched in 10 minutes ends as `expired`. So does a command that a gateway fetched and never answered, and one that a newer command replaced. The text of the screen therefore names the last state that the plug reported, because the plug may have switched. A new command replaces one that still waits. The answer is 429 after 60 commands in an hour for the whole business, with `retryAfterSeconds`, and the screen says the wait in minutes. While a command waits, the frontend reads the switch every 5 seconds, and otherwise on the beat of the readings.
+
 `PATCH /v1/devices/{id}` with the body `{ "name": "..." }` renames a device. The name is 1 to 40 characters long after the spaces at both ends are removed. The answer may have any body. After a rename the frontend loads the devices and the home screen again.
 
 ## Laporan

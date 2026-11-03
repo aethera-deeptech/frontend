@@ -6,6 +6,10 @@ export function useCountdown(endsAt: number): number {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
+    // The clock stopped when the last wait ended, so a new end is counted from the present and not from that old moment
+    const catchUp = setTimeout(() => {
+      setNow(Date.now());
+    }, 0);
     const timer = setInterval(() => {
       const current = Date.now();
 
@@ -17,6 +21,7 @@ export function useCountdown(endsAt: number): number {
     }, 1000);
 
     return () => {
+      clearTimeout(catchUp);
       clearInterval(timer);
     };
   }, [endsAt]);

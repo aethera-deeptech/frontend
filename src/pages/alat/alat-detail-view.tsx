@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 
 import type { DeviceDetail } from '@/api/devices';
@@ -26,11 +27,13 @@ interface AlatDetailViewProps {
   detail: DeviceDetail;
   // The moment on which the screen is read, by the clock of the business, to tell whether an anomaly is from today. Tests set it.
   now?: Date;
+  // The switch of a plug. It reads its own data, so the page gives it and the view stays a plain function of the device.
+  switchCard?: ReactNode;
 }
 
 const dash = '-';
 
-export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewProps) {
+export function AlatDetailView({ detail, now = businessNow(), switchCard }: AlatDetailViewProps) {
   const lastSeen = parseMoment(detail.lastSeenAt);
   const { search } = useLocation();
 
@@ -66,6 +69,8 @@ export function AlatDetailView({ detail, now = businessNow() }: AlatDetailViewPr
           {detail.currentPowerW === null ? dash : formatWatts(detail.currentPowerW)}
         </p>
       </Card>
+
+      {switchCard}
 
       <div className="grid grid-cols-2 gap-2">
         <StatTile
