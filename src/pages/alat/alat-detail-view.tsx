@@ -10,6 +10,7 @@ import { KeyValueRow } from '@/components/ui/key-value-row';
 import { SectionCard } from '@/components/ui/section-card';
 import { StatTile } from '@/components/ui/stat-tile';
 import { StatusDot } from '@/components/ui/status-dot';
+import { TextLink } from '@/components/ui/text-link';
 import {
   businessNow,
   formatDate,
@@ -22,6 +23,7 @@ import {
   parseMoment,
 } from '@/lib/format';
 import { signalLabels } from '@/pages/alat/device-status';
+import { energySinceCaption, formatTotalKwh } from '@/pages/alat/energy-text';
 
 interface AlatDetailViewProps {
   detail: DeviceDetail;
@@ -78,6 +80,19 @@ export function AlatDetailView({
           {detail.currentPowerW === null ? dash : formatWatts(detail.currentPowerW)}
         </p>
       </Card>
+
+      {detail.energySince ? (
+        <Card title="Total energi">
+          <p className="text-kpi text-text-heading">{formatTotalKwh(detail.energySince.kwh)}</p>
+          <p className="text-label text-text-2">{energySinceCaption(detail.energySince)}</p>
+          <TextLink
+            to={`/alat/${encodeURIComponent(detail.id)}/mulai-dari-nol${search}`}
+            className="self-start"
+          >
+            Mulai dari nol
+          </TextLink>
+        </Card>
+      ) : null}
 
       {switchCard}
 

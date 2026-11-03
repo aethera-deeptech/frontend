@@ -19,6 +19,7 @@ const screens = [
   { name: 'Alat, a device that is offline', path: '/alat/d2' },
   { name: 'Alat, rename a device', path: '/alat/d4/ganti-nama' },
   { name: 'Alat, set the schedule of a plug', path: '/alat/d4/jadwal' },
+  { name: 'Alat, start the total energy again', path: '/alat/d4/mulai-dari-nol' },
   { name: 'Tambah alat, connect the hub', path: '/alat/tambah/hub' },
   { name: 'Laporan', path: '/laporan' },
   { name: 'Lainnya', path: '/lainnya' },

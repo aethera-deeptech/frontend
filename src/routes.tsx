@@ -87,6 +87,14 @@ export const routes: RouteObject[] = [
               (module) => module.KeluarPage,
             ),
           },
+          // The question before the total of a device starts again has no menu, like Keluar
+          {
+            path: 'alat/:id/mulai-dari-nol',
+            ...lazyPage(
+              () => import('@/pages/alat/alat-energy-reset-page'),
+              (module) => module.AlatEnergyResetPage,
+            ),
+          },
           {
             element: <AppShell />,
             children: [

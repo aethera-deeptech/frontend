@@ -43,6 +43,7 @@ export function sampleNormal(overrides: Partial<DeviceDetail> = {}): DeviceDetai
     monthKwh: 142,
     onHoursToday: 7.2,
     standbyW: 3,
+    energySince: { resetAt: null, kwh: 1260 },
     lastSeenAt: '2026-10-29T14:32:00+07:00',
     signal: 'baik',
     powerPattern: {
