@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
 import { formatTime, parseMoment } from '@/lib/format';
+import { ScheduleCard } from '@/pages/alat/schedule-card';
 import { useCountdown } from '@/pages/auth/use-countdown';
 
 const actionLabels: Record<RelayAction, string> = { on: 'Nyalakan', off: 'Matikan' };
@@ -203,28 +204,31 @@ export function RelayCard({
     const tooMany = status === 429;
 
     return (
-      <RelayCardView
-        relay={query.data}
-        offline={offline}
-        now={now}
-        resultIsNew={sawCommand}
-        sending={send.isPending}
-        sendFailed={send.isError && !tooMany && status !== 404 && status !== 409}
-        waitSeconds={waitSeconds}
-        onSend={(action) => {
-          send.mutate(action, {
-            // Only a command that the service took makes the next result news. A refused one leaves the old result as it is.
-            onSuccess: () => {
-              setSawCommand(true);
-            },
-            onError: (error) => {
-              if (error instanceof ApiError && error.status === 429) {
-                setReadyAt(Date.now() + (error.retryAfterSeconds ?? 60) * 1000);
-              }
-            },
-          });
-        }}
-      />
+      <>
+        <RelayCardView
+          relay={query.data}
+          offline={offline}
+          now={now}
+          resultIsNew={sawCommand}
+          sending={send.isPending}
+          sendFailed={send.isError && !tooMany && status !== 404 && status !== 409}
+          waitSeconds={waitSeconds}
+          onSend={(action) => {
+            send.mutate(action, {
+              // Only a command that the service took makes the next result news. A refused one leaves the old result as it is.
+              onSuccess: () => {
+                setSawCommand(true);
+              },
+              onError: (error) => {
+                if (error instanceof ApiError && error.status === 429) {
+                  setReadyAt(Date.now() + (error.retryAfterSeconds ?? 60) * 1000);
+                }
+              },
+            });
+          }}
+        />
+        <ScheduleCard deviceId={deviceId} schedule={query.data.schedule} />
+      </>
     );
   }
   if (query.isPending) {

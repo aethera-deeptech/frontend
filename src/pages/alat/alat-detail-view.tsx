@@ -29,11 +29,18 @@ interface AlatDetailViewProps {
   now?: Date;
   // The switch of a plug. It reads its own data, so the page gives it and the view stays a plain function of the device.
   switchCard?: ReactNode;
+  // What happened on the page before, for example that the schedule was saved. It sits above the power card.
+  notice?: { title: string; message: string };
 }
 
 const dash = '-';
 
-export function AlatDetailView({ detail, now = businessNow(), switchCard }: AlatDetailViewProps) {
+export function AlatDetailView({
+  detail,
+  now = businessNow(),
+  switchCard,
+  notice,
+}: AlatDetailViewProps) {
   const lastSeen = parseMoment(detail.lastSeenAt);
   const { search } = useLocation();
 
@@ -63,6 +70,8 @@ export function AlatDetailView({ detail, now = businessNow(), switchCard }: Alat
           message={`Terakhir terhubung ${formatDateTime(lastSeen)}. Periksa apakah alat dan WATTLINK Hub menyala dan saling dekat.`}
         />
       ) : null}
+
+      {notice ? <Banner tone="info" {...notice} /> : null}
 
       <Card title="Daya sekarang">
         <p className="text-kpi text-text-heading">
