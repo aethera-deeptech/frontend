@@ -1,4 +1,5 @@
 import { businessNameLength, passwordLength } from '@/api/auth';
+import { countCharacters } from '@/lib/characters';
 
 // The checks of the forms before the API is called. Each one returns the text under the field, or undefined when the value is
 // fine. The API checks again, so these only save a round trip.
@@ -43,10 +44,13 @@ export function checkNewPassword(value: string): string | undefined {
   if (value === '') {
     return 'Isi kata sandi Anda.';
   }
-  if (value.length < passwordLength.min) {
+  // The API counts characters and not the units of the string, so four emoji are four and not eight
+  const length = countCharacters(value);
+
+  if (length < passwordLength.min) {
     return `Minimal ${passwordLength.min.toString()} karakter.`;
   }
-  return value.length > passwordLength.max
+  return length > passwordLength.max
     ? `Maksimal ${passwordLength.max.toString()} karakter.`
     : undefined;
 }
@@ -57,7 +61,7 @@ export function checkBusinessName(value: string): string | undefined {
   if (name === '') {
     return 'Isi nama usaha.';
   }
-  return name.length > businessNameLength.max
+  return countCharacters(name) > businessNameLength.max
     ? `Maksimal ${businessNameLength.max.toString()} karakter.`
     : undefined;
 }
