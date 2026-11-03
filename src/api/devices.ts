@@ -111,8 +111,14 @@ export function useResetEnergy() {
       apiRequest(`/v1/devices/${encodeURIComponent(id)}/energy-reset`, energyResetSchema, {
         method: 'POST',
       }),
-    // The total sits in the detail of the device, and the list keeps its own copy of the device
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: devicesKey }),
+    onSuccess: ({ resetAt }, id) => {
+      // The service sums no hour before the next whole hour, so the total is 0 now. The screen shows it at once and does not wait
+      // for the read, which follows because the list keeps its own copy of the device.
+      queryClient.setQueryData<DeviceDetail>([...devicesKey, id], (detail) =>
+        detail ? { ...detail, energySince: { resetAt, kwh: 0 } } : detail,
+      );
+      void queryClient.invalidateQueries({ queryKey: devicesKey });
+    },
   });
 }
 
