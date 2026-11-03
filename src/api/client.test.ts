@@ -111,25 +111,26 @@ describe('apiRequest', () => {
   });
 
   it('leaves out a field name or a code that is not a short word, and has no fields without them', async () => {
-    vi.stubGlobal(
-      'fetch',
-      answer(
-        JSON.stringify({
-          code: 'validation_failed',
-          fields: { password: 'Too common!', 'bad name': 'invalid', email: 'invalid', age: 5 },
-        }),
-        422,
-      ),
+    const errorOf = async (body: string) => {
+      vi.stubGlobal('fetch', answer(body, 422));
+      return (await apiRequest('/v1/auth/register', schema).catch(
+        (error: unknown) => error,
+      )) as ApiError;
+    };
+
+    const bad = await errorOf(
+      JSON.stringify({
+        code: 'validation_failed',
+        fields: { password: 'Too common!', 'bad name': 'invalid', email: 'invalid', age: 5 },
+      }),
     );
+    const notAnObject = await errorOf(JSON.stringify({ code: 'validation_failed', fields: 'x' }));
+    const none = await errorOf('{}');
 
-    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({
-      fields: { email: 'invalid' },
-    });
-
-    vi.stubGlobal('fetch', answer(JSON.stringify({ code: 'validation_failed', fields: 'x' }), 422));
-    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({ fields: {} });
-    vi.stubGlobal('fetch', answer('{}', 422));
-    await expect(apiRequest('/v1/auth/register', schema)).rejects.toMatchObject({ fields: {} });
+    expect(bad).toBeInstanceOf(ApiError);
+    expect(bad.fields).toEqual({ email: 'invalid' });
+    expect(notAnObject.fields).toEqual({});
+    expect(none.fields).toEqual({});
   });
 
   it('keeps the code and the wait time that the API names in an error', async () => {

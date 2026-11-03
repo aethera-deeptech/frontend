@@ -539,6 +539,41 @@ describe('Daftar, other answers', () => {
     expect(screen.getByText('Minimal 8 karakter.')).toBeVisible();
   });
 
+  it('does not put the refusal under a password that was typed while the call ran', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string) =>
+        new URL(input).pathname === '/v1/auth/register'
+          ? new Promise<Response>((resolve) => {
+              answer = resolve;
+            })
+          : Promise.resolve(new Response(JSON.stringify(me))),
+      ),
+    );
+    renderAt('/daftar');
+
+    await fillAndSend();
+    await userEvent.clear(screen.getByLabelText('Kata sandi'));
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'jarang-dipakai-91');
+    answer(
+      new Response(
+        JSON.stringify({
+          code: 'validation_failed',
+          message: 'No',
+          fields: { password: 'too_common' },
+        }),
+        { status: 422 },
+      ),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Daftar' })).toBeVisible();
+    expect(
+      screen.queryByText('Kata sandi ini terlalu umum. Pilih kata sandi lain.'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Kata sandi')).toHaveValue('jarang-dipakai-91');
+  });
+
   it('still shows the banner for a 422 that is not about a common password', async () => {
     stubApi({
       'POST /v1/auth/register': {
