@@ -31,7 +31,7 @@ Frontend of WATTLINK, an energy audit dashboard for small businesses (UMKM) in I
 
 ## Status
 
-The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and every screen of the Mobile design, with a Desktop layout for the wide screen. They are Beranda, Saran, Alat, Laporan with the monthly and the weekly report, the Lainnya menu with Catat produksi and Pengaturan, the steps to add a WATTLINK Hub and a device, and Masuk, Daftar, the verification of the email, the change of the email and the reset of a forgotten password. Every other screen needs a session, so a visitor without one is sent to Masuk and back to the screen after the sign in, and Keluar ends the session. The Google buttons stay disabled until a client id is set and the Google sign in is built. The screens call the API of the backend, and `docs/api-assumptions.md` lists every call and the answers that the screens react to. Nothing in the app uses sample data, so until the API answers, the screens show their loading, error and empty states.
+The app has a shell with a menu (a bottom bar on a phone and a sidebar on a wide screen), the Rubik text styles, the Figma color tokens and every screen of the Mobile design, with a Desktop layout for the wide screen. They are Beranda, Saran, Alat, Laporan with the monthly and the weekly report, the Lainnya menu with Catat produksi and Pengaturan, the steps to add a WATTLINK Hub and a device, and Masuk, Daftar, the verification of the email, the change of the email and the reset of a forgotten password. Every other screen needs a session, so a visitor without one is sent to Masuk and back to the screen after the sign in, and Keluar ends the session. The Google buttons stay disabled in every build until the Google sign in is built. The screens call the API of the backend, and `docs/api-assumptions.md` lists every call and the answers that the screens react to. Nothing in the app uses sample data, so until the API answers, the screens show their loading, error and empty states.
 
 ## Stack
 
@@ -40,7 +40,7 @@ What exists now:
 - React 19 and TypeScript, built with Vite
 - React Router with a lazy chunk for each page
 - TanStack Query for the API calls, with zod to check every answer
-- Tailwind CSS 4 and Radix for the menus
+- Tailwind CSS 4 and Radix for the checkbox, the radio group, the select and the dialog
 - Sentry for errors, loaded as its own chunk
 - Vitest and Testing Library for unit tests
 - Playwright with axe for end to end and accessibility tests on 14 devices
@@ -71,12 +71,12 @@ The app needs Node.js 26, and 24.15 or newer also works. [CONTRIBUTING.md](CONTR
 
 Every setting is a `VITE_` build variable, so it ends up in the files and a change needs a new build. A `.env` file is read when present, and `.env.example` shows the full list. The build stops with a message when `VITE_API_BASE_URL` is not a full URL.
 
-| Variable                  | Default        | Purpose                                                                                                            |
-| :------------------------ | :------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `VITE_API_BASE_URL`       | none, required | Address of the API, without a path. The example file uses `http://localhost:8080`.                                 |
-| `VITE_GOOGLE_CLIENT_ID`   | empty          | Client id for Google sign in. Empty keeps the Google buttons disabled.                                             |
-| `VITE_SENTRY_DSN`         | empty          | Address that receives the errors. Empty means that no error is sent and that the Sentry chunk is never downloaded. |
-| `VITE_SENTRY_ENVIRONMENT` | `production`   | Name that Sentry files the errors under, for example `preview`.                                                    |
+| Variable                  | Default        | Purpose                                                                                                                   |
+| :------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_API_BASE_URL`       | none, required | Address of the API, without a path. The example file uses `http://localhost:8080`.                                        |
+| `VITE_GOOGLE_CLIENT_ID`   | empty          | Client id for Google sign in. It has no effect yet, because the Google buttons stay disabled until that sign in is built. |
+| `VITE_SENTRY_DSN`         | empty          | Address that receives the errors. Empty means that no error is sent and that the Sentry chunk is never downloaded.        |
+| `VITE_SENTRY_ENVIRONMENT` | `production`   | Name that Sentry files the errors under, for example `preview`.                                                           |
 
 ## Docker
 
@@ -119,7 +119,7 @@ src/api/                 one file for each part of the API, with the zod schemas
 src/pages/<screen>/      the pages, their views and their tests
 src/components/          ui, layout, charts and icons
 src/hooks/ and src/lib/  hooks and helpers such as the formats, the dates and the settings loader
-src/styles/              the Figma tokens (tokens.css), next to index.css for the text styles
+src/styles/              the Figma tokens (tokens.css), and the text styles are in src/index.css
 e2e/                     Playwright tests with axe
 nginx/                   the server configuration and the security headers of the image
 design/                  tests of the design tokens and the text styles
