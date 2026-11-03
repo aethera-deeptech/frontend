@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   businessNow,
@@ -16,9 +16,11 @@ import {
   formatRupiah,
   formatRupiahJuta,
   formatWeekRange,
+  getBusinessZone,
   isoWeekRange,
   isSameDay,
   parseMoment,
+  setBusinessZone,
 } from '@/lib/format';
 
 describe('formatRupiah', () => {
@@ -137,6 +139,24 @@ describe('parseMoment', () => {
     ]).toEqual([2026, 9, 29, 9, 30]);
   });
 
+  it('turns a moment in UTC into the clock of the business, which is how the API writes the device times', () => {
+    const date = parseMoment('2026-11-03T05:45:35Z');
+
+    expect([date.getDate(), date.getHours(), date.getMinutes()]).toEqual([3, 12, 45]);
+  });
+
+  it('shows the same clock for the same instant whichever offset the API writes', () => {
+    expect(parseMoment('2026-10-29T02:30:00Z').getTime()).toBe(
+      parseMoment('2026-10-29T09:30:00+07:00').getTime(),
+    );
+  });
+
+  it('moves a moment in UTC to the next day when the business clock has passed midnight', () => {
+    const date = parseMoment('2026-10-28T20:30:00Z');
+
+    expect([date.getDate(), date.getHours(), date.getMinutes()]).toEqual([29, 3, 30]);
+  });
+
   it('keeps the day of a moment just after midnight', () => {
     expect(parseMoment('2026-11-01T00:30:00+07:00').getDate()).toBe(1);
     expect(parseMoment('2026-11-01T00:30:00Z').getDate()).toBe(1);
@@ -217,5 +237,35 @@ describe('formatWeekRange', () => {
 
   it('gives back a text that is not a week', () => {
     expect(formatWeekRange('2026-10')).toBe('2026-10');
+  });
+});
+
+describe('setBusinessZone', () => {
+  afterEach(() => {
+    setBusinessZone(undefined);
+  });
+
+  it('shows the moments by the clock of the zone in the settings', () => {
+    setBusinessZone('Asia/Jayapura');
+
+    const date = parseMoment('2026-10-29T02:30:00Z');
+
+    expect([date.getHours(), date.getMinutes()]).toEqual([11, 30]);
+    expect(getBusinessZone()).toBe('Asia/Jayapura');
+  });
+
+  it('gives businessNow the same zone', () => {
+    setBusinessZone('Asia/Makassar');
+
+    expect(businessNow(new Date('2026-10-29T16:00:00Z')).getHours()).toBe(0);
+  });
+
+  it('falls back to Asia/Jakarta for a zone that the browser does not know and when there is none', () => {
+    setBusinessZone('Mars/Olympus');
+    expect(getBusinessZone()).toBe('Asia/Jakarta');
+
+    setBusinessZone('Asia/Makassar');
+    setBusinessZone(undefined);
+    expect(getBusinessZone()).toBe('Asia/Jakarta');
   });
 });

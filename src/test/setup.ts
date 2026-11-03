@@ -2,6 +2,8 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
 
+import { setBusinessZone } from '@/lib/format';
+
 // The tests of the nginx files and of the design tokens run in the node environment, which has no window.
 if (typeof window !== 'undefined') {
   // jsdom has no layout engine. Radix needs these four methods and a ResizeObserver when it opens a menu.
@@ -41,4 +43,6 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  // The zone of the business is module state that a test of the settings may have changed
+  setBusinessZone(undefined);
 });
