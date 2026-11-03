@@ -21,9 +21,9 @@ const HEIGHT = 144;
 const TOP = 22;
 const PLOT = 90;
 const FALLBACK_WIDTH = 324;
-// The room that the top y label takes at the right edge, and the width of one character of the 12 px label text
-const Y_LABEL_ROOM = 56;
+// The width of one character of the 12 px label text, and the gap between two labels
 const LABEL_CHAR_WIDTH = 6.5;
+const LABEL_GAP = 8;
 
 export function PowerChart({
   points,
@@ -47,14 +47,15 @@ export function PowerChart({
   const bad = anomaly ? line.slice(from, to + 1) : [];
   const spanStart = at(0, from)[0];
   // The top y label sits at the right edge on nearly the same line, so the anomaly label has to end before it. A label that starts
-  // near the right edge, or that would run into the y label, ends at the start of the span instead. The width of the text is
-  // estimated, because the SVG cannot measure it before it is drawn.
-  const labelRight = width - Y_LABEL_ROOM;
+  // near the right edge, or that would run into the y label, ends at the start of the span instead. The widths of the texts are
+  // estimated, because the SVG cannot measure them before it is drawn.
+  const labelRight = width - (yLabels[2].length * LABEL_CHAR_WIDTH + LABEL_GAP);
   const labelWidth = anomaly ? anomaly.label.length * LABEL_CHAR_WIDTH : 0;
-  const labelAtEnd = spanStart > width * 0.6 || spanStart + 8 + labelWidth > labelRight;
+  const labelAtEnd = spanStart > width * 0.6 || spanStart + LABEL_GAP + labelWidth > labelRight;
+  // A label that is too long for the room runs over the left edge, where nothing else is drawn
   const labelX = labelAtEnd
-    ? Math.max(Math.min(spanStart - 8, labelRight), labelWidth)
-    : spanStart + 8;
+    ? Math.min(Math.max(spanStart - LABEL_GAP, labelWidth), labelRight)
+    : spanStart + LABEL_GAP;
   const ticks = [TOP, TOP + PLOT / 2, TOP + PLOT] as const;
 
   return (

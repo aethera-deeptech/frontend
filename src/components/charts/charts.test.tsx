@@ -145,9 +145,45 @@ describe('PowerChart', () => {
 
     const label = screen.getByText('Anomali 704 W');
 
-    // The chart is 324 px wide without a layout, and the y label needs 56 px at the right edge
+    // The chart is 324 px wide without a layout, and the y label "2.000 W" needs 53.5 px at the right edge (7 characters of 6.5 px and a gap of 8 px)
     expect(label).toHaveAttribute('text-anchor', 'end');
-    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 56);
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 53.5);
+  });
+
+  it('leaves more room at the right edge for a longer top y label', () => {
+    render(
+      <PowerChart
+        {...props}
+        yLabels={['0 W', '5.000 W', '10.000 W']}
+        anomaly={{ from: 4, to: 4, label: 'Anomali 704 W' }}
+      />,
+    );
+
+    // "10.000 W" is one character longer, so the anomaly label ends 6.5 px further left, at 60 px from the edge
+    expect(Number(screen.getByText('Anomali 704 W').getAttribute('x'))).toBeLessThanOrEqual(
+      324 - 60,
+    );
+  });
+
+  it('lets a label that is too long for the room run over the left edge and not into the y label', () => {
+    render(
+      <PowerChart
+        {...props}
+        anomaly={{
+          from: 0,
+          to: 0,
+          label: 'Anomali dengan teks yang sangat panjang sekali di sini',
+        }}
+      />,
+    );
+
+    expect(
+      Number(
+        screen
+          .getByText('Anomali dengan teks yang sangat panjang sekali di sini')
+          .getAttribute('x'),
+      ),
+    ).toBeLessThanOrEqual(324 - 53.5);
   });
 
   it('keeps the anomaly label to the right of the start of a stretch when there is room', () => {
@@ -156,7 +192,7 @@ describe('PowerChart', () => {
     const label = screen.getByText('Anomali 704 W');
 
     expect(label).toHaveAttribute('text-anchor', 'start');
-    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 56 - 80);
+    expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 53.5 - 80);
   });
 
   it('keeps a stretch with wrong indexes inside the points', () => {
