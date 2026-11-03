@@ -68,8 +68,8 @@ export function RelayCardView({
       {cut ? (
         // The anomaly banner of the page usually says when, so this says what it means for the switch
         <p className="text-body text-text-1">
-          Colokan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri
-          lagi jika beban masih terlalu tinggi.
+          Colokan kemungkinan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa
+          mati sendiri lagi jika beban masih terlalu tinggi.
         </p>
       ) : null}
       {scheduled && relay.last ? (

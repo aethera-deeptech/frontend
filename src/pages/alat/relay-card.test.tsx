@@ -152,7 +152,7 @@ describe('RelayCardView, a command on its way', () => {
   describe('a plug that cut itself', () => {
     const cut = { reason: 'overload', at: '2026-10-29T09:30:00+07:00' } as const;
     const line =
-      'Colokan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri lagi jika beban masih terlalu tinggi.';
+      'Colokan kemungkinan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri lagi jika beban masih terlalu tinggi.';
 
     it('says what happened and offers to switch on again', () => {
       renderCard(sampleRelay({ state: 'off', cutByDevice: cut }));
