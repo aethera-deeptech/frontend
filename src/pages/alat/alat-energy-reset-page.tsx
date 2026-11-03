@@ -94,11 +94,18 @@ function ResetQuestion({ id, name, back }: { id: string; name: string; back: str
             </Button>
           }
         />
-      ) : reset.isError ? (
+      ) : reset.error instanceof ApiError ? (
         <Banner
           tone="danger"
           title="Total energi belum dimulai dari nol"
           message="Periksa sambungan Anda, lalu coba lagi."
+        />
+      ) : reset.isError ? (
+        // The call may have reached the service and only the answer was lost, so the screen does not say that nothing changed
+        <Banner
+          tone="danger"
+          title="Belum pasti total energi sudah mulai dari nol"
+          message="Periksa sambungan Anda. Buka lagi halaman alat untuk melihat totalnya, atau coba lagi."
         />
       ) : null}
       <Card className="gap-3">
