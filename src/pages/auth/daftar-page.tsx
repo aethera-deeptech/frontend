@@ -64,6 +64,7 @@ export function DaftarPage() {
       return;
     }
     const address = email.trim();
+    const activeAtStart = document.activeElement;
 
     register.mutate(
       { businessName: businessName.trim(), email: address, password },
@@ -76,7 +77,7 @@ export function DaftarPage() {
         onError: (error, variables) => {
           if (authFailure(error) === 'common-password') {
             setRefused(variables.password);
-            focusUnlessMoved(passwordRef.current);
+            focusUnlessMoved(passwordRef.current, activeAtStart);
           }
         },
       },

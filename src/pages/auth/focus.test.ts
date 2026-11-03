@@ -23,18 +23,18 @@ afterEach(() => {
 });
 
 describe('focusUnlessMoved', () => {
-  it('puts the focus on the field when it is on the page, on the submit button or on the field', () => {
+  it('puts the focus on the field when it is where it was at the start, on the page or on the field', () => {
     const { password, send } = setup();
 
-    focusUnlessMoved(password);
-    expect(password).toHaveFocus();
-
     send.focus();
-    focusUnlessMoved(password);
+    focusUnlessMoved(password, send);
     expect(password).toHaveFocus();
 
     (document.activeElement as HTMLElement).blur();
-    focusUnlessMoved(password);
+    focusUnlessMoved(password, send);
+    expect(password).toHaveFocus();
+
+    focusUnlessMoved(password, null);
     expect(password).toHaveFocus();
   });
 
@@ -42,19 +42,28 @@ describe('focusUnlessMoved', () => {
     const { password, email, show } = setup();
 
     email.focus();
-    focusUnlessMoved(password);
+    focusUnlessMoved(password, password);
     expect(email).toHaveFocus();
 
     show.focus();
-    focusUnlessMoved(password);
+    focusUnlessMoved(password, email);
     expect(show).toHaveFocus();
+  });
+
+  it('leaves the focus on the submit button when the user moved there after sending with the keyboard', () => {
+    const { password, send } = setup();
+
+    send.focus();
+    focusUnlessMoved(password, password);
+
+    expect(send).toHaveFocus();
   });
 
   it('does nothing when there is no field', () => {
     const { email } = setup();
 
     email.focus();
-    focusUnlessMoved(null);
+    focusUnlessMoved(null, null);
 
     expect(email).toHaveFocus();
   });

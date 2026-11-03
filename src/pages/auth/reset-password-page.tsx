@@ -94,6 +94,8 @@ export function ResetPasswordPage() {
       againRef.current?.focus();
       return;
     }
+    const activeAtStart = document.activeElement;
+
     reset.mutate(
       { token, password },
       {
@@ -101,7 +103,7 @@ export function ResetPasswordPage() {
         onError: (error) => {
           if (authFailure(error) === 'common-password') {
             setRefused(password);
-            focusUnlessMoved(passwordRef.current);
+            focusUnlessMoved(passwordRef.current, activeAtStart);
           }
         },
       },
