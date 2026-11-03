@@ -75,17 +75,17 @@ Each item has `id`, `title`, `savingPerMonthRp` and `status`. The status is `pen
 
 ## Alat
 
-`GET /v1/devices` returns `items`, a list of the devices. An empty list means that no device is installed. Each item has `id`, `name`, `status`, `currentPowerW` and `todayKwh`. Since backend 0.5.0 it also has `kind`, which the frontend does not read yet. The status is `nyala`, `mati`, `siaga`, `offline` or `anomali`. The power and the energy are `null` while the device does not answer. A device with an anomaly also has `anomalyAt`, and an offline device also has `lastSeenAt`. Both are moments in ISO 8601 with an offset.
+`GET /v1/devices` returns `items`, a list of the devices. An empty list means that no device is installed. Each item has `id`, `name`, `status`, `currentPowerW` and `todayKwh`. Since backend 0.5.0 it also has `kind`, which the list screen does not read. The status is `nyala`, `mati`, `siaga`, `offline` or `anomali`. The power and the energy are `null` while the device does not answer. A device with an anomaly also has `anomalyAt`, and an offline device also has `lastSeenAt`. Both are moments in ISO 8601 with an offset.
 
 `GET /v1/devices/{id}` returns one device with the fields below. The API answers 404 for an id that does not exist.
 
-- `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example `WATTLINK Plug` or `WATTLINK Clamp (dijepit di kabel)`, which the screen shows as it is and never parses. Since backend 0.5.0 the answer also has `kind` (`plug` or `clamp`) on every device, and the frontend does not read it yet.
+- `id`, `name`, `status`, `room` and `kindLabel`, the type of the device as text, for example `WATTLINK Plug` or `WATTLINK Clamp (dijepit di kabel)`, which the screen shows as it is and never parses. Since backend 0.5.0 the answer also has `kind` (`plug` or `clamp`) on every device. The page of a device reads it, and for a clamp it does not ask for the switch (`GET /v1/devices/{id}/relay` would answer 409). A device without `kind`, which an older API sends, and a kind that the app does not know are treated like a plug, so the page asks for the switch.
 - `currentPowerW`, `todayKwh`, `monthKwh`, `onHoursToday` and `standbyW`, which are `null` while there are no numbers.
 - `lastSeenAt` and `signal`, which is `baik`, `cukup`, `lemah` or `tidak-ada`.
 - `anomaly` with `at`, `peakW` and `kind`, only while the status is `anomali`. The `kind` is `surge` (far above the usual power of that hour), `overload` (the condition that the device reports) or `degradation` (a loaded motor with a poor power factor), and the banner says which. A degradation that the API found in the readings also has `powerFactor` from 0 to 1, which the banner shows. A response with no `kind`, or a kind that the frontend does not know, reads as `surge`.
 - `powerPattern`, which is `null` while there is no recent data. Otherwise it has `points`, the power in watts spread evenly over the last day, and `yMaxW`, the top of the chart. It can also have `expected` with `low` and `high`, one value for each point, and `anomaly` with `from` and `to`, the indexes of the points that are not normal.
 
-`GET /v1/devices/{id}/relay` returns the switch of a plug, shown as the card Saklar on the page of a device. A clamp answers 409 (`no_relay`) and an id that does not exist answers 404, and the page leaves the card out for both. The answer has these fields.
+`GET /v1/devices/{id}/relay` returns the switch of a plug, shown as the card Saklar on the page of a device. For a device with `kind` set to `clamp` the page does not ask. A clamp that the page does not know as one answers 409 (`no_relay`) and an id that does not exist answers 404, and the page leaves the card out for both. The answer has these fields.
 
 - `state` is `on`, `off` or `unknown` (the plug never reported one), and `reportedAt` is when the plug said so.
 - `pending` is the command that waits for the gateway or that the gateway fetched and did not answer yet. It has `id`, `action` (`on` or `off`), `status` (`pending` or `sent`) and `expiresAt`, which is 10 minutes after the command.

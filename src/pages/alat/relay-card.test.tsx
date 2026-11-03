@@ -298,6 +298,36 @@ describe('RelayCard on the page of a device', () => {
     expect(screen.queryByRole('heading', { name: 'Saklar' })).not.toBeInTheDocument();
   });
 
+  it('does not ask for the switch of a device that the API says is a clamp', async () => {
+    const fetchMock = stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal({ kind: 'clamp' }) },
+      'GET /v1/devices/d4/relay': { body: relayBody },
+    });
+    renderAt('/alat/d4');
+
+    await screen.findByRole('heading', { name: 'Info alat' });
+
+    expect(screen.queryByRole('heading', { name: 'Saklar' })).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      'https://api.example.com/v1/devices/d4/relay',
+      expect.anything(),
+    );
+  });
+
+  it('asks for the switch of a plug and of a device that has no kind yet', async () => {
+    const fetchMock = stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal({ kind: undefined }) },
+      'GET /v1/devices/d4/relay': { body: relayBody },
+    });
+    renderAt('/alat/d4');
+
+    expect(await screen.findByRole('heading', { name: 'Saklar' })).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/devices/d4/relay',
+      expect.anything(),
+    );
+  });
+
   it('shows the card for a plug and switches it off', async () => {
     let sent = false;
     const pending = {
