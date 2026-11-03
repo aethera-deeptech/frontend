@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.0](https://github.com/aethera-deeptech/frontend/compare/v0.3.0...v0.4.0) (2026-11-03)
+
+
+### Features
+
+* **alat:** read the home screen and the devices again every 30 seconds ([69ee5a0](https://github.com/aethera-deeptech/frontend/commit/69ee5a0645d2187c3bcbddd2ec0dbd293ef2eb80))
+* **alat:** read the home screen and the devices again every 30 seconds ([#73](https://github.com/aethera-deeptech/frontend/issues/73)) ([f26f29a](https://github.com/aethera-deeptech/frontend/commit/f26f29a16386041c38993485008b420c029b95f2))
+
+
+### Bug Fixes
+
+* **alat:** do not read again on its own a query that failed before it had data ([bdf7042](https://github.com/aethera-deeptech/frontend/commit/bdf7042d10d749acf7daae8ab8e2d72388765310))
+* **alat:** read the session on the same beat as the readings and move the poll helpers to their own file ([2ff9eb4](https://github.com/aethera-deeptech/frontend/commit/2ff9eb4f57f1d2248326893873f6677080ae88d2))
+* **deps:** update glob and minimatch in the dev tools with overrides ([2dbe32e](https://github.com/aethera-deeptech/frontend/commit/2dbe32e1b9eb1693b9017e543be97378b23aed79))
+* **deps:** update glob and minimatch in the dev tools with overrides ([#71](https://github.com/aethera-deeptech/frontend/issues/71)) ([312134e](https://github.com/aethera-deeptech/frontend/commit/312134edeacf1feeb1fce3a8bfd3c2834c030e4d))
+
 ## [0.3.0](https://github.com/aethera-deeptech/frontend/compare/v0.2.0...v0.3.0) (2026-11-02)
 
 
