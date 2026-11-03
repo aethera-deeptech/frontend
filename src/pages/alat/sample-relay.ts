@@ -9,6 +9,7 @@ export function sampleRelay(overrides: Partial<Relay> = {}): Relay {
     pending: null,
     last: null,
     schedule: null,
+    gatewayOnline: true,
     ...overrides,
   };
 }

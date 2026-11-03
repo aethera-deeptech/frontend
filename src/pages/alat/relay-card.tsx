@@ -97,6 +97,11 @@ export function RelayCardView({
         <p className="text-body text-text-1">
           {`Alat tidak terhubung. Jika Anda menekan ${actions.map((action) => actionLabels[action]).join(' atau ')}, perintah menunggu sampai alat terhubung kembali, paling lama 10 menit.`}
         </p>
+      ) : relay.gatewayOnline === false ? (
+        // The plug has not said that it is gone, but the hub that carries its commands is away
+        <p className="text-body text-text-1">
+          {`WATTLINK Hub tidak terhubung. Jika Anda menekan ${actions.map((action) => actionLabels[action]).join(' atau ')}, perintah menunggu sampai hub terhubung kembali, paling lama 10\u00a0menit.`}
+        </p>
       ) : null}
 
       <div className="flex flex-wrap gap-2">

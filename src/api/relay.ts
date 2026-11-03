@@ -46,6 +46,9 @@ export const relaySchema = z.object({
   // A result in a shape that this version does not know is left out and does not stop the switch
   last: lastSchema.nullable().catch(null),
   schedule: scheduleSchema.nullable().catch(null),
+  // False when no gateway stored a batch in the last 15 minutes. It tells about the hub and not about the plug. An API
+  // that does not send it (before 0.5.0) leaves it out.
+  gatewayOnline: z.boolean().optional().catch(undefined),
 });
 
 export type Relay = z.infer<typeof relaySchema>;
