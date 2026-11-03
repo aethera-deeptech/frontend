@@ -57,6 +57,20 @@ describe('relaySchema', () => {
     expect(relay.schedule).toBeNull();
   });
 
+  it('reads the cut of the plug and leaves it out when it is missing or has a reason that it does not know', () => {
+    const cut = { reason: 'overload', at: '2026-10-29T10:12:00Z' };
+
+    expect(relaySchema.parse({ ...base, state: 'off', cutByDevice: cut }).cutByDevice).toEqual(cut);
+    expect(relaySchema.parse({ ...base, cutByDevice: null }).cutByDevice).toBeNull();
+    expect(relaySchema.parse(base).cutByDevice).toBeNull();
+    expect(
+      relaySchema.parse({ ...base, cutByDevice: { reason: 'heat', at: cut.at } }).cutByDevice,
+    ).toBeNull();
+    expect(
+      relaySchema.parse({ ...base, cutByDevice: { reason: 'overload' } }).cutByDevice,
+    ).toBeNull();
+  });
+
   it('reads whether the hub is connected and leaves it out when the API does not say or says something odd', () => {
     expect(relaySchema.parse({ ...base, gatewayOnline: false }).gatewayOnline).toBe(false);
     expect(relaySchema.parse({ ...base, gatewayOnline: true }).gatewayOnline).toBe(true);

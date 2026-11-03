@@ -149,6 +149,83 @@ describe('RelayCardView, a command on its way', () => {
     ).toBeVisible();
   });
 
+  describe('a plug that cut itself', () => {
+    const cut = { reason: 'overload', at: '2026-10-29T09:30:00+07:00' } as const;
+    const line =
+      'Colokan kemungkinan mati sendiri. Periksa mesin dulu, lalu nyalakan lagi. Colokan bisa mati sendiri lagi jika beban masih terlalu tinggi.';
+
+    it('says what happened and offers to switch on again', () => {
+      renderCard(sampleRelay({ state: 'off', cutByDevice: cut }));
+
+      expect(screen.getByText(line)).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Nyalakan' })).toBeVisible();
+    });
+
+    it.each([
+      ['the plug is on', { state: 'on' as const, cutByDevice: cut }],
+      ['the state is not known', { state: 'unknown' as const, cutByDevice: cut }],
+      ['nothing cut it', { state: 'off' as const, cutByDevice: null }],
+      ['the API does not say', { state: 'off' as const, cutByDevice: undefined }],
+    ])('says nothing about a cut when %s', (_label, over) => {
+      renderCard(sampleRelay(over));
+
+      expect(screen.queryByText(/mati sendiri/)).not.toBeInTheDocument();
+    });
+
+    it('leaves out the line about the schedule, which would read as the cause of the cut', () => {
+      renderCard(
+        sampleRelay({
+          state: 'off',
+          cutByDevice: cut,
+          last: {
+            action: 'on',
+            status: 'applied',
+            source: 'schedule',
+            at: '2026-10-29T07:00:00+07:00',
+          },
+        }),
+      );
+
+      expect(screen.getByText(line)).toBeVisible();
+      expect(screen.queryByText(/Terakhir diganti oleh jadwal/)).not.toBeInTheDocument();
+    });
+
+    it('keeps the line about the schedule when nothing cut the plug', () => {
+      renderCard(
+        sampleRelay({
+          state: 'off',
+          cutByDevice: null,
+          last: {
+            action: 'off',
+            status: 'applied',
+            source: 'schedule',
+            at: '2026-10-29T07:00:00+07:00',
+          },
+        }),
+      );
+
+      expect(screen.getByText('Terakhir diganti oleh jadwal pukul 07:00.')).toBeVisible();
+    });
+
+    it('leaves the line out while a command already waits', () => {
+      renderCard(
+        sampleRelay({
+          state: 'off',
+          cutByDevice: cut,
+          pending: {
+            id: 'c1',
+            action: 'on',
+            status: 'pending',
+            expiresAt: '2026-10-29T09:40:00+07:00',
+          },
+        }),
+      );
+
+      expect(screen.getByText('Menunggu alat')).toBeVisible();
+      expect(screen.queryByText(line)).not.toBeInTheDocument();
+    });
+  });
+
   it('says that the hub is away while the plug itself has not been reported as gone', () => {
     renderCard(sampleRelay({ gatewayOnline: false }));
 
