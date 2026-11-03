@@ -10,6 +10,7 @@ import { useBusinessZone } from '@/hooks/use-business-zone';
 import { businessNow } from '@/lib/format';
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
 import { RelayCard } from '@/pages/alat/relay-card';
+import { energyResetNotice } from '@/pages/alat/energy-text';
 import { scheduleNotice } from '@/pages/alat/schedule-text';
 
 export function AlatDetailPage() {
@@ -28,7 +29,7 @@ export function AlatDetailPage() {
       <AlatDetailView
         detail={query.data}
         now={now}
-        notice={scheduleNotice(state)}
+        notice={scheduleNotice(state) ?? energyResetNotice(state)}
         // A clamp has no switch, and the API would answer 409 to the read, so the page does not ask. A device without a kind still asks.
         switchCard={
           query.data.kind === 'clamp' ? undefined : (
