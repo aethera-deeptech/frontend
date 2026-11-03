@@ -38,19 +38,19 @@ const defaultTimeZone = 'Asia/Jakarta';
 let businessZone = defaultTimeZone;
 const zoneListeners = new Set<() => void>();
 
-function knowsZone(timeZone: string): boolean {
-  try {
-    new Intl.DateTimeFormat('en-GB', { timeZone });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // The zone of the business, which the settings hold. Every moment of the API is shown by the clock of this zone. A name that
 // this browser does not know, and no name at all, give the zone of a new business, Asia/Jakarta.
 export function setBusinessZone(timeZone: string | undefined): void {
-  const next = timeZone !== undefined && knowsZone(timeZone) ? timeZone : defaultTimeZone;
+  let next = defaultTimeZone;
+
+  try {
+    if (timeZone) {
+      clockParts(new Date(0), timeZone);
+      next = timeZone;
+    }
+  } catch {
+    // A name that this browser does not know stays on the default
+  }
 
   if (next === businessZone) {
     return;

@@ -1,5 +1,4 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 
 import { authMutationKey, meSchema, sessionKey } from '@/api/auth';
 import { ApiError, ContractError } from '@/api/client';
@@ -59,9 +58,9 @@ export function createQueryClient(): QueryClient {
     const queryName = (event.query.queryKey as readonly unknown[])[0];
 
     if (queryName === settingsKey[0]) {
-      const zone = z.object({ timeZone: z.string() }).safeParse(event.query.state.data);
+      const zone = (event.query.state.data as { timeZone?: unknown } | undefined)?.timeZone;
 
-      setBusinessZone(event.type === 'removed' || !zone.success ? undefined : zone.data.timeZone);
+      setBusinessZone(event.type === 'removed' || typeof zone !== 'string' ? undefined : zone);
       return;
     }
     if (event.type !== 'updated' || event.action.type !== 'success') {
