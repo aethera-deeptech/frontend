@@ -65,6 +65,8 @@ export const deviceDetailSchema = z.object({
     })
     .optional(),
   // The power over the last day, spread evenly. It is null while there is no recent data.
+  // The total that the owner can start again, since backend 0.7.0. The card Total energi is left out for an API that does not send it.
+  energySince: z.object({ resetAt: moment.nullable(), kwh }).optional().catch(undefined),
   powerPattern: z
     .object({
       points: z.array(watts).min(2),
@@ -95,6 +97,22 @@ export function useDevice(id: string) {
     queryFn: ({ signal }) =>
       apiRequest(`/v1/devices/${encodeURIComponent(id)}`, deviceDetailSchema, { signal }),
     refetchInterval: livePoll,
+  });
+}
+
+const energyResetSchema = z.object({ resetAt: moment });
+
+// Starts the energy total of one device again. The service sets the time of the reset to now and counts from the next whole hour.
+export function useResetEnergy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/v1/devices/${encodeURIComponent(id)}/energy-reset`, energyResetSchema, {
+        method: 'POST',
+      }),
+    // The total sits in the detail of the device, and the list keeps its own copy of the device
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: devicesKey }),
   });
 }
 
