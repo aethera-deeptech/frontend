@@ -168,10 +168,34 @@ describe('RelayCardView, a command on its way', () => {
     ).toBeVisible();
   });
 
-  it.each([true, undefined])('says nothing about the hub when the API says %s', (gatewayOnline) => {
+  it.each([
+    ['true', true],
+    ['nothing', undefined],
+  ])('says nothing about the hub when the API says %s', (_label, gatewayOnline) => {
     renderCard(sampleRelay({ gatewayOnline }));
 
     expect(screen.queryByText(/WATTLINK Hub tidak terhubung/)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['the hub is away', { gatewayOnline: false }, false],
+    ['the plug is offline', {}, true],
+  ])('hides the line about the wait while a command waits and %s', (_label, over, offline) => {
+    renderCard(
+      sampleRelay({
+        ...over,
+        pending: {
+          id: 'c1',
+          action: 'off',
+          status: 'pending',
+          expiresAt: '2026-10-29T09:40:00+07:00',
+        },
+      }),
+      { offline },
+    );
+
+    expect(screen.getByText('Menunggu alat')).toBeVisible();
+    expect(screen.queryByText(/Jika Anda menekan/)).not.toBeInTheDocument();
   });
 
   it('gives the line about the plug when both the plug and the hub are away', () => {
