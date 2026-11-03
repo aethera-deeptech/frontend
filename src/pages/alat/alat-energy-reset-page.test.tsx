@@ -233,6 +233,18 @@ describe('the question Mulai dari nol', () => {
     expect(screen.getByText('Dihitung mulai 29 Okt 2026, 11:00')).toBeVisible();
   });
 
+  it('does not say that nothing changed when the answer was lost, because the service may have reset', async () => {
+    // No answer is listed for the call, so it fails like a lost connection
+    stubApi(answers());
+    renderAt('/alat/d4/mulai-dari-nol');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, mulai dari nol' }));
+
+    expect(await screen.findByText('Belum pasti total energi sudah mulai dari nol')).toBeVisible();
+    expect(screen.queryByText('Total energi belum dimulai dari nol')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Coba lagi' })).toBeVisible();
+  });
+
   it('says that the device is gone when the reset itself answers 404', async () => {
     stubApi({
       ...answers(),

@@ -43,6 +43,7 @@ describe('energySinceCaption', () => {
 describe('formatTotalKwh', () => {
   it('keeps decimals for a young total so it does not read as 0', () => {
     expect(formatTotalKwh(0)).toBe('0 kWh');
+    expect(formatTotalKwh(0.001)).toBe('0,001 kWh');
     expect(formatTotalKwh(0.04)).toBe('0,04 kWh');
     expect(formatTotalKwh(0.4)).toBe('0,4 kWh');
     expect(formatTotalKwh(2.46)).toBe('2,5 kWh');
