@@ -10,7 +10,12 @@ import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { PasswordField } from '@/pages/auth/password-field';
-import { checkBusinessName, checkEmail, checkNewPassword } from '@/pages/auth/validation';
+import {
+  checkBusinessName,
+  checkEmail,
+  checkNewPassword,
+  commonPasswordText,
+} from '@/pages/auth/validation';
 
 const googleNoteId = 'daftar-google-note';
 
@@ -31,7 +36,10 @@ export function DaftarPage() {
     ? (checkEmail(email) ?? (failure === 'email-taken' ? 'Email sudah terdaftar.' : undefined))
     : undefined;
   // The helper stays until the user tries, then it turns into the error
-  const passwordError = tried ? checkNewPassword(password) : undefined;
+  const passwordError = tried
+    ? (checkNewPassword(password) ??
+      (failure === 'common-password' ? commonPasswordText : undefined))
+    : undefined;
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -62,6 +70,12 @@ export function DaftarPage() {
           // The address goes in the history entry of this visit and not in any storage of ours. A reload of the next screen keeps it.
           void navigate('/verifikasi', { state: { email: address, retryAfterSeconds } });
         },
+        // The refusal is about the password, so the focus goes to the field that has the text
+        onError: (error) => {
+          if (authFailure(error) === 'common-password') {
+            passwordRef.current?.focus();
+          }
+        },
       },
     );
   };
@@ -79,7 +93,7 @@ export function DaftarPage() {
             </Button>
           }
         />
-      ) : failure ? (
+      ) : failure && failure !== 'common-password' ? (
         <FailureBanner
           failure={failure}
           retryAfterSeconds={
@@ -124,6 +138,10 @@ export function DaftarPage() {
             error={passwordError}
             onChange={(event) => {
               setPassword(event.target.value);
+              // The refusal belongs to the old password, so it goes away when the password changes
+              if (failure === 'common-password') {
+                register.reset();
+              }
             }}
           />
           <Button

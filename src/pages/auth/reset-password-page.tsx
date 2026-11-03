@@ -10,7 +10,7 @@ import { TextInput } from '@/components/ui/text-input';
 import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
-import { checkNewPassword } from '@/pages/auth/validation';
+import { checkNewPassword, commonPasswordText } from '@/pages/auth/validation';
 
 // The page that the link of the reset email opens. The token works once, and the API only checks it when the new password
 // is sent. The page takes the token out of the address at once, so a reload or a shared screenshot does not hold it.
@@ -26,7 +26,10 @@ export function ResetPasswordPage() {
   const passwordRef = useRef<HTMLInputElement>(null);
   const againRef = useRef<HTMLInputElement>(null);
   const failure = reset.isError ? authFailure(reset.error) : undefined;
-  const passwordError = tried ? checkNewPassword(password) : undefined;
+  const passwordError = tried
+    ? (checkNewPassword(password) ??
+      (failure === 'common-password' ? commonPasswordText : undefined))
+    : undefined;
   const againError =
     tried && !checkNewPassword(password) && again !== password
       ? 'Kata sandi tidak sama.'
@@ -89,12 +92,22 @@ export function ResetPasswordPage() {
       againRef.current?.focus();
       return;
     }
-    reset.mutate({ token, password });
+    reset.mutate(
+      { token, password },
+      {
+        // The refusal is about the password, so the focus goes to the field that has the text
+        onError: (error) => {
+          if (authFailure(error) === 'common-password') {
+            passwordRef.current?.focus();
+          }
+        },
+      },
+    );
   };
 
   return (
     <AuthFrame title="Atur ulang kata sandi" subtitle="Pilih kata sandi baru untuk akun Anda.">
-      {failure ? (
+      {failure && failure !== 'common-password' ? (
         <FailureBanner
           failure={failure}
           retryAfterSeconds={
@@ -113,6 +126,10 @@ export function ResetPasswordPage() {
           error={passwordError}
           onChange={(event) => {
             setPassword(event.target.value);
+            // The refusal belongs to the old password, so it goes away when the password changes
+            if (failure === 'common-password') {
+              reset.reset();
+            }
           }}
         />
         <TextInput

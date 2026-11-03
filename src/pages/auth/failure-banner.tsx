@@ -42,6 +42,14 @@ export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBan
           action={action}
         />
       );
+    case 'common-password':
+      return (
+        <Banner
+          tone="danger"
+          title="Kata sandi terlalu umum"
+          message="Pilih kata sandi lain, lalu coba lagi."
+        />
+      );
     case 'invalid-input':
       return (
         <Banner
