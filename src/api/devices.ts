@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { apiRequest } from '@/api/client';
 import { berandaKey } from '@/api/beranda';
+import { livePollMs } from '@/api/query-client';
 
 // The paths and shapes in this file are an assumption of the frontend, see docs/api-assumptions.md.
 
@@ -81,6 +82,7 @@ export function useDevices() {
   return useQuery({
     queryKey: devicesKey,
     queryFn: ({ signal }) => apiRequest('/v1/devices', deviceListSchema, { signal }),
+    refetchInterval: livePollMs,
   });
 }
 
@@ -89,6 +91,7 @@ export function useDevice(id: string) {
     queryKey: [...devicesKey, id],
     queryFn: ({ signal }) =>
       apiRequest(`/v1/devices/${encodeURIComponent(id)}`, deviceDetailSchema, { signal }),
+    refetchInterval: livePollMs,
   });
 }
 

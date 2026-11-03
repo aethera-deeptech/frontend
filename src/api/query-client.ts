@@ -19,6 +19,10 @@ function isUnauthorized(error: Error): boolean {
   return error instanceof ApiError && error.status === 401;
 }
 
+// How often a screen that shows readings asks for new ones while it is visible. The gateway sends a batch every 10 to 60
+// seconds, so a shorter interval would only repeat the same answer. A hidden tab and a lost connection pause it.
+export const livePollMs = 30_000;
+
 export function createQueryClient(): QueryClient {
   // A 401 on any call except the account calls means that the session ended while the screen was open, for example after
   // 30 days or after a password reset on another device. The session is read again, and the guard sends the user to Masuk.
