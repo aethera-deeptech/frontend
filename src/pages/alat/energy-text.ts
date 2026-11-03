@@ -20,7 +20,7 @@ export function energySinceCaption(energySince: NonNullable<DeviceDetail['energy
 
 // A young total keeps decimals, so the first hours after a reset do not read as 0. The service rounds to 3 decimals.
 export function formatTotalKwh(kwh: number): string {
-  return `${formatNumber(kwh, kwh < 1 ? 2 : kwh < 10 ? 1 : 0)} kWh`;
+  return `${formatNumber(kwh, kwh < 1 ? 3 : kwh < 10 ? 1 : 0)} kWh`;
 }
 
 // What the page of the device remembers from the screen before. It travels in the history entry of the move, as the schedule notice does.
