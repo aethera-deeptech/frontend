@@ -5,10 +5,13 @@ import { useRecommendation, useRecommendationDecision } from '@/api/recommendati
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useBusinessZone } from '@/hooks/use-business-zone';
 import { SaranDetailView } from '@/pages/saran/saran-detail-view';
 
 export function SaranDetailPage() {
   const { id = '' } = useParams();
+  // The moments follow the zone of the business, so the page draws again when the zone arrives
+  useBusinessZone();
   const query = useRecommendation(id);
   const decision = useRecommendationDecision();
 

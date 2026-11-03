@@ -36,6 +36,7 @@ export function formatNumber(value: number, maxDecimals = 2): string {
 
 const defaultTimeZone = 'Asia/Jakarta';
 let businessZone = defaultTimeZone;
+const zoneListeners = new Set<() => void>();
 
 function knowsZone(timeZone: string): boolean {
   try {
@@ -49,25 +50,57 @@ function knowsZone(timeZone: string): boolean {
 // The zone of the business, which the settings hold. Every moment of the API is shown by the clock of this zone. A name that
 // this browser does not know, and no name at all, give the zone of a new business, Asia/Jakarta.
 export function setBusinessZone(timeZone: string | undefined): void {
-  businessZone = timeZone !== undefined && knowsZone(timeZone) ? timeZone : defaultTimeZone;
+  const next = timeZone !== undefined && knowsZone(timeZone) ? timeZone : defaultTimeZone;
+
+  if (next === businessZone) {
+    return;
+  }
+  businessZone = next;
+  zoneListeners.forEach((listener) => {
+    listener();
+  });
 }
 
 export function getBusinessZone(): string {
   return businessZone;
 }
 
-const offsetMoment = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/;
+// For a screen that shows moments, so it draws again when the zone arrives or changes and keeps its state
+export function subscribeBusinessZone(listener: () => void): () => void {
+  zoneListeners.add(listener);
+  return () => {
+    zoneListeners.delete(listener);
+  };
+}
+
+const offsetMoment =
+  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}(?::?\d{2})?)$/;
+
+// The instant of a moment with an offset. The offset is written in full, with seconds, so every browser reads it: Z, +07,
+// +0700 and +07:00 all work. Nothing comes back for a text that has no offset or is not a date.
+function instantOf(iso: string): Date | undefined {
+  const parts = offsetMoment.exec(iso);
+
+  if (!parts) {
+    return undefined;
+  }
+  const [, clock = '', seconds = '00', fraction = '', rawOffset = 'Z'] = parts;
+  const digits = rawOffset.replace(':', '');
+  const offset =
+    rawOffset === 'Z' ? 'Z' : `${digits.slice(0, 3)}:${digits.length > 3 ? digits.slice(3) : '00'}`;
+  const instant = new Date(`${clock}:${seconds}${fraction}${offset}`);
+
+  return Number.isNaN(instant.getTime()) ? undefined : instant;
+}
 
 // A moment from the API, such as 2026-10-29T09:30:00+07:00 or 2026-10-29T02:30:00Z, read by the clock of the business and not
 // by the clock of the device. The API writes some moments in UTC and some with the offset of the business, and both name the
 // same instant, so the instant is turned into the clock of the business zone. A moment without an offset is read as it is.
 export function parseMoment(iso: string): Date {
-  if (offsetMoment.test(iso)) {
-    const instant = new Date(iso);
+  const instant = instantOf(iso);
 
-    if (!Number.isNaN(instant.getTime())) {
-      return businessNow(instant, businessZone);
-    }
+  if (instant) {
+    return businessNow(instant, businessZone);
   }
   const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
   if (!parts) {

@@ -5,12 +5,15 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useBusinessZone } from '@/hooks/use-business-zone';
 import { LaporanView } from '@/pages/laporan/laporan-view';
 import { useReportDownload } from '@/pages/laporan/use-report-download';
 
 // The month or the week lives in the address (?periode=2026-09 or ?periode=2026-W43), so the back button and a shared link keep it.
 export function LaporanPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  // The moments follow the zone of the business, so the page draws again when the zone arrives
+  useBusinessZone();
   const asked = searchParams.get('periode');
   // A period that is not written as YYYY-MM or YYYY-Www, for example from an old or a typed link, is the same as no period
   const requested =

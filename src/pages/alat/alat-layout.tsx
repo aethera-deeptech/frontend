@@ -7,6 +7,7 @@ import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useBusinessZone } from '@/hooks/use-business-zone';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { deviceFilterOptions, type DeviceFilter } from '@/pages/alat/device-filters';
 import { AlatListView } from '@/pages/alat/alat-list-view';
@@ -18,6 +19,8 @@ function readFilter(value: string | null): DeviceFilter {
 // The list of devices and, next to it on a wide screen, the device that is open. On a phone the open device replaces the list.
 export function AlatLayout() {
   const { id } = useParams();
+  // The moments follow the zone of the business, so the page draws again when the zone arrives
+  useBusinessZone();
   const { search } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = readFilter(searchParams.get('status'));

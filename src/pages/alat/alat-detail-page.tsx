@@ -6,6 +6,7 @@ import { useSettings } from '@/api/settings';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useBusinessZone } from '@/hooks/use-business-zone';
 import { businessNow } from '@/lib/format';
 import { AlatDetailView } from '@/pages/alat/alat-detail-view';
 import { RelayCard } from '@/pages/alat/relay-card';
@@ -16,6 +17,8 @@ export function AlatDetailPage() {
   const { search } = useLocation();
   // The day of an anomaly is "today" by the clock of the business. The zone comes from the settings, and WIB stands in while they load.
   const settings = useSettings();
+  // The moments follow the zone of the business, so the page draws again when the zone arrives
+  useBusinessZone();
 
   if (query.data) {
     const now = businessNow(undefined, settings.data?.timeZone);
