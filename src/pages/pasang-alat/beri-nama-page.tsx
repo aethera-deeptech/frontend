@@ -95,6 +95,18 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
                 // Replace the step, so Back from the search does not return to a form that starts a second search
                 void navigate(`${addPath}/mencari/${encodeURIComponent(id)}`, { replace: true });
               },
+              // Only one search runs at a time. When the API names it, the user is taken to it, as if this call had started it.
+              onError: (error) => {
+                if (
+                  error instanceof ApiError &&
+                  error.code === 'pairing_running' &&
+                  error.pairingId
+                ) {
+                  void navigate(`${addPath}/mencari/${encodeURIComponent(error.pairingId)}`, {
+                    replace: true,
+                  });
+                }
+              },
             },
           );
         })(event);
@@ -142,6 +154,13 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
               <Link to={`${addPath}/hub`}>Hubungkan WATTLINK Hub</Link>
             </Button>
           }
+        />
+      ) : start.error instanceof ApiError && start.error.code === 'pairing_running' ? (
+        // The API could not name the search, for example because it ended a moment ago
+        <Banner
+          tone="warning"
+          title="Pencarian sebelumnya masih berjalan"
+          message="Tunggu sampai 3 menit, lalu cari alat lagi."
         />
       ) : start.isError ? (
         <Banner
