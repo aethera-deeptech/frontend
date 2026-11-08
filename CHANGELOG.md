@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0](https://github.com/aethera-deeptech/frontend/compare/v0.7.0...v0.8.0) (2026-11-08)
+
+
+### Features
+
+* **alat:** say why the line stops when the device sent no data ([d6606bd](https://github.com/aethera-deeptech/frontend/commit/d6606bd1cf58f0fb26af0a2feceeadbf9a79039a))
+* **api:** accept a point without a reading in the power pattern ([c8c5aed](https://github.com/aethera-deeptech/frontend/commit/c8c5aedcd9dd26821b6cbccb740294364655024e))
+* **charts:** break the power line at a stretch without a reading ([8a3784c](https://github.com/aethera-deeptech/frontend/commit/8a3784c51f05815ce9f9470ee206e40bc647c926))
+* **charts:** break the power line where the device sent no data ([#93](https://github.com/aethera-deeptech/frontend/issues/93)) ([7ef2455](https://github.com/aethera-deeptech/frontend/commit/7ef2455156707615d32a0ebf88b092c98021b14b))
+
+
+### Bug Fixes
+
+* **alat:** say that the line is broken only for a gap between two readings ([541e3b8](https://github.com/aethera-deeptech/frontend/commit/541e3b855000b4c456d1419c7c5f5098be3c287f))
+* **charts:** use the US spelling in the comment of the lone reading ([eda9432](https://github.com/aethera-deeptech/frontend/commit/eda94322eab41deeb912a916adb92ec64e502fe7))
+
 ## [0.7.0](https://github.com/aethera-deeptech/frontend/compare/v0.6.0...v0.7.0) (2026-11-03)
 
 
