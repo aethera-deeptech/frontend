@@ -230,6 +230,20 @@ describe('PowerChart', () => {
     ).toHaveLength(1);
   });
 
+  it('marks a lone anomaly reading with a red dot when the readings next to it are missing', () => {
+    const { container } = render(
+      <PowerChart
+        {...props}
+        points={[100, null, 2000, null, 100]}
+        anomaly={{ from: 1, to: 3, label: 'Anomali' }}
+      />,
+    );
+
+    expect(container.querySelectorAll('circle.fill-chart-anomaly')).toHaveLength(1);
+    // One reading has no line to join, so there is a dot and no red path
+    expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(0);
+  });
+
   it('draws nothing but the axes when there is no reading at all', () => {
     const { container } = render(<PowerChart {...props} points={[null, null, null]} />);
 

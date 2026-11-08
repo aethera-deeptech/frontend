@@ -172,9 +172,24 @@ describe('AlatDetailView, normal', () => {
 
     expect(
       screen.getByText(
-        'Abu-abu berarti kisaran biasa. Garis terputus berarti alat belum mengirim data.',
+        'Abu-abu berarti kisaran biasa. Garis terputus berarti tidak ada data dari alat.',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('does not say that the line is broken when the nulls are only at the edges', () => {
+    const detail = sampleNormal();
+    const points = detail.powerPattern?.points.map((value, index, all) =>
+      index < 20 || index >= all.length - 5 ? null : value,
+    );
+
+    renderDetail({
+      ...detail,
+      powerPattern: detail.powerPattern && points ? { ...detail.powerPattern, points } : null,
+    });
+
+    expect(screen.getByText('Abu-abu berarti kisaran biasa.')).toBeInTheDocument();
+    expect(screen.queryByText(/Garis terputus/)).not.toBeInTheDocument();
   });
 
   it('shows the information about the device and a link to rename it', () => {
