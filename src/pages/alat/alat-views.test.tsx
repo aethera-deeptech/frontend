@@ -161,6 +161,22 @@ describe('AlatDetailView, normal', () => {
     expect(screen.getByText('Abu-abu berarti kisaran biasa.')).toBeInTheDocument();
   });
 
+  it('says why the line stops when the pattern has a stretch without a reading', () => {
+    const detail = sampleNormal();
+    const points = detail.powerPattern?.points.map((value, index) => (index === 10 ? null : value));
+
+    renderDetail({
+      ...detail,
+      powerPattern: detail.powerPattern && points ? { ...detail.powerPattern, points } : null,
+    });
+
+    expect(
+      screen.getByText(
+        'Abu-abu berarti kisaran biasa. Garis terputus berarti alat belum mengirim data.',
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('shows the information about the device and a link to rename it', () => {
     renderDetail();
 
@@ -320,5 +336,27 @@ describe('AlatDetailView, offline', () => {
       screen.getByText('Belum ada data baru. Grafik muncul lagi saat alat terhubung.'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+});
+
+describe('the schema of the pattern', () => {
+  const pattern = { points: [100, null, 0, 120], yMaxW: 1000 };
+
+  it('reads a point without a reading as null and a reading of 0 W as 0', () => {
+    expect(deviceDetailSchema.shape.powerPattern.parse(pattern)?.points).toEqual([
+      100,
+      null,
+      0,
+      120,
+    ]);
+  });
+
+  it('still refuses a negative or a text point, so a broken answer does not draw', () => {
+    expect(
+      deviceDetailSchema.shape.powerPattern.safeParse({ ...pattern, points: [100, -1] }).success,
+    ).toBe(false);
+    expect(
+      deviceDetailSchema.shape.powerPattern.safeParse({ ...pattern, points: [100, 'x'] }).success,
+    ).toBe(false);
   });
 });
