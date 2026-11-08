@@ -210,6 +210,8 @@ describe('Tambah alat, a search that already runs', () => {
     expect(await screen.findByText('Mencari alat di dekat Anda')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/alat/tambah/mencari/p9');
     expect(router.state.historyAction).toBe('REPLACE');
+    // The wait banner is for a search that is not named, so it never shows when the app opens the search
+    expect(screen.queryByText('Pencarian sebelumnya masih berjalan')).not.toBeInTheDocument();
   });
 
   it('says to wait when the API does not name the search, and keeps the form', async () => {

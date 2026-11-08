@@ -110,7 +110,7 @@ describe('apiRequest', () => {
     });
   });
 
-  it('keeps the id of the search that runs in a 409 pairing_running, and only when it is a short word', async () => {
+  it('keeps the id that the API sends with a 409 pairing_running, and only when it is a short word', async () => {
     const errorOf = async (body: string) => {
       vi.stubGlobal('fetch', answer(body, 409));
       return (await apiRequest('/v1/pairings', schema).catch(
