@@ -201,11 +201,15 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
         }
         xLabels={['00:00', '12:00', '24:00']}
         yLabels={['0 W', formatWatts(pattern.yMaxW / 2), formatWatts(pattern.yMaxW)]}
-        legend={
+        legend={[
           shownAnomaly
             ? 'Abu-abu berarti kisaran biasa. Merah berarti anomali.'
-            : 'Abu-abu berarti kisaran biasa.'
-        }
+            : 'Abu-abu berarti kisaran biasa.',
+          // A stretch without a reading is not a stretch of no power, so the line stops there and the legend says why
+          pattern.points.includes(null) ? 'Garis terputus berarti alat belum mengirim data.' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       />
     </SectionCard>
   );
