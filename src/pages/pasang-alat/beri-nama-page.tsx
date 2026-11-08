@@ -65,6 +65,8 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
   const navigate = useNavigate();
   const wizard = useWizard();
   const start = useStartPairing();
+  const runningSearch =
+    start.error instanceof ApiError && start.error.code === 'pairing_running' ? start.error : null;
   const {
     register,
     control,
@@ -155,15 +157,16 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
             </Button>
           }
         />
-      ) : start.error instanceof ApiError &&
-        start.error.code === 'pairing_running' &&
-        !start.error.pairingId ? (
-        // The API could not name the search, for example because it ended a moment ago
-        <Banner
-          tone="warning"
-          title="Pencarian sebelumnya masih berjalan"
-          message="Tunggu sampai 3 menit, lalu cari alat lagi."
-        />
+      ) : runningSearch ? (
+        // A search that the API names is opened, so nothing shows. When it cannot name it, for example because the search ended
+        // a moment ago, the user is told to wait.
+        runningSearch.pairingId ? null : (
+          <Banner
+            tone="warning"
+            title="Pencarian sebelumnya masih berjalan"
+            message="Tunggu sampai 3 menit, lalu cari alat lagi."
+          />
+        )
       ) : start.isError ? (
         <Banner
           tone="danger"
