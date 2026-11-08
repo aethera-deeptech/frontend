@@ -155,7 +155,9 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
             </Button>
           }
         />
-      ) : start.error instanceof ApiError && start.error.code === 'pairing_running' ? (
+      ) : start.error instanceof ApiError &&
+        start.error.code === 'pairing_running' &&
+        !start.error.pairingId ? (
         // The API could not name the search, for example because it ended a moment ago
         <Banner
           tone="warning"

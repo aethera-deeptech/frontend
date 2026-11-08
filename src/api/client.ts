@@ -99,7 +99,7 @@ function readFields(value: unknown): Record<string, string> {
   return fields;
 }
 
-// The body of an error answer is `{ code, message, fields?, retryAfterSeconds? }`. A body that is missing, is not JSON or has
+// The body of an error answer is `{ code, message, fields?, retryAfterSeconds?, pairingId? }`. A body that is missing, is not JSON or has
 // another shape gives no details, and the status alone still tells what happened.
 async function readErrorDetails(response: Response): Promise<{
   code?: string;
