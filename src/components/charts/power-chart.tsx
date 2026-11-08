@@ -1,9 +1,9 @@
-import { bandPath, linePath, scale, xAt } from '@/components/charts/chart-math';
+import { bandPath, linePath, runsOf, scale, xAt } from '@/components/charts/chart-math';
 import { useElementWidth } from '@/components/charts/use-element-width';
 
 export interface PowerChartProps {
-  // The power in watts, spread evenly over the day
-  points: number[];
+  // The power in watts, spread evenly over the day. A null is a stretch without a reading and breaks the line.
+  points: (number | null)[];
   // The top of the y axis in watts
   yMax: number;
   // The usual range for each point. It has as many values as points.
@@ -40,13 +40,14 @@ export function PowerChart({
   const count = points.length;
   const at = (value: number, index: number) =>
     [xAt(index, count, width), TOP + PLOT - scale(value, yMax, PLOT)] as const;
-  const line = points.map(at);
+  const line = points.map((value, index) => (value === null ? null : at(value, index)));
   const band = expected ? bandPath(expected.low.map(at), expected.high.map(at)) : undefined;
   // The span is kept inside the points, so a wrong index cannot draw outside the chart
   const from = anomaly ? Math.min(Math.max(anomaly.from, 0), Math.max(count - 1, 0)) : 0;
   const to = anomaly ? Math.min(Math.max(anomaly.to, from), Math.max(count - 1, 0)) : 0;
-  const bad = anomaly ? line.slice(from, to + 1) : [];
-  const spanStart = at(0, from)[0];
+  const lineRuns = runsOf(line);
+  const badRuns = runsOf(anomaly ? line.slice(from, to + 1) : []);
+  const spanStart = xAt(from, count, width);
   // The top y label sits at the right edge on nearly the same line, so the anomaly label has to end before it. A label that starts
   // near the right edge, or that would run into the y label, ends at the start of the span instead. The widths of the texts are
   // estimated, because the SVG cannot measure them before it is drawn.
@@ -82,24 +83,54 @@ export function PowerChart({
         ))}
         {band ? <path d={band} className="fill-bg-3 stroke-border-field" strokeWidth="1" /> : null}
         <path
-          d={linePath(line)}
+          d={lineRuns
+            .filter((run) => run.length > 1)
+            .map(linePath)
+            .join(' ')}
           fill="none"
           className="stroke-chart-blurple"
           strokeWidth="2"
           strokeLinejoin="round"
         />
-        {bad.length > 1 ? (
+        {/* A reading with no neighbour has no line to join, so it shows as a dot */}
+        {lineRuns
+          .filter((run) => run.length === 1)
+          .map(([point]) =>
+            point ? (
+              <circle
+                key={point[0]}
+                cx={point[0]}
+                cy={point[1]}
+                r="2"
+                className="fill-chart-blurple"
+              />
+            ) : null,
+          )}
+        {badRuns.some((run) => run.length > 1) ? (
           <path
-            d={linePath(bad)}
+            d={badRuns
+              .filter((run) => run.length > 1)
+              .map(linePath)
+              .join(' ')}
             fill="none"
             className="stroke-chart-anomaly"
             strokeWidth="2.5"
             strokeLinejoin="round"
           />
         ) : null}
-        {bad.length === 1 && bad[0] ? (
-          <circle cx={bad[0][0]} cy={bad[0][1]} r="3.5" className="fill-chart-anomaly" />
-        ) : null}
+        {badRuns
+          .filter((run) => run.length === 1)
+          .map(([point]) =>
+            point ? (
+              <circle
+                key={point[0]}
+                cx={point[0]}
+                cy={point[1]}
+                r="3.5"
+                className="fill-chart-anomaly"
+              />
+            ) : null,
+          )}
         {/* The labels come after the band and the line, which would hide them at the right edge. The halo keeps them readable on the line. */}
         {ticks.map((y, index) => (
           <text
