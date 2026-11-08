@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0](https://github.com/aethera-deeptech/frontend/compare/v0.8.0...v0.9.0) (2026-11-08)
+
+
+### Features
+
+* **api:** keep the id of the search that runs from a pairing_running answer ([b3a5c1a](https://github.com/aethera-deeptech/frontend/commit/b3a5c1ac4436e8efec97019d824d0a54a9a4e93e))
+* **pasang-alat:** open the search that already runs ([#97](https://github.com/aethera-deeptech/frontend/issues/97)) ([c7a1377](https://github.com/aethera-deeptech/frontend/commit/c7a1377843a4aa1f64e895a5480cb29921338c9e))
+* **pasang-alat:** open the search that already runs and say to wait when it is not named ([b45baf6](https://github.com/aethera-deeptech/frontend/commit/b45baf6aa933fa4ad4c5f32dc93486c320c9712b))
+
+
+### Bug Fixes
+
+* **pasang-alat:** do not flash the wait banner when the search is named ([676cfd7](https://github.com/aethera-deeptech/frontend/commit/676cfd7b1e7de046635b034f8822a688e00a8c96))
+* **pasang-alat:** follow a named search from the retry button and show no banner for it ([0be4fe8](https://github.com/aethera-deeptech/frontend/commit/0be4fe842ccbfe2f068a98103981fce3fa664ee3))
+
 ## [0.8.0](https://github.com/aethera-deeptech/frontend/compare/v0.7.0...v0.8.0) (2026-11-08)
 
 
