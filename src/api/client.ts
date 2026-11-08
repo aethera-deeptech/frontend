@@ -12,10 +12,17 @@ export class ApiError extends Error {
   readonly retryAfterSeconds: number | undefined;
   // The code of each field that failed, for example `{ password: 'too_common' }`. Only short names and codes are kept.
   readonly fields: Readonly<Record<string, string>>;
+  // The id of the search that already runs, on a 409 `pairing_running`. The API leaves it out when its lookup finds nothing.
+  readonly pairingId: string | undefined;
 
   constructor(
     status: number,
-    details: { code?: string; retryAfterSeconds?: number; fields?: Record<string, string> } = {},
+    details: {
+      code?: string;
+      retryAfterSeconds?: number;
+      fields?: Record<string, string>;
+      pairingId?: string;
+    } = {},
   ) {
     super(`The API answered with status ${status.toString()}.`);
     this.name = 'ApiError';
@@ -23,6 +30,7 @@ export class ApiError extends Error {
     this.code = details.code;
     this.retryAfterSeconds = details.retryAfterSeconds;
     this.fields = details.fields ?? {};
+    this.pairingId = details.pairingId;
   }
 }
 
@@ -74,6 +82,8 @@ const errorCodePattern = /^[a-z][a-z_]{0,63}$/;
 const longestWaitSeconds = 86_400;
 
 const fieldNamePattern = /^[A-Za-z][A-Za-z0-9_]{0,63}$/;
+// An id from the API goes into the address of a screen, so only a short word of letters, digits and hyphens is kept
+const idPattern = /^[A-Za-z0-9][A-Za-z0-9-]{0,63}$/;
 
 // The `fields` of a 422 answer, as name and code pairs. A name or a code in another shape is left out.
 function readFields(value: unknown): Record<string, string> {
@@ -91,9 +101,12 @@ function readFields(value: unknown): Record<string, string> {
 
 // The body of an error answer is `{ code, message, fields?, retryAfterSeconds? }`. A body that is missing, is not JSON or has
 // another shape gives no details, and the status alone still tells what happened.
-async function readErrorDetails(
-  response: Response,
-): Promise<{ code?: string; retryAfterSeconds?: number; fields?: Record<string, string> }> {
+async function readErrorDetails(response: Response): Promise<{
+  code?: string;
+  retryAfterSeconds?: number;
+  fields?: Record<string, string>;
+  pairingId?: string;
+}> {
   try {
     const body: unknown = JSON.parse(await response.text());
 
@@ -103,9 +116,14 @@ async function readErrorDetails(
     const code = 'code' in body && typeof body.code === 'string' ? body.code : undefined;
     const wait = 'retryAfterSeconds' in body ? body.retryAfterSeconds : undefined;
     const fields = 'fields' in body ? readFields(body.fields) : undefined;
+    const pairingId =
+      'pairingId' in body && typeof body.pairingId === 'string' && idPattern.test(body.pairingId)
+        ? body.pairingId
+        : undefined;
 
     return {
       fields,
+      pairingId,
       code: code !== undefined && errorCodePattern.test(code) ? code : undefined,
       retryAfterSeconds:
         typeof wait === 'number' &&
