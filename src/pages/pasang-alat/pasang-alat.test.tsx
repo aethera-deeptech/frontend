@@ -192,6 +192,64 @@ describe('Tambah alat, the name', () => {
   });
 });
 
+describe('Tambah alat, a search that already runs', () => {
+  it('opens the search that the API names, as if this call had started it', async () => {
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': {
+        status: 409,
+        body: { code: 'pairing_running', message: 'No', pairingId: 'p9' },
+      },
+      'GET /v1/pairings/p9': { body: { status: 'searching' } },
+    });
+    const router = renderAt('/alat/tambah');
+    await goToName('WATTLINK Plug');
+
+    await fillName('Mesin jahit 2', 'Ruang jahit');
+
+    expect(await screen.findByText('Mencari alat di dekat Anda')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/alat/tambah/mencari/p9');
+    expect(router.state.historyAction).toBe('REPLACE');
+    // The wait banner is for a search that is not named, and the failure banner is for any other answer
+    expect(screen.queryByText('Pencarian sebelumnya masih berjalan')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pencarian belum bisa dimulai')).not.toBeInTheDocument();
+  });
+
+  it('says to wait when the API does not name the search, and keeps the form', async () => {
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': { status: 409, body: { code: 'pairing_running', message: 'No' } },
+    });
+    const router = renderAt('/alat/tambah');
+    await goToName('WATTLINK Plug');
+
+    await fillName('Mesin jahit 2', 'Ruang jahit');
+
+    expect(await screen.findByText('Pencarian sebelumnya masih berjalan')).toBeVisible();
+    expect(screen.getByText('Tunggu sampai 3 menit, lalu cari alat lagi.')).toBeVisible();
+    expect(screen.queryByText('Pencarian belum bisa dimulai')).not.toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/alat/tambah/nama');
+    expect(screen.getByRole('textbox', { name: 'Nama alat' })).toHaveValue('Mesin jahit 2');
+  });
+
+  it('does not follow an id that is not a short word, so nothing odd reaches the address', async () => {
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': {
+        status: 409,
+        body: { code: 'pairing_running', pairingId: '../../masuk?x=1' },
+      },
+    });
+    const router = renderAt('/alat/tambah');
+    await goToName('WATTLINK Plug');
+
+    await fillName('Mesin jahit 2', 'Ruang jahit');
+
+    expect(await screen.findByText('Pencarian sebelumnya masih berjalan')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/alat/tambah/nama');
+  });
+});
+
 describe('Tambah alat, the search', () => {
   it('sends the device, searches and says when the device is connected', async () => {
     const fetchMock = stubApi({
@@ -266,6 +324,52 @@ describe('Tambah alat, the search', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
 
     expect(await screen.findByText('Pencarian belum bisa dimulai')).toBeInTheDocument();
+  });
+
+  it('follows the search that the API names when a new search finds one that runs', async () => {
+    let posts = 0;
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': () =>
+        ++posts === 1
+          ? { body: { id: 'p1' } }
+          : { status: 409, body: { code: 'pairing_running', pairingId: 'p2' } },
+      'GET /v1/pairings/p1': { body: { status: 'failed' } },
+      'GET /v1/pairings/p2': { body: { status: 'searching' } },
+    });
+    const router = renderAt('/alat/tambah');
+    await goToName('WATTLINK Plug');
+    await fillName('Mesin jahit 2', 'Gudang');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
+
+    await vi.waitFor(() => {
+      expect(router.state.location.pathname).toBe('/alat/tambah/mencari/p2');
+    });
+    expect(screen.queryByText('Pencarian sebelumnya masih berjalan')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pencarian belum bisa dimulai')).not.toBeInTheDocument();
+  });
+
+  it('says to wait when a new search finds one that runs and the API does not name it', async () => {
+    let posts = 0;
+    stubApi({
+      'GET /v1/rooms': { body: rooms },
+      'POST /v1/pairings': () =>
+        ++posts === 1
+          ? { body: { id: 'p1' } }
+          : { status: 409, body: { code: 'pairing_running', message: 'No' } },
+      'GET /v1/pairings/p1': { body: { status: 'failed' } },
+    });
+    const router = renderAt('/alat/tambah');
+    await goToName('WATTLINK Plug');
+    await fillName('Mesin jahit 2', 'Gudang');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Coba lagi' }));
+
+    expect(await screen.findByText('Pencarian sebelumnya masih berjalan')).toBeVisible();
+    expect(screen.getByText('Tunggu sampai 3 menit, lalu cari alat lagi.')).toBeVisible();
+    expect(screen.queryByText('Pencarian belum bisa dimulai')).not.toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/alat/tambah/mencari/p1');
   });
 
   it('starts over when the answers are gone, for example after a reload', async () => {

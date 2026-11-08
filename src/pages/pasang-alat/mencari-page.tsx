@@ -1,5 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router';
 
+import { ApiError } from '@/api/client';
 import { usePairing, useStartPairing } from '@/api/pairing';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ export function MencariPage() {
   const query = usePairing(id);
   const start = useStartPairing();
   const status = query.data?.status;
+  const runningSearch =
+    start.error instanceof ApiError && start.error.code === 'pairing_running' ? start.error : null;
 
   // A new search with the same answers. Without them, for example after a reload, the user starts over.
   const searchAgain = () => {
@@ -27,6 +30,14 @@ export function MencariPage() {
       {
         onSuccess: ({ id: next }) => {
           void navigate(`${addPath}/mencari/${encodeURIComponent(next)}`, { replace: true });
+        },
+        // Another search may run, for example one that was started in another tab. When the API names it, this screen follows it.
+        onError: (error) => {
+          if (error instanceof ApiError && error.code === 'pairing_running' && error.pairingId) {
+            void navigate(`${addPath}/mencari/${encodeURIComponent(error.pairingId)}`, {
+              replace: true,
+            });
+          }
         },
       },
     );
@@ -83,7 +94,16 @@ export function MencariPage() {
       ) : (
         <SkeletonCard label="Mencari alat di dekat Anda" />
       )}
-      {start.isError ? (
+      {/* A running search that the API names is followed, so this screen has nothing to say about it */}
+      {runningSearch ? (
+        runningSearch.pairingId ? null : (
+          <Banner
+            tone="warning"
+            title="Pencarian sebelumnya masih berjalan"
+            message="Tunggu sampai 3 menit, lalu cari alat lagi."
+          />
+        )
+      ) : start.isError ? (
         <Banner
           tone="danger"
           title="Pencarian belum bisa dimulai"

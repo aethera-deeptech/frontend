@@ -65,6 +65,8 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
   const navigate = useNavigate();
   const wizard = useWizard();
   const start = useStartPairing();
+  const runningSearch =
+    start.error instanceof ApiError && start.error.code === 'pairing_running' ? start.error : null;
   const {
     register,
     control,
@@ -94,6 +96,18 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
               onSuccess: ({ id }) => {
                 // Replace the step, so Back from the search does not return to a form that starts a second search
                 void navigate(`${addPath}/mencari/${encodeURIComponent(id)}`, { replace: true });
+              },
+              // Only one search runs at a time. When the API names it, the user is taken to it, as if this call had started it.
+              onError: (error) => {
+                if (
+                  error instanceof ApiError &&
+                  error.code === 'pairing_running' &&
+                  error.pairingId
+                ) {
+                  void navigate(`${addPath}/mencari/${encodeURIComponent(error.pairingId)}`, {
+                    replace: true,
+                  });
+                }
               },
             },
           );
@@ -143,6 +157,16 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
             </Button>
           }
         />
+      ) : runningSearch ? (
+        // A search that the API names is opened, so nothing shows. When it cannot name it, for example because the search ended
+        // a moment ago, the user is told to wait.
+        runningSearch.pairingId ? null : (
+          <Banner
+            tone="warning"
+            title="Pencarian sebelumnya masih berjalan"
+            message="Tunggu sampai 3 menit, lalu cari alat lagi."
+          />
+        )
       ) : start.isError ? (
         <Banner
           tone="danger"
