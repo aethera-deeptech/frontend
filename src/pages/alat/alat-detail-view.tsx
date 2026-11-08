@@ -161,6 +161,14 @@ function anomalyText(
   };
 }
 
+// Whether a null lies between two readings, which breaks the line
+function hasGap(points: readonly (number | null)[]): boolean {
+  const first = points.findIndex((value) => value !== null);
+  const last = points.findLastIndex((value) => value !== null);
+
+  return first !== -1 && points.slice(first, last + 1).includes(null);
+}
+
 function PowerSection({ detail }: { detail: DeviceDetail }) {
   const pattern = detail.powerPattern;
 
@@ -201,11 +209,17 @@ function PowerSection({ detail }: { detail: DeviceDetail }) {
         }
         xLabels={['00:00', '12:00', '24:00']}
         yLabels={['0 W', formatWatts(pattern.yMaxW / 2), formatWatts(pattern.yMaxW)]}
-        legend={
+        legend={[
           shownAnomaly
             ? 'Abu-abu berarti kisaran biasa. Merah berarti anomali.'
-            : 'Abu-abu berarti kisaran biasa.'
-        }
+            : 'Abu-abu berarti kisaran biasa.',
+          // A stretch without a reading is not a stretch of no power, so the line stops there and the legend says why. A device that is
+          // younger than a day, or silent since the evening, only has nulls at an edge, where the line starts late or ends early and
+          // nothing is broken, so only a null between two readings counts.
+          hasGap(pattern.points) ? 'Garis terputus berarti tidak ada data dari alat.' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       />
     </SectionCard>
   );

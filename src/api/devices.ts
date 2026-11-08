@@ -69,7 +69,8 @@ export const deviceDetailSchema = z.object({
   energySince: z.object({ resetAt: moment.nullable(), kwh }).optional().catch(undefined),
   powerPattern: z
     .object({
-      points: z.array(watts).min(2),
+      // A point is null for a stretch of 15 minutes without a reading. An API from before that change sends 0 there.
+      points: z.array(watts.nullable()).min(2),
       yMaxW: watts,
       expected: z.object({ low: z.array(watts), high: z.array(watts) }).optional(),
       anomaly: z.object({ from: count, to: count }).optional(),

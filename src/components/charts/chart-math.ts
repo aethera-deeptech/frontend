@@ -28,6 +28,30 @@ export function linePath(coordinates: readonly (readonly [number, number])[]): s
     .join(' ');
 }
 
+// A missing reading breaks the line, so the points that are next to each other with a value form a run. A run of one point has no
+// line to draw and shows as a dot.
+export function runsOf(
+  coordinates: readonly (readonly [number, number] | null)[],
+): (readonly [number, number])[][] {
+  const runs: (readonly [number, number])[][] = [];
+  let current: (readonly [number, number])[] = [];
+
+  for (const coordinate of coordinates) {
+    if (coordinate === null) {
+      if (current.length > 0) {
+        runs.push(current);
+      }
+      current = [];
+    } else {
+      current.push(coordinate);
+    }
+  }
+  if (current.length > 0) {
+    runs.push(current);
+  }
+  return runs;
+}
+
 // A closed shape between a lower and an upper line, for the band of expected values
 export function bandPath(
   lower: readonly (readonly [number, number])[],

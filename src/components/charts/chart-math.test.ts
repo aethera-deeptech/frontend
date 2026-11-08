@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { bandPath, linePath, scale, xAt } from '@/components/charts/chart-math';
+import { bandPath, linePath, runsOf, scale, xAt } from '@/components/charts/chart-math';
 
 describe('scale', () => {
   it('maps a value onto the size', () => {
@@ -65,5 +65,42 @@ describe('bandPath', () => {
         ],
       ),
     ).toBe('M0 10 L10 12 L10 6 L0 5 Z');
+  });
+});
+
+describe('runsOf', () => {
+  it('keeps points that are next to each other with a value in one run', () => {
+    expect(
+      runsOf([
+        [0, 1],
+        [1, 2],
+        [2, 3],
+      ]),
+    ).toEqual([
+      [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+      ],
+    ]);
+  });
+
+  it('breaks the run at a missing point, also for a run of one and for a missing point at an edge', () => {
+    expect(runsOf([null, [1, 1], [2, 2], null, null, [5, 5], null, [7, 7], [8, 8]])).toEqual([
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      [[5, 5]],
+      [
+        [7, 7],
+        [8, 8],
+      ],
+    ]);
+  });
+
+  it('gives no run for nothing or for only missing points', () => {
+    expect(runsOf([])).toEqual([]);
+    expect(runsOf([null, null])).toEqual([]);
   });
 });

@@ -195,6 +195,62 @@ describe('PowerChart', () => {
     expect(Number(label.getAttribute('x'))).toBeLessThanOrEqual(324 - 57 - 80);
   });
 
+  it('breaks the line at a stretch without a reading and keeps a lone reading as a dot', () => {
+    const { container } = render(
+      <PowerChart {...props} points={[100, 120, null, 110, null, null, 130, 140]} />,
+    );
+    const line = container.querySelector('path.stroke-chart-blurple');
+
+    // Two runs with a line, 100 to 120 and 130 to 140, so two moves, and the lone 110 is a dot
+    expect(line?.getAttribute('d')?.match(/M/g)).toHaveLength(2);
+    expect(container.querySelectorAll('circle.fill-chart-blurple')).toHaveLength(1);
+  });
+
+  it('draws a zero reading as a point of the line and not as a gap', () => {
+    const { container } = render(<PowerChart {...props} points={[100, 0, 0, 100, 100]} />);
+
+    expect(
+      container.querySelector('path.stroke-chart-blurple')?.getAttribute('d')?.match(/M/g),
+    ).toHaveLength(1);
+  });
+
+  it('draws the anomaly where it has readings when its stretch covers a gap', () => {
+    const { container } = render(
+      <PowerChart
+        {...props}
+        points={[100, null, 2000, 2000, null, 100]}
+        anomaly={{ from: 1, to: 4, label: 'Anomali' }}
+      />,
+    );
+
+    expect(screen.getByText('Anomali')).toBeInTheDocument();
+    expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(1);
+    expect(
+      container.querySelector('path.stroke-chart-anomaly')?.getAttribute('d')?.match(/M/g),
+    ).toHaveLength(1);
+  });
+
+  it('marks a lone anomaly reading with a red dot when the readings next to it are missing', () => {
+    const { container } = render(
+      <PowerChart
+        {...props}
+        points={[100, null, 2000, null, 100]}
+        anomaly={{ from: 1, to: 3, label: 'Anomali' }}
+      />,
+    );
+
+    expect(container.querySelectorAll('circle.fill-chart-anomaly')).toHaveLength(1);
+    // One reading has no line to join, so there is a dot and no red path
+    expect(container.querySelectorAll('path.stroke-chart-anomaly')).toHaveLength(0);
+  });
+
+  it('draws nothing but the axes when there is no reading at all', () => {
+    const { container } = render(<PowerChart {...props} points={[null, null, null]} />);
+
+    expect(container.querySelector('path.stroke-chart-blurple')?.getAttribute('d')).toBe('');
+    expect(container.querySelectorAll('circle')).toHaveLength(0);
+  });
+
   it('keeps a stretch with wrong indexes inside the points', () => {
     const { container } = render(
       <PowerChart {...props} anomaly={{ from: -3, to: 99, label: 'Anomali 2.000 W' }} />,
