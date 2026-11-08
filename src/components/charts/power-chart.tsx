@@ -92,7 +92,7 @@ export function PowerChart({
           strokeWidth="2"
           strokeLinejoin="round"
         />
-        {/* A reading with no neighbour has no line to join, so it shows as a dot */}
+        {/* A reading with no neighbor has no line to join, so it shows as a dot */}
         {lineRuns
           .filter((run) => run.length === 1)
           .map(([point]) =>
