@@ -110,6 +110,38 @@ describe('apiRequest', () => {
     });
   });
 
+  it('keeps the id of the search that runs in a 409 pairing_running, and only when it is a short word', async () => {
+    const errorOf = async (body: string) => {
+      vi.stubGlobal('fetch', answer(body, 409));
+      return (await apiRequest('/v1/pairings', schema).catch(
+        (error: unknown) => error,
+      )) as ApiError;
+    };
+
+    const named = await errorOf(JSON.stringify({ code: 'pairing_running', pairingId: 'p9' }));
+    const uuid = await errorOf(
+      JSON.stringify({
+        code: 'pairing_running',
+        pairingId: '3f2b8c1e-5d4a-4f6b-9a7c-1e2d3c4b5a69',
+      }),
+    );
+    const odd = await errorOf(JSON.stringify({ code: 'pairing_running', pairingId: '../x?y=1' }));
+    const long = await errorOf(
+      JSON.stringify({ code: 'pairing_running', pairingId: 'a'.repeat(65) }),
+    );
+    const notText = await errorOf(JSON.stringify({ code: 'pairing_running', pairingId: 7 }));
+    const none = await errorOf(JSON.stringify({ code: 'pairing_running' }));
+
+    expect(named.pairingId).toBe('p9');
+    expect(uuid.pairingId).toBe('3f2b8c1e-5d4a-4f6b-9a7c-1e2d3c4b5a69');
+    expect([odd, long, notText, none].map((error) => error.pairingId)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
   it('leaves out a field name or a code that is not a short word, and has no fields without them', async () => {
     const errorOf = async (body: string) => {
       vi.stubGlobal('fetch', answer(body, 422));
