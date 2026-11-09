@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { useSession } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { AppLoading } from '@/components/layout/app-loading';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 
 // The screens of the app need a session. Without one the user goes to Masuk and comes back to this screen after the sign in.
@@ -28,8 +28,8 @@ export function RequireSession() {
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 p-4">
       <title>WATTLINK</title>
       <h1 className="text-title text-text-heading">WATTLINK</h1>
-      <Banner
-        tone="danger"
+      <ErrorBanner
+        error={session.error}
         title="Akun tidak bisa diperiksa"
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         action={

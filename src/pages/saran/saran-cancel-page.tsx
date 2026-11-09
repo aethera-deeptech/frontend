@@ -1,7 +1,7 @@
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router';
 
 import { useRecommendation, useRecommendationDecision } from '@/api/recommendations';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 
@@ -18,8 +18,8 @@ export function SaranCancelPage() {
     return query.isPending ? (
       <SkeletonCard label="Memuat saran" />
     ) : (
-      <Banner
-        tone="danger"
+      <ErrorBanner
+        error={query.error}
         title="Saran tidak bisa dimuat"
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
       />
@@ -51,8 +51,9 @@ export function SaranCancelPage() {
           : ''}
       </p>
       {decision.isError ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={decision.error}
+          kind="write"
           title="Catatan belum dibatalkan"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

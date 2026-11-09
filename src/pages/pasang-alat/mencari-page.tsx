@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '@/api/client';
 import { usePairing, useStartPairing } from '@/api/pairing';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
@@ -76,8 +77,8 @@ export function MencariPage() {
           }
         />
       ) : query.isError && !status ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={query.error}
           title="Status alat tidak bisa dimuat"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
           action={
@@ -104,8 +105,8 @@ export function MencariPage() {
           />
         )
       ) : start.isError ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={start.error}
           title="Pencarian belum bisa dimulai"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

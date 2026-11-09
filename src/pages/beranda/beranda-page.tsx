@@ -2,6 +2,7 @@ import { useBeranda } from '@/api/beranda';
 import { useRecommendationDecision } from '@/api/recommendations';
 import { PageHeader } from '@/components/layout/page-header';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useConnection } from '@/hooks/use-connection';
@@ -24,6 +25,7 @@ export function BerandaPage() {
           connection={connection}
           busyId={decision.isPending ? decision.variables.id : undefined}
           decisionFailed={decision.isError}
+          decisionError={decision.error}
           onDecision={(id, choice) => {
             decision.mutate({ id, decision: choice });
           }}
@@ -49,8 +51,8 @@ export function BerandaPage() {
               </div>
             </div>
           ) : (
-            <Banner
-              tone="danger"
+            <ErrorBanner
+              error={query.error}
               title="Data belum bisa dimuat"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
               action={

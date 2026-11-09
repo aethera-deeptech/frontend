@@ -2,6 +2,7 @@ import type { ReadyReport, ReportData, ReportSaving } from '@/api/reports';
 import { BarChart } from '@/components/charts/bar-chart';
 import { PageHeader } from '@/components/layout/page-header';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { BeforeAfter } from '@/components/ui/before-after';
 import { Button } from '@/components/ui/button';
@@ -67,8 +68,8 @@ export function LaporanView({
         />
       ) : null}
       {download.status === 'failed' ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={download.error}
           title="Laporan belum terunduh"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
           action={

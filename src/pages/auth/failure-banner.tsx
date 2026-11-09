@@ -42,6 +42,15 @@ export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBan
           action={action}
         />
       );
+    case 'busy':
+      return (
+        <Banner
+          tone="warning"
+          title="Sistem sedang sibuk"
+          message="Coba lagi dalam beberapa detik."
+          action={action}
+        />
+      );
     case 'invalid-input':
       return (
         <Banner

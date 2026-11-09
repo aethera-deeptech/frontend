@@ -26,6 +26,7 @@ function SensitivityForm({ current }: { current: Sensitivity }) {
       subtitle="Atur seberapa mudah sistem menandai anomali."
       saving={update.isPending}
       failed={update.isError}
+      error={update.error}
       onSubmit={(event) => {
         event.preventDefault();
         update.mutate(

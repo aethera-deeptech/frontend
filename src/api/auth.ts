@@ -179,6 +179,7 @@ export type AuthFailure =
   | 'email-taken'
   | 'already-verified'
   | 'rate-limited'
+  | 'busy'
   | 'invalid-input'
   | 'common-password'
   | 'invalid-token'
@@ -189,6 +190,10 @@ export function authFailure(error: unknown): AuthFailure {
   if (!(error instanceof ApiError)) {
     // A network error and a contract error both mean that the screen cannot tell what happened
     return error instanceof Error && error.name === 'NetworkError' ? 'offline' : 'other';
+  }
+  // The password check has no free slot, or the service ran out of time. Nothing was decided about the sign in.
+  if (error.busy) {
+    return 'busy';
   }
   if (error.code === 'invalid_credentials' || error.status === 401) {
     return 'invalid-credentials';

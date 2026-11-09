@@ -4,7 +4,7 @@ import { useDevices } from '@/api/devices';
 import { CatatProduksiFab } from '@/components/layout/catat-produksi-fab';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddDeviceButton } from '@/components/ui/add-device-button';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useBusinessZone } from '@/hooks/use-business-zone';
@@ -65,8 +65,8 @@ export function AlatLayout() {
           ) : query.isPending ? (
             <SkeletonCard label="Memuat daftar alat" />
           ) : (
-            <Banner
-              tone="danger"
+            <ErrorBanner
+              error={query.error}
               title="Daftar alat tidak bisa dimuat"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
               action={

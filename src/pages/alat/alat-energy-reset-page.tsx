@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ApiError } from '@/api/client';
 import { useDevice, useResetEnergy } from '@/api/devices';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
@@ -95,8 +96,11 @@ function ResetQuestion({ id, name, back }: { id: string; name: string; back: str
           }
         />
       ) : reset.error instanceof ApiError ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={reset.error}
+          kind="write"
+          busyTitle="Belum pasti total energi sudah mulai dari nol"
+          busyMessage="Sistem sedang sibuk. Buka lagi halaman alat untuk melihat totalnya, atau coba lagi."
           title="Total energi belum dimulai dari nol"
           message="Periksa sambungan Anda, lalu coba lagi."
         />

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ApiError } from '@/api/client';
 import { hasNoRelay, useRelay, useSendRelay, type Relay, type RelayAction } from '@/api/relay';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
@@ -32,6 +33,8 @@ interface RelayCardViewProps {
   sending: boolean;
   // The command did not reach the service
   sendFailed: boolean;
+  // What the command failed with, so a busy service gets its own banner
+  sendError?: unknown;
   // Seconds until the service takes a command again, after it said that there were too many
   waitSeconds: number;
   onSend: (action: RelayAction) => void;
@@ -44,6 +47,7 @@ export function RelayCardView({
   resultIsNew = false,
   sending,
   sendFailed,
+  sendError,
   waitSeconds,
   onSend,
 }: RelayCardViewProps) {
@@ -86,8 +90,11 @@ export function RelayCardView({
         />
       ) : null}
       {sendFailed ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={sendError}
+          kind="write"
+          busyTitle="Belum pasti terkirim"
+          busyMessage="Sistem sedang sibuk. Perintah mungkin sudah terkirim. Periksa status colokan, lalu coba lagi jika perlu."
           title="Perintah belum terkirim"
           message="Periksa sambungan Anda, lalu coba lagi."
         />
@@ -227,6 +234,7 @@ export function RelayCard({
           resultIsNew={sawCommand}
           sending={send.isPending}
           sendFailed={send.isError && !tooMany && status !== 404 && status !== 409}
+          sendError={send.error}
           waitSeconds={waitSeconds}
           onSend={(action) => {
             send.mutate(action, {
@@ -252,8 +260,8 @@ export function RelayCard({
 
   return (
     <Card title="Saklar">
-      <Banner
-        tone="danger"
+      <ErrorBanner
+        error={query.error}
         title="Saklar tidak bisa dimuat"
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         action={

@@ -40,6 +40,7 @@ function HoursForm({ hours }: { hours: WorkHours }) {
       subtitle="Sistem memakai jam ini untuk menilai pemakaian di luar jam kerja."
       saving={update.isPending}
       failed={update.isError}
+      error={update.error}
       onSubmit={(event) => {
         void handleSubmit((values) => {
           update.mutate(

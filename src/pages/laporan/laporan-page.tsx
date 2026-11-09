@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router';
 
 import { useReport } from '@/api/reports';
 import { PageHeader } from '@/components/layout/page-header';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useBusinessZone } from '@/hooks/use-business-zone';
@@ -47,8 +47,8 @@ export function LaporanPage() {
           {query.isPending ? (
             <SkeletonCard label="Memuat laporan" />
           ) : (
-            <Banner
-              tone="danger"
+            <ErrorBanner
+              error={query.error}
               title="Laporan tidak bisa dimuat"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
               action={
