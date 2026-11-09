@@ -30,6 +30,7 @@ const screens = [
   { name: 'Pengaturan, work hours', path: '/lainnya/pengaturan/jam-kerja' },
   { name: 'Pengaturan, time zone', path: '/lainnya/pengaturan/zona-waktu' },
   { name: 'Pengaturan, sensitivity', path: '/lainnya/pengaturan/kepekaan' },
+  { name: 'WATTLINK Hub', path: '/lainnya/hub' },
   { name: 'Perangkat yang masuk', path: '/lainnya/sesi' },
   { name: 'Keluarkan semua perangkat lain', path: '/lainnya/sesi/keluarkan-semua' },
   { name: 'Keluar', path: '/lainnya/keluar' },

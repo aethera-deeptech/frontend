@@ -249,6 +249,13 @@ export const routes: RouteObject[] = [
                     ),
                   },
                   {
+                    path: 'hub',
+                    ...lazyPage(
+                      () => import('@/pages/lainnya/hub-daftar-page'),
+                      (module) => module.HubDaftarPage,
+                    ),
+                  },
+                  {
                     path: 'sesi',
                     ...lazyPage(
                       () => import('@/pages/lainnya/sesi-page'),
