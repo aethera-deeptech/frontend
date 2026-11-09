@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/aethera-deeptech/frontend/compare/v0.10.0...v0.11.0) (2026-11-09)
+
+
+### Features
+
+* **lainnya:** list the devices that are signed in and end one ([#102](https://github.com/aethera-deeptech/frontend/issues/102)) ([21d4591](https://github.com/aethera-deeptech/frontend/commit/21d459191dda360953e80426a46810ca7b991169))
+
+
+### Bug Fixes
+
+* **lainnya:** announce the news, name the busy button and block a double press ([0fc374c](https://github.com/aethera-deeptech/frontend/commit/0fc374c9f8c5822ee9defae352c8d5a93cc6eea4))
+* **lainnya:** show the error and not the old list when the list cannot be read again ([0a75f7c](https://github.com/aethera-deeptech/frontend/commit/0a75f7c9ee72f9f93af4ca9fd5c204b5419bf482))
+
 ## [0.10.0](https://github.com/aethera-deeptech/frontend/compare/v0.9.0...v0.10.0) (2026-11-09)
 
 
