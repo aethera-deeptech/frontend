@@ -212,7 +212,13 @@ export function formatDayTime(date: Date): string {
 // the zone of the browser and the zone of the business do not matter. Only a moment from a week ago or more gets a date, in the
 // zone of the business. "Kemarin" and "hari ini" are left out on purpose, because they need the business day.
 export function formatRelativePast(iso: string, now: number = Date.now()): string {
-  const minutes = Math.floor(Math.max(0, now - new Date(iso).getTime()) / 60_000);
+  const then = new Date(iso).getTime();
+
+  // A text that is not a moment says nothing, and the screens read their moments through a schema, so this is a guard for later callers
+  if (Number.isNaN(then)) {
+    return 'beberapa waktu lalu';
+  }
+  const minutes = Math.floor(Math.max(0, now - then) / 60_000);
 
   if (minutes < 15) {
     return 'beberapa menit lalu';

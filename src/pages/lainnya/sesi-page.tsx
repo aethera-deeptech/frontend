@@ -21,6 +21,8 @@ export function SesiPage() {
   const end = useEndSession();
   const [notice, setNotice] = useState<Notice>();
   const noticeRef = useRef<HTMLDivElement>(null);
+  // The observer tells the screen that a call runs a moment after the press, so two quick presses need a flag that is set at once
+  const calling = useRef(false);
   // The times on the rows are counted from the moment the list was read, so the words and the data belong together
   const now = query.dataUpdatedAt;
 
@@ -33,11 +35,15 @@ export function SesiPage() {
 
   const endSession = (session: DeviceSession) => {
     // A second press does nothing while a call runs, and the focus stays on the button
-    if (end.isPending) {
+    if (end.isPending || calling.current) {
       return;
     }
+    calling.current = true;
     setNotice(undefined);
     end.mutate(session.id, {
+      onSettled: () => {
+        calling.current = false;
+      },
       onSuccess: () => {
         setNotice({ kind: 'ended', label: sessionLabel(session.label) });
       },
@@ -70,20 +76,37 @@ export function SesiPage() {
             atau 90 hari sejak masuk. Daftar ini tidak menunjukkan lokasi.
           </p>
         </div>
-        <div ref={noticeRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
+        {/* The region is always there, so the news is read out when it changes. The banner below shows the same words. */}
+        <div aria-live="polite" className="sr-only">
+          {notice?.kind === 'ended'
+            ? `Perangkat dikeluarkan. ${notice.label} sudah keluar dari akun ini.`
+            : ''}
+          {notice?.kind === 'gone'
+            ? 'Perangkat itu sudah keluar. Daftar di bawah sudah diperbarui.'
+            : ''}
+        </div>
+        <div
+          ref={noticeRef}
+          tabIndex={-1}
+          className="flex flex-col gap-3 outline-none empty:hidden"
+        >
           {notice?.kind === 'ended' ? (
-            <Banner
-              tone="info"
-              title="Perangkat dikeluarkan"
-              message={`${notice.label} sudah keluar dari akun ini.`}
-            />
+            <div aria-hidden="true">
+              <Banner
+                tone="info"
+                title="Perangkat dikeluarkan"
+                message={`${notice.label} sudah keluar dari akun ini.`}
+              />
+            </div>
           ) : null}
           {notice?.kind === 'gone' ? (
-            <Banner
-              tone="info"
-              title="Perangkat itu sudah keluar"
-              message="Daftar di bawah sudah diperbarui."
-            />
+            <div aria-hidden="true">
+              <Banner
+                tone="info"
+                title="Perangkat itu sudah keluar"
+                message="Daftar di bawah sudah diperbarui."
+              />
+            </div>
           ) : null}
           {failed ? (
             <ErrorBanner
@@ -178,7 +201,11 @@ function SessionRow({ session, now, ending, locked, onEnd }: SessionRowProps) {
           <Button
             size="lg"
             className="self-start"
-            aria-label={`Keluarkan ${label}, terakhir dipakai ${lastUsed}`}
+            aria-label={
+              ending
+                ? `Sedang mengeluarkan ${label}`
+                : `Keluarkan ${label}, terakhir dipakai ${lastUsed}`
+            }
             aria-disabled={locked || undefined}
             onClick={() => {
               if (!locked) {
