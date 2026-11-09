@@ -218,7 +218,15 @@ describe('Connecting a hub from the list', () => {
     await connectAgain('Hub baru');
 
     expect(await screen.findByText('Ini WATTLINK Hub baru')).toBeVisible();
-    expect(screen.getByText(/WATTLINK Hub yang tadi masih perlu dihubungkan lagi/)).toBeVisible();
+    // The sentence is in the banner, which is what the user sees, and not only in the words for a screen reader
+    const banner = screen.getByText('Ini WATTLINK Hub baru').closest('[role="status"]');
+
+    if (!(banner instanceof HTMLElement)) {
+      throw new Error('The banner is missing');
+    }
+    expect(
+      within(banner).getByText(/WATTLINK Hub yang tadi masih perlu dihubungkan lagi/),
+    ).toBeVisible();
     // The cut hub stays cut next to the new one
     expect(await rowOf('Hub lama')).toHaveTextContent('Perlu dihubungkan lagi');
     expect(await rowOf('Hub baru')).toBeVisible();

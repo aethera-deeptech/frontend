@@ -38,6 +38,17 @@ export function LainnyaPage() {
             <ListRow title="Keluar" secondary="Akhiri sesi di perangkat ini" to="/lainnya/keluar" />
           </ul>
         </Card>
+        <Card className="gap-0 px-4 py-1 lg:max-w-lg">
+          <ul>
+            <ListRow
+              title="Hapus akun dan usaha"
+              secondary="Hapus usaha dan semua datanya. Tidak bisa dibatalkan."
+              to="/lainnya/hapus-akun"
+              tone="danger"
+              className="border-b-0"
+            />
+          </ul>
+        </Card>
       </div>
     </>
   );

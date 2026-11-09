@@ -1,4 +1,4 @@
-import { useRef, useState, type SubmitEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
 import { authFailure, useLogin, useResendVerification } from '@/api/auth';
@@ -10,6 +10,7 @@ import { TextLink } from '@/components/ui/text-link';
 import { AuthFrame } from '@/pages/auth/auth-frame';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { PasswordField } from '@/pages/auth/password-field';
+import { masukNotices, readMasukNotice } from '@/pages/auth/masuk-notice';
 import { returnPath } from '@/pages/auth/return-path';
 import { checkEmail, checkPasswordPresent } from '@/pages/auth/validation';
 
@@ -29,6 +30,33 @@ export function MasukPage() {
   const emailError = tried ? checkEmail(email) : undefined;
   const passwordError = tried ? checkPasswordPresent(password) : undefined;
   const failure = login.isError ? authFailure(login.error) : undefined;
+  // The news of another screen is copied once, and then it leaves the history so a reload does not show it again
+  const [notice] = useState(() => readMasukNotice(location.state));
+  const [announcement, setAnnouncement] = useState('');
+
+  // The words for a screen reader are set after the screen is there, so a screen that opens with news announces it too
+  useEffect(() => {
+    const text = notice ? `${masukNotices[notice].title}. ${masukNotices[notice].message}` : '';
+    const timer = setTimeout(() => {
+      setAnnouncement(text);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [notice]);
+
+  useEffect(() => {
+    if (readMasukNotice(location.state)) {
+      // The address that the guard remembered stays, because the sign in leads back to it
+      const from = (location.state as { from?: unknown }).from;
+
+      void navigate(`${location.pathname}${location.search}`, {
+        replace: true,
+        state: from === undefined ? null : { from },
+      });
+    }
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
@@ -82,6 +110,19 @@ export function MasukPage() {
 
   return (
     <AuthFrame title="Masuk" subtitle="Masuk untuk melihat saran penghematan usaha Anda.">
+      {/* The region is always there, so the news is read out when it changes. The banner below shows the same words. */}
+      <div aria-live="polite" className="sr-only">
+        {failure ? '' : announcement}
+      </div>
+      {notice && !failure ? (
+        <div aria-hidden="true">
+          <Banner
+            tone="info"
+            title={masukNotices[notice].title}
+            message={masukNotices[notice].message}
+          />
+        </div>
+      ) : null}
       {failure === 'invalid-credentials' ? (
         <Banner
           tone="danger"

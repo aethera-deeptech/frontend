@@ -21,6 +21,9 @@ describe('returnPath', () => {
     ['the screen after the sign up', '/verifikasi'],
     ['the page of the email link', '/verify-email'],
     ['the question before the sign out', '/lainnya/keluar'],
+    ['the question before the account is deleted', '/lainnya/hapus-akun'],
+    ['the same question in capital letters, which the router also matches', '/LAINNYA/HAPUS-AKUN'],
+    ['the question before every other device is signed out', '/lainnya/sesi/keluarkan-semua'],
     ['the page to ask for a reset link', '/lupa-kata-sandi'],
     ['the page of the reset link', '/reset-password?token=x'],
     ['a value that is not a string', 5],
@@ -38,5 +41,8 @@ describe('returnPath', () => {
   it('does not mistake a path that only starts with the name of a screen', () => {
     expect(returnPath({ from: '/masuk-lain' })).toBe('/masuk-lain');
     expect(returnPath({ from: '/lainnya/keluar-lain' })).toBe('/lainnya/keluar-lain');
+    expect(returnPath({ from: '/lainnya/hapus-akun-lain' })).toBe('/lainnya/hapus-akun-lain');
+    // The list of devices is a screen to come back to, only the question after it is not
+    expect(returnPath({ from: '/lainnya/sesi' })).toBe('/lainnya/sesi');
   });
 });
