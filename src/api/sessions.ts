@@ -49,3 +49,28 @@ export function useEndSession() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: sessionsKey }),
   });
 }
+
+const revokedSchema = z.object({ ended: z.number().int().min(0) });
+
+// Ends every session except the one of this request. It takes no body. `ended` counts the other sessions that could still sign
+// in, and a second call answers 0. It has a key of its own, like the end of one session.
+export function useRevokeOtherSessions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['revoke-other-sessions'],
+    mutationFn: () =>
+      apiRequest('/v1/auth/sessions/revoke-others', revokedSchema, { method: 'POST' }),
+    // This hook reads again by itself, so the busy re-read of the query client is left out
+    meta: { skipReread: true },
+    onSuccess: async () => {
+      // A read that started before the call would bring back the old rows, and the list is not on screen while the question is
+      await queryClient.cancelQueries({ queryKey: sessionsKey });
+      queryClient.setQueryData<z.infer<typeof sessionsSchema>>(sessionsKey, (old) =>
+        old ? { items: old.items.filter((item) => item.current) } : old,
+      );
+    },
+    // Whatever the call ended with, the service knows which sessions are left
+    onSettled: () => queryClient.invalidateQueries({ queryKey: sessionsKey }),
+  });
+}
