@@ -43,6 +43,7 @@ function NameForm({ name }: { name: string }) {
       subtitle="Nama ini tampil di bagian atas Beranda."
       saving={update.isPending}
       failed={update.isError}
+      error={update.error}
       onSubmit={(event) => {
         void handleSubmit((values) => {
           update.mutate(values, {

@@ -1,7 +1,7 @@
 import type { ReactNode, SyntheticEvent } from 'react';
 import { Link } from 'react-router';
 
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 
 export const settingsPath = '/lainnya/pengaturan';
@@ -12,6 +12,8 @@ interface EditFormProps {
   onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
   saving: boolean;
   failed: boolean;
+  // What the save failed with, so a busy service gets its own banner
+  error?: unknown;
   // A second action next to Simpan, for example to go back to the default tariff
   extraAction?: ReactNode;
   children: ReactNode;
@@ -24,6 +26,7 @@ export function EditForm({
   onSubmit,
   saving,
   failed,
+  error,
   extraAction,
   children,
 }: EditFormProps) {
@@ -41,8 +44,9 @@ export function EditForm({
       </div>
       {children}
       {failed ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={error}
+          kind="write"
           title="Pengaturan belum tersimpan"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

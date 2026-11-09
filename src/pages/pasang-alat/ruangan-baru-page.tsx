@@ -78,7 +78,7 @@ export function RuanganBaruPage() {
           message="Satu usaha bisa punya sampai 100 ruangan. Pakai ruangan yang sudah ada."
         />
       ) : create.isError && !exists ? (
-        <FailureBanner failure={authFailure(create.error)} />
+        <FailureBanner write failure={authFailure(create.error)} />
       ) : null}
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">
         <TextInput

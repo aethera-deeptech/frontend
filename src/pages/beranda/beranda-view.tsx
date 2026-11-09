@@ -5,6 +5,7 @@ import { CatatProduksiFab } from '@/components/layout/catat-produksi-fab';
 import { PageHeader } from '@/components/layout/page-header';
 import { AddDeviceButton } from '@/components/ui/add-device-button';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { BeforeAfter } from '@/components/ui/before-after';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -31,6 +32,8 @@ interface BerandaViewProps {
   busyId?: string;
   // The last decision could not be sent
   decisionFailed?: boolean;
+  // What the decision failed with, so a busy service gets its own banner
+  decisionError?: unknown;
   // The moment on which the screen is read. Tests set it, the app leaves it out.
   now?: Date;
 }
@@ -57,6 +60,7 @@ export function BerandaView({
   onDecision,
   busyId,
   decisionFailed = false,
+  decisionError,
   now = businessNow(),
 }: BerandaViewProps) {
   const asOf = parseMoment(data.asOf);
@@ -72,8 +76,9 @@ export function BerandaView({
         />
       ) : null}
       {decisionFailed ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={decisionError}
+          kind="write"
           title="Pilihan belum tersimpan"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

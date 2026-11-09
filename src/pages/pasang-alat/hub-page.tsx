@@ -118,6 +118,7 @@ export function HubPage() {
         />
       ) : failure && !(failure === 'rate-limited' && !waiting) ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             claim.error instanceof ApiError ? claim.error.retryAfterSeconds : undefined

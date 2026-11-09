@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { createQueryClient } from '@/api/query-client';
 import { ProduksiPage } from '@/pages/produksi/produksi-page';
 import { sampleProduction } from '@/pages/produksi/sample-produksi';
 
@@ -11,8 +12,11 @@ vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
 }));
 
-function renderPage() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function renderPage(options: { realClient?: boolean } = {}) {
+  // The real client has the handling of a busy write, the test client has none
+  const client = options.realClient
+    ? createQueryClient()
+    : new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
@@ -106,6 +110,39 @@ describe('ProduksiPage', () => {
 
     expect(await screen.findByText('Catatan belum tersimpan')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('120');
+  });
+
+  it('reads the records again and keeps the number that was typed when the service was busy', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(json(sampleProduction()))
+      .mockResolvedValueOnce(json({ code: 'busy', message: 'No', retryAfterSeconds: 2 }, 503))
+      // The newest record changed on the service, so a read that overwrote the typed number would show 125
+      .mockResolvedValueOnce(
+        json(
+          sampleProduction({
+            recent: [{ date: '2026-10-28', quantity: 125 }, ...sampleProduction().recent.slice(1)],
+          }),
+        ),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage({ realClient: true });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Tambah' }));
+    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('121');
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
+
+    expect(await screen.findByText('Belum pasti tersimpan')).toBeInTheDocument();
+    expect(screen.queryByText('Catatan belum tersimpan')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Sistem sedang sibuk\. Angka Anda masih di layar\./),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('121');
+    // The two reads of the records, and the one save between them
+    const methods = fetchMock.mock.calls.map(
+      ([, init]) => (init as RequestInit | undefined)?.method ?? 'GET',
+    );
+    expect(methods).toEqual(['GET', 'PUT', 'GET']);
   });
 
   it('forgets the confirmation when the number changes', async () => {

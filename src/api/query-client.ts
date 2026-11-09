@@ -1,7 +1,7 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
 import { authMutationKey, meSchema, sessionKey } from '@/api/auth';
-import { ApiError, ContractError } from '@/api/client';
+import { ApiError, busyWaitMs, ContractError } from '@/api/client';
 import { settingsKey } from '@/api/settings';
 import { setBusinessZone } from '@/lib/format';
 
@@ -15,6 +15,35 @@ export function shouldRetry(failureCount: number, error: Error): boolean {
     return false;
   }
   return failureCount < 1;
+}
+
+// The wait before a read is tried again. A busy answer says how long, any other failure waits as long as TanStack Query does.
+export function retryDelay(failureCount: number, error: Error): number {
+  return error instanceof ApiError && error.busy
+    ? busyWaitMs(error)
+    : Math.min(1000 * 2 ** failureCount, 30_000);
+}
+
+// A busy write may have been saved, so the screens read again before the user can send it a second time. The wait is capped,
+// because the service is slow already and a screen that stays disabled for a minute is worse than a second look.
+const rereadWaitMs = 8000;
+
+async function rereadAfterBusyWrite(client: QueryClient): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    // Every query is marked old, and only the ones on screen are read again
+    await Promise.race([
+      client.invalidateQueries(),
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, rereadWaitMs);
+      }),
+    ]);
+  } catch {
+    // A failed read leaves the screens as they are, and the answer of the write is still shown
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function isUnauthorized(error: Error): boolean {
@@ -37,14 +66,21 @@ export function createQueryClient(): QueryClient {
       },
     }),
     mutationCache: new MutationCache({
-      onError: (error, _variables, _context, mutation) => {
-        if (isUnauthorized(error) && mutation.options.mutationKey?.[0] !== authMutationKey[0]) {
+      // TanStack Query waits for this before the mutation shows its error, so the button stays disabled while the data is read
+      onError: async (error, _variables, _context, mutation) => {
+        const isAuthCall = mutation.options.mutationKey?.[0] === authMutationKey[0];
+
+        if (isUnauthorized(error) && !isAuthCall) {
           sessionEnded();
+        }
+        // A sign in is not a write of data, a download is a read, and the relay calls read again by themselves
+        if (error instanceof ApiError && error.busy && !isAuthCall && !mutation.meta?.skipReread) {
+          await rereadAfterBusyWrite(client);
         }
       },
     }),
     defaultOptions: {
-      queries: { retry: shouldRetry, staleTime: 30_000 },
+      queries: { retry: shouldRetry, retryDelay, staleTime: 30_000 },
     },
   });
 

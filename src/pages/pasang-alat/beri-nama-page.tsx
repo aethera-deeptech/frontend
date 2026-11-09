@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { ApiError } from '@/api/client';
 import { useRooms, useStartPairing } from '@/api/pairing';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
@@ -41,8 +42,8 @@ export function BeriNamaPage() {
       ) : rooms.isPending ? (
         <SkeletonCard label="Memuat daftar ruangan" />
       ) : (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={rooms.error}
           title="Daftar ruangan tidak bisa dimuat"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
           action={
@@ -168,8 +169,11 @@ function NameForm({ rooms }: { rooms: { id: string; name: string }[] }) {
           />
         )
       ) : start.isError ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={start.error}
+          kind="write"
+          busyTitle="Belum pasti dimulai"
+          busyMessage="Sistem sedang sibuk. Pencarian mungkin sudah dimulai. Coba lagi dalam beberapa detik."
           title="Pencarian belum bisa dimulai"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

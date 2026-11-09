@@ -66,6 +66,7 @@ function TariffForm({ settings }: { settings: Settings }) {
       subtitle="Dipakai untuk mengubah kWh menjadi rupiah."
       saving={update.isPending}
       failed={update.isError}
+      error={update.error}
       onSubmit={(event) => {
         void handleSubmit((values) => {
           const typed = toNumber(values.tariff);

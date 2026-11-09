@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { useSettings, type Settings } from '@/api/settings';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 
@@ -23,8 +23,8 @@ export function SettingsGate({
     return <>{fallback(<SkeletonCard label="Memuat pengaturan" />)}</>;
   }
   return fallback(
-    <Banner
-      tone="danger"
+    <ErrorBanner
+      error={query.error}
       title="Pengaturan tidak bisa dimuat"
       message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
       action={

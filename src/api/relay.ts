@@ -99,6 +99,8 @@ export function useSendRelay(id: string) {
       await queryClient.cancelQueries({ queryKey: relayKey(id) });
       queryClient.setQueryData<Relay>(relayKey(id), (old) => (old ? { ...old, pending } : old));
     },
+    // This hook reads again by itself, so the busy re-read of the query client is left out
+    meta: { skipReread: true },
     // Whatever the call ended with, the service knows the truth. A lost answer may hide a command that was queued, and a 404 or
     // a 409 means that the plug is gone or is a clamp.
     onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
@@ -126,6 +128,8 @@ export function useSaveSchedule(id: string) {
       await queryClient.cancelQueries({ queryKey: relayKey(id) });
       queryClient.setQueryData<Relay>(relayKey(id), (old) => (old ? { ...old, schedule } : old));
     },
+    // This hook reads again by itself, so the busy re-read of the query client is left out
+    meta: { skipReread: true },
     onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
   });
 }
@@ -143,6 +147,8 @@ export function useDeleteSchedule(id: string) {
         old ? { ...old, schedule: null } : old,
       );
     },
+    // This hook reads again by itself, so the busy re-read of the query client is left out
+    meta: { skipReread: true },
     onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
   });
 }

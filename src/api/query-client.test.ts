@@ -1,8 +1,8 @@
-import { QueryObserver } from '@tanstack/react-query';
+import { MutationObserver, QueryObserver } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, ContractError, NetworkError } from '@/api/client';
-import { createQueryClient, shouldRetry } from '@/api/query-client';
+import { createQueryClient, retryDelay, shouldRetry } from '@/api/query-client';
 import { settingsKey } from '@/api/settings';
 import { getBusinessZone, setBusinessZone } from '@/lib/format';
 
@@ -163,5 +163,167 @@ describe('createQueryClient', () => {
     });
 
     expect(getBusinessZone()).toBe('Asia/Jakarta');
+  });
+});
+
+describe('retryDelay', () => {
+  it('waits as long as a busy answer asks, and as long as TanStack Query does for anything else', () => {
+    expect(retryDelay(0, new ApiError(503, { code: 'busy', retryAfterSeconds: 2 }))).toBe(2000);
+    expect(retryDelay(0, new ApiError(503, { code: 'busy', retryAfterSeconds: 600 }))).toBe(10_000);
+    expect(retryDelay(0, new ApiError(503))).toBe(1000);
+    expect(retryDelay(1, new NetworkError())).toBe(2000);
+    expect(retryDelay(10, new NetworkError())).toBe(30_000);
+  });
+});
+
+describe('a write that fails with a busy answer', () => {
+  const busy = () => new ApiError(503, { code: 'busy', retryAfterSeconds: 2 });
+
+  // A screen that shows a query, and the count of how often it was read
+  function watch(client: ReturnType<typeof createQueryClient>) {
+    const reads = { count: 0 };
+    const observer = new QueryObserver(client, {
+      queryKey: ['production'],
+      queryFn: () => {
+        reads.count += 1;
+        return Promise.resolve('data');
+      },
+    });
+    const stop = observer.subscribe(() => undefined);
+    return { reads, stop };
+  }
+
+  async function write(
+    client: ReturnType<typeof createQueryClient>,
+    options: { mutationKey?: string[]; meta?: Record<string, unknown>; error?: Error } = {},
+  ) {
+    await client
+      .getMutationCache()
+      .build(client, {
+        mutationKey: options.mutationKey,
+        meta: options.meta,
+        mutationFn: () => Promise.reject(options.error ?? busy()),
+      })
+      .execute(undefined)
+      .catch(() => undefined);
+  }
+
+  it('reads the screen again before the write shows its failure', async () => {
+    const client = createQueryClient();
+    let value = 'old';
+    const observer = new QueryObserver(client, {
+      queryKey: ['production'],
+      // The service is slow, so the read ends a moment after the write failed
+      queryFn: () =>
+        new Promise<string>((resolve) => {
+          const answer = value;
+          setTimeout(() => {
+            resolve(answer);
+          }, 30);
+        }),
+    });
+    const stop = observer.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(client.getQueryData(['production'])).toBe('old');
+    });
+    // The write was saved just before it gave up, so the read after it brings the new value
+    value = 'saved';
+
+    await write(client);
+
+    // The failure is shown only when the read has ended, so the screen already has the new value
+    expect(client.getQueryData(['production'])).toBe('saved');
+    stop();
+  });
+
+  it('lets the callback of the screen run after the read, with the error', async () => {
+    const client = createQueryClient();
+    let value = 'old';
+    const observer = new QueryObserver(client, {
+      queryKey: ['production'],
+      queryFn: () => Promise.resolve(value),
+    });
+    const stop = observer.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(client.getQueryData(['production'])).toBe('old');
+    });
+    value = 'saved';
+    const seen: { error: unknown; data: unknown }[] = [];
+
+    // The callbacks of a call only run while something listens to the mutation, as a screen does
+    const mutation = new MutationObserver(client, { mutationFn: () => Promise.reject(busy()) });
+    const stopMutation = mutation.subscribe(() => undefined);
+
+    await mutation
+      .mutate(undefined, {
+        onError: (error) => {
+          seen.push({ error, data: client.getQueryData(['production']) });
+        },
+      })
+      .catch(() => undefined);
+    stopMutation();
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.error).toBeInstanceOf(ApiError);
+    expect(seen[0]?.data).toBe('saved');
+    stop();
+  });
+
+  it('marks every query old, so a screen that is not open reads again when it opens', async () => {
+    const client = createQueryClient();
+    client.setQueryData(['beranda'], 'old');
+
+    await write(client);
+
+    expect(client.getQueryState(['beranda'])?.isInvalidated).toBe(true);
+  });
+
+  it('does not read again for a sign in, a call that reads by itself, or any other failure', async () => {
+    const client = createQueryClient();
+    const { reads, stop } = watch(client);
+    await vi.waitFor(() => {
+      expect(reads.count).toBe(1);
+    });
+
+    await write(client, { mutationKey: ['auth', 'login'] });
+    await write(client, { meta: { skipReread: true } });
+    await write(client, { error: new ApiError(500) });
+    await write(client, { error: new ApiError(503) });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(reads.count).toBe(1);
+    stop();
+  });
+
+  it('stops waiting for the read after 8 seconds, and still shows the failure', async () => {
+    vi.useFakeTimers();
+    try {
+      const client = createQueryClient();
+      const observer = new QueryObserver(client, {
+        queryKey: ['slow'],
+        // The service is slow, so this read does not end
+        queryFn: ({ signal }) =>
+          new Promise<string>((_resolve, reject) => {
+            signal.addEventListener('abort', () => {
+              reject(new Error('aborted'));
+            });
+          }),
+      });
+      const stop = observer.subscribe(() => undefined);
+      let done = false;
+      const pending = write(client).then(() => {
+        done = true;
+      });
+
+      await vi.advanceTimersByTimeAsync(7900);
+      expect(done).toBe(false);
+      await vi.advanceTimersByTimeAsync(200);
+      await pending;
+
+      expect(done).toBe(true);
+      stop();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -4,6 +4,7 @@ import { ApiError } from '@/api/client';
 import { useDevice } from '@/api/devices';
 import { useSettings } from '@/api/settings';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useBusinessZone } from '@/hooks/use-business-zone';
@@ -65,8 +66,8 @@ export function AlatDetailPage() {
   }
 
   return (
-    <Banner
-      tone="danger"
+    <ErrorBanner
+      error={query.error}
       title="Alat tidak bisa dimuat"
       message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
       action={

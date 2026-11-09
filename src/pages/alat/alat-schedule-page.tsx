@@ -14,6 +14,7 @@ import {
   type RelaySchedule,
 } from '@/api/relay';
 import { Banner } from '@/components/ui/banner';
+import { busyReadMessage, ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup } from '@/components/ui/radio-group';
@@ -81,15 +82,18 @@ export function AlatSchedulePage() {
   }
   // A clamp has no switch, and a plug that is gone has nothing to schedule
   const noSwitch = hasNoRelay(query.error);
+  const busy = query.error instanceof ApiError && query.error.busy;
 
   return (
     <Banner
-      tone={noSwitch ? 'info' : 'danger'}
+      tone={noSwitch ? 'info' : busy ? 'warning' : 'danger'}
       title={noSwitch ? 'Alat ini tidak punya saklar' : 'Jadwal tidak bisa dimuat'}
       message={
         noSwitch
           ? 'Jadwal hanya bisa diatur untuk WATTLINK Plug.'
-          : 'Coba lagi. Jika tetap gagal, periksa koneksi internet Anda.'
+          : busy
+            ? busyReadMessage
+            : 'Coba lagi. Jika tetap gagal, periksa koneksi internet Anda.'
       }
       action={
         noSwitch ? (
@@ -178,8 +182,15 @@ function ScheduleForm({
         </p>
       </div>
       {failed ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={failure}
+          kind="write"
+          busyTitle={remove.isError ? 'Belum pasti dihapus' : undefined}
+          busyMessage={
+            remove.isError
+              ? 'Sistem sedang sibuk. Jadwal mungkin sudah dihapus. Periksa dulu, lalu coba lagi jika perlu.'
+              : undefined
+          }
           title={
             lostSwitch
               ? 'Alat ini tidak punya saklar'

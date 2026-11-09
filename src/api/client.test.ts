@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
-import { ApiError, apiDownload, apiRequest, ContractError, NetworkError } from '@/api/client';
+import {
+  ApiError,
+  busyWaitMs,
+  apiDownload,
+  apiRequest,
+  ContractError,
+  NetworkError,
+} from '@/api/client';
 
 vi.mock('@/lib/env', () => ({
   getEnv: () => ({ apiBaseUrl: 'https://api.example.com', googleClientId: '', sentryDsn: '' }),
@@ -357,5 +364,34 @@ describe('apiDownload', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
     await expect(apiDownload('/v1/reports/2026-10/pdf')).rejects.toBeInstanceOf(NetworkError);
+  });
+});
+
+describe('a busy answer', () => {
+  it('is a 503 with the code busy, and nothing else', () => {
+    expect(new ApiError(503, { code: 'busy' }).busy).toBe(true);
+    expect(new ApiError(503).busy).toBe(false);
+    expect(new ApiError(503, { code: 'unavailable' }).busy).toBe(false);
+    expect(new ApiError(500, { code: 'busy' }).busy).toBe(false);
+  });
+
+  it('is read from the answer of the API, with the wait that it asks for', async () => {
+    vi.stubGlobal(
+      'fetch',
+      answer(JSON.stringify({ code: 'busy', message: 'No', retryAfterSeconds: 2 }), 503),
+    );
+
+    const error = (await apiRequest('/v1/usaha', schema).catch(
+      (failure: unknown) => failure,
+    )) as ApiError;
+
+    expect(error.busy).toBe(true);
+    expect(error.retryAfterSeconds).toBe(2);
+  });
+
+  it('waits as long as the API asks, at least a default and at most 10 seconds', () => {
+    expect(busyWaitMs(new ApiError(503, { code: 'busy', retryAfterSeconds: 5 }))).toBe(5000);
+    expect(busyWaitMs(new ApiError(503, { code: 'busy' }))).toBe(2000);
+    expect(busyWaitMs(new ApiError(503, { code: 'busy', retryAfterSeconds: 600 }))).toBe(10_000);
   });
 });

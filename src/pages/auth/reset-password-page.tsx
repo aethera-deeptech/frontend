@@ -114,6 +114,7 @@ export function ResetPasswordPage() {
     <AuthFrame title="Atur ulang kata sandi" subtitle="Pilih kata sandi baru untuk akun Anda.">
       {failure && failure !== 'common-password' ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             reset.error instanceof ApiError ? reset.error.retryAfterSeconds : undefined

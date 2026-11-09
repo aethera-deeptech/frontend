@@ -61,6 +61,7 @@ export function VerifyEmailPage() {
     <AuthFrame title="Verifikasi email" subtitle="Sistem sedang memeriksa tautan Anda.">
       {failure ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             verify.error instanceof ApiError ? verify.error.retryAfterSeconds : undefined

@@ -295,6 +295,23 @@ describe('Hubungkan WATTLINK Hub', () => {
     expect(await screen.findByText('Periksa isian Anda')).toBeVisible();
   });
 
+  it('does not say that the claim failed when the service was busy, because it may have gone through', async () => {
+    stubApi({
+      ...noHub,
+      'POST /v1/gateways': {
+        status: 503,
+        body: { code: 'busy', message: 'No', retryAfterSeconds: 2 },
+      },
+    });
+    renderAt('/alat/tambah/hub');
+
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    expect(await screen.findByText('Belum pasti berhasil')).toBeVisible();
+    expect(screen.queryByText('Terjadi kesalahan')).not.toBeInTheDocument();
+  });
+
   it('says that the connection is lost', async () => {
     stubApi(noHub);
     renderAt('/alat/tambah/hub');

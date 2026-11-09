@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { useProduction, useSaveProduction, type Production } from '@/api/production';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { ProduksiView, type SaveState } from '@/pages/produksi/produksi-view';
@@ -20,8 +20,8 @@ export function ProduksiPage() {
         <div className="flex flex-col gap-3 lg:max-w-lg">
           {/* The form has the heading, so the error needs its own, or the page has none */}
           <h1 className="text-h2 text-text-heading lg:text-title">Catat produksi</h1>
-          <Banner
-            tone="danger"
+          <ErrorBanner
+            error={query.error}
             title="Catatan produksi tidak bisa dimuat"
             message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
             action={
@@ -90,6 +90,7 @@ function ProduksiForm({ data }: { data: Production }) {
         setChosenUnit(next);
       }}
       saveState={saveState}
+      saveError={save.error}
       onSave={() => {
         save.mutate({ date, quantity, unit });
       }}

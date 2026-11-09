@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react
 
 import { useRecommendationDecision, useRecommendations } from '@/api/recommendations';
 import { PageHeader } from '@/components/layout/page-header';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -44,9 +44,10 @@ export function SaranLayout() {
       <div className="mt-3 lg:mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
         <div className={id ? 'hidden lg:block' : undefined}>
           {decision.isError ? (
-            <Banner
+            <ErrorBanner
               className="mb-3"
-              tone="danger"
+              error={decision.error}
+              kind="write"
               title="Pilihan belum tersimpan"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
             />
@@ -67,8 +68,8 @@ export function SaranLayout() {
           ) : query.isPending ? (
             <SkeletonCard label="Memuat saran" />
           ) : (
-            <Banner
-              tone="danger"
+            <ErrorBanner
+              error={query.error}
               title="Saran tidak bisa dimuat"
               message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
               action={

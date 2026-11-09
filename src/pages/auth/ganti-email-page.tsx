@@ -139,6 +139,7 @@ export function GantiEmailPage() {
         />
       ) : failure && !(failure === 'rate-limited' && !waiting) ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             change.error instanceof ApiError ? change.error.retryAfterSeconds : undefined

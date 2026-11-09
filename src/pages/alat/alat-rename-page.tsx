@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { z } from 'zod';
 
 import { useDevice, useRenameDevice } from '@/api/devices';
-import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { TextInput } from '@/components/ui/text-input';
@@ -24,8 +24,8 @@ export function AlatRenamePage() {
     return query.isPending ? (
       <SkeletonCard label="Memuat alat" />
     ) : (
-      <Banner
-        tone="danger"
+      <ErrorBanner
+        error={query.error}
         title="Alat tidak bisa dimuat"
         message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         action={
@@ -95,8 +95,9 @@ function RenameForm({ id, name }: { id: string; name: string }) {
         })}
       />
       {rename.isError ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={rename.error}
+          kind="write"
           title="Nama belum tersimpan"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

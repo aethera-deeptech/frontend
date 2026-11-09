@@ -22,6 +22,7 @@ function ZoneForm({ current }: { current: string }) {
       subtitle="Jam kerja dan laporan harian mengikuti zona waktu ini."
       saving={update.isPending}
       failed={update.isError}
+      error={update.error}
       onSubmit={(event) => {
         event.preventDefault();
         update.mutate(

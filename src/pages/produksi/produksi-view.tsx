@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 
 import type { Production } from '@/api/production';
 import { Banner } from '@/components/ui/banner';
+import { ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -22,6 +23,8 @@ interface ProduksiViewProps {
   unit: string;
   onUnitChange: (unit: string) => void;
   saveState: SaveState;
+  // What the save failed with, so a busy service gets its own banner
+  saveError?: unknown;
   onSave: () => void;
   // Where the Kembali button leads
   backTo: string;
@@ -38,6 +41,7 @@ export function ProduksiView({
   unit,
   onUnitChange,
   saveState,
+  saveError,
   onSave,
   backTo,
 }: ProduksiViewProps) {
@@ -69,8 +73,10 @@ export function ProduksiView({
         />
       ) : null}
       {saveState === 'failed' ? (
-        <Banner
-          tone="danger"
+        <ErrorBanner
+          error={saveError}
+          kind="write"
+          busyMessage="Sistem sedang sibuk. Angka Anda masih di layar. Periksa dulu apakah sudah tercatat, lalu simpan lagi jika perlu."
           title="Catatan belum tersimpan"
           message="Angka Anda masih di layar. Coba simpan lagi, dan periksa koneksi internet Anda jika tetap gagal."
         />

@@ -99,6 +99,7 @@ export function DaftarPage() {
         />
       ) : failure && failure !== 'common-password' ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             register.error instanceof ApiError ? register.error.retryAfterSeconds : undefined

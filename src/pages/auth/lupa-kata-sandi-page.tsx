@@ -71,6 +71,7 @@ export function LupaKataSandiPage() {
     >
       {failure ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             forgot.error instanceof ApiError ? forgot.error.retryAfterSeconds : undefined
@@ -139,7 +140,7 @@ function LinkSent({
         />
       ) : null}
       {failure && failure !== 'rate-limited' ? (
-        <FailureBanner failure={failure} retryAfterSeconds={retryAfterSeconds} />
+        <FailureBanner write failure={failure} retryAfterSeconds={retryAfterSeconds} />
       ) : null}
       <p className="text-body text-text-2">Tidak ada email? Periksa folder spam.</p>
       <Button
