@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -126,6 +126,72 @@ describe('Perangkat yang masuk ke akun', () => {
         name: 'Keluarkan Jenis perangkat tidak terbaca, terakhir dipakai 2 hari lalu',
       }),
     ).toBeVisible();
+  });
+
+  it('offers to end every other device only when there are two or more', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current, phone, unreadable) });
+    renderAt('/lainnya/sesi');
+
+    expect(
+      await screen.findByRole('link', { name: 'Keluarkan semua perangkat lain' }),
+    ).toHaveAttribute('href', '/lainnya/sesi/keluarkan-semua');
+  });
+
+  it('does not offer it for one other device, because that row has its own button', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current, phone) });
+    renderAt('/lainnya/sesi');
+
+    await screen.findByText('Safari on iPhone');
+
+    expect(
+      screen.queryByRole('link', { name: 'Keluarkan semua perangkat lain' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the result of the question once, announces it and takes it out of the history', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current) });
+    const router = renderAt('/lainnya/sesi', { revoked: { ended: 3 } });
+
+    expect(await screen.findByText('Perangkat lain dikeluarkan')).toBeVisible();
+    expect(screen.getByText('3 perangkat sudah keluar dari akun ini.')).toBeVisible();
+    // The words for a screen reader come after the screen is there, so a screen that opens with news announces it
+    expect(
+      await screen.findByText(
+        'Perangkat lain dikeluarkan. 3 perangkat sudah keluar dari akun ini.',
+      ),
+    ).toBeInTheDocument();
+    // A reload or the way Back must not show the old number again
+    await waitFor(() => {
+      expect(router.state.location.state).toBeNull();
+    });
+    expect(screen.getByText('Perangkat lain dikeluarkan').closest('[tabindex="-1"]')).toHaveFocus();
+  });
+
+  it('shows the result when it comes to a list that is already open, for example after Back', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current) });
+    const router = renderAt('/lainnya/sesi');
+    await screen.findByText('Chrome on Windows');
+    expect(screen.queryByText('Perangkat lain dikeluarkan')).not.toBeInTheDocument();
+
+    await act(() =>
+      router.navigate('/lainnya/sesi', { replace: true, state: { revoked: { ended: 2 } } }),
+    );
+
+    expect(await screen.findByText('Perangkat lain dikeluarkan')).toBeVisible();
+    expect(screen.getByText('2 perangkat sudah keluar dari akun ini.')).toBeVisible();
+    await waitFor(() => {
+      expect(router.state.location.state).toBeNull();
+    });
+  });
+
+  it('ignores a state that is not a result of the question', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current) });
+    renderAt('/lainnya/sesi', { revoked: { ended: 'many' } });
+
+    await screen.findByText('Chrome on Windows');
+
+    expect(screen.queryByText('Perangkat lain dikeluarkan')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tidak ada perangkat lain')).not.toBeInTheDocument();
   });
 
   it('says that no other device is signed in', async () => {

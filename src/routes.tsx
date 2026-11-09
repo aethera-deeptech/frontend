@@ -87,6 +87,14 @@ export const routes: RouteObject[] = [
               (module) => module.KeluarPage,
             ),
           },
+          // The question before every other device is signed out has no menu either
+          {
+            path: 'lainnya/sesi/keluarkan-semua',
+            ...lazyPage(
+              () => import('@/pages/lainnya/sesi-keluarkan-semua-page'),
+              (module) => module.SesiKeluarkanSemuaPage,
+            ),
+          },
           // The question before the total of a device starts again has no menu, like Keluar
           {
             path: 'alat/:id/mulai-dari-nol',
