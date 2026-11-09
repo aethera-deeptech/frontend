@@ -215,10 +215,16 @@ export function HapusAkunPage() {
             }
           }}
         />
-        {/* The call can take about 15 seconds, so the screen says so, and the region is always there for a screen reader */}
-        <p aria-live="polite" className="text-body text-text-1 empty:hidden">
+        {/* The call can take about 15 seconds, so the screen says so. The region for a screen reader is always there, because a region
+            that is hidden while it is empty may not announce the first words. The visible line is not read a second time. */}
+        <div aria-live="polite" className="sr-only">
           {remove.isPending || done ? 'Sedang menghapus. Jangan tutup halaman.' : ''}
-        </p>
+        </div>
+        {remove.isPending || done ? (
+          <p aria-hidden="true" className="text-body text-text-1">
+            Sedang menghapus. Jangan tutup halaman.
+          </p>
+        ) : null}
         <div className="flex flex-col gap-3">
           <Button
             type="submit"
