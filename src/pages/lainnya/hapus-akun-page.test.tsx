@@ -76,9 +76,9 @@ describe('Hapus akun, the entry and the page', () => {
 
     expect(screen.getByText(/Riwayat listrik, anomali, saran, dan catatan produksi/)).toBeVisible();
     expect(screen.getByText('WATTLINK Hub tidak bisa mengirim data lagi.')).toBeVisible();
-    expect(
-      screen.getByText(/WATTLINK Plug yang masih mendapat listrik tetap di keadaan saklarnya/),
-    ).toBeVisible();
+    expect(screen.getByText('WATTLINK Plug tidak bisa diatur dari aplikasi lagi.')).toBeVisible();
+    // What a plug does with its relay is not decided, so the page does not say it
+    expect(screen.queryByText(/keadaan saklarnya/)).not.toBeInTheDocument();
     expect(screen.getByText(/Salinan di cadangan dan catatan sistem, jika ada/)).toBeVisible();
   });
 

@@ -176,10 +176,7 @@ export function HapusAkunPage() {
       <Card title="Setelah itu">
         <ul className="text-body text-text-1 flex list-disc flex-col gap-1 pl-5">
           <li>WATTLINK Hub tidak bisa mengirim data lagi.</li>
-          <li>
-            WATTLINK Plug yang masih mendapat listrik tetap di keadaan saklarnya dan tidak bisa
-            diatur dari aplikasi lagi. Atur saklarnya dulu ke keadaan yang Anda inginkan.
-          </li>
+          <li>WATTLINK Plug tidak bisa diatur dari aplikasi lagi.</li>
           <li>Email ini boleh dipakai untuk mendaftar lagi.</li>
           <li>
             Salinan di cadangan dan catatan sistem, jika ada, tidak ikut terhapus. Itu juga berlaku
