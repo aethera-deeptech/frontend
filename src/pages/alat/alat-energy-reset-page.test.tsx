@@ -42,6 +42,21 @@ describe('the card Total energi', () => {
     );
   });
 
+  it('says that the system is busy, as a warning, when the device cannot be read in time', async () => {
+    stubApi({
+      'GET /v1/devices': { body: sampleDevices() },
+      'GET /v1/devices/d4': {
+        status: 503,
+        body: { code: 'busy', message: 'No', retryAfterSeconds: 2 },
+      },
+    });
+    renderAt('/alat/d4/mulai-dari-nol');
+
+    expect(await screen.findByText('Alat tidak bisa dimuat', {}, { timeout: 5000 })).toBeVisible();
+    expect(screen.getByText('Sistem sedang sibuk. Coba lagi dalam beberapa detik.')).toBeVisible();
+    expect(screen.queryByText(/periksa koneksi internet/)).not.toBeInTheDocument();
+  });
+
   it('names the hour when the count starts after a reset', async () => {
     stubApi({
       ...answers(),
