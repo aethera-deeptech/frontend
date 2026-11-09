@@ -57,10 +57,21 @@ export function SesiPage() {
   const navigate = useNavigate();
   // The result of the confirm page is copied once and then taken out of the history, so a reload or the way Back does not show it again
   const [notice, setNotice] = useState<Notice | undefined>(() => readRevoked(location.state));
+  // A visit can bring the result to a list that is already open, for example after the user pressed Back while the call ran. The
+  // state is compared during the render, which is the way React asks for a value that follows another one.
+  const [seenState, setSeenState] = useState<unknown>(location.state);
   const [announcement, setAnnouncement] = useState('');
   const noticeRef = useRef<HTMLDivElement>(null);
   // The observer tells the screen that a call runs a moment after the press, so two quick presses need a flag that is set at once
   const calling = useRef(false);
+  if (location.state !== seenState) {
+    setSeenState(location.state);
+    const revoked = readRevoked(location.state);
+
+    if (revoked) {
+      setNotice(revoked);
+    }
+  }
   // The times on the rows are counted from the moment the list was read, so the words and the data belong together
   const now = query.dataUpdatedAt;
 
@@ -199,7 +210,7 @@ export function SesiPage() {
               </ul>
             </Card>
             {others.length >= 2 ? (
-              <Button asChild size="lg" className="mt-1 self-start">
+              <Button asChild size="lg" className="self-start">
                 <Link to="/lainnya/sesi/keluarkan-semua">Keluarkan semua perangkat lain</Link>
               </Button>
             ) : null}
