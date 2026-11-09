@@ -119,7 +119,8 @@ export function SesiPage() {
             />
           ) : null}
         </div>
-        {sessions ? (
+        {/* A list that could not be read again may still show a device that was just ended, so it gives way to the error */}
+        {sessions && !query.isError ? (
           <>
             <Card className="gap-0 px-4 py-1">
               <ul>
