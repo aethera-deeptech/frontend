@@ -1,12 +1,15 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLocation, useNavigate } from 'react-router';
 
 import {
   claimCodePattern,
   claimFailure,
   gatewayNameLength,
+  gatewaysKey,
   normalizeClaimCode,
   useClaimGateway,
+  type Gateway,
 } from '@/api/gateways';
 import { ApiError } from '@/api/client';
 import { countCharacters } from '@/lib/characters';
@@ -15,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { useCountdown } from '@/pages/auth/use-countdown';
+import { hubListPath, readHubOrigin } from '@/pages/pasang-alat/hub-origin';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 
 const codeHelper = 'Huruf besar dan angka 2 sampai 9. Kode berlaku 10 menit.';
@@ -40,12 +44,16 @@ function checkName(value: string): string | undefined {
     : undefined;
 }
 
-// The first step when the business has no hub yet. A new hub shows a code on its display, and the owner types it here.
+// The first step when the business has no hub yet. A new hub shows a code on its display, and the owner types it here. The list of
+// hubs opens the same page for a hub that has to be connected again, and then the page leads back to the list.
 export function HubPage() {
   const navigate = useNavigate();
+  const origin = readHubOrigin(useLocation().state);
+  const queryClient = useQueryClient();
   const claim = useClaimGateway();
   const [code, setCode] = useState('');
-  const [name, setName] = useState('');
+  // The name of a claim replaces the old one, so a hub that is connected again starts with the name that it has
+  const [name, setName] = useState(origin?.hubName ?? '');
   const [tried, setTried] = useState(false);
   // The time when the button works again after the API said to wait, and 0 when it did not
   const [readyAt, setReadyAt] = useState(0);
@@ -76,12 +84,29 @@ export function HubPage() {
       nameRef.current?.focus();
       return;
     }
+    // The hook puts the answer in the list before this page hears of it, so the hubs that were there are read first
+    const knownIds = (queryClient.getQueryData<{ items: Gateway[] }>(gatewaysKey)?.items ?? []).map(
+      (hub) => hub.id,
+    );
+
     claim.mutate(
       { claimCode: normalizeClaimCode(code), name: name.trim() },
       {
-        onSuccess: () => {
+        onSuccess: (gateway) => {
           // The step leaves the history, so Back from the choice does not open an empty claim form
-          void navigate(addPath, { replace: true });
+          if (!origin) {
+            void navigate(addPath, { replace: true });
+            return;
+          }
+          // The backend picks the hub from the code. A code of a hub that the list already had connects that hub again. Any other
+          // code makes a new hub, and the cut one stays cut.
+          const connectedAgain = knownIds.includes(gateway.id) || origin.hubId === gateway.id;
+          const kind = connectedAgain ? 'again' : origin.hubId === undefined ? 'new' : 'other';
+
+          void navigate(hubListPath, {
+            replace: true,
+            state: { claimed: { name: gateway.name, kind } },
+          });
         },
         onError: (error) => {
           if (error instanceof ApiError && error.status === 429) {
@@ -96,7 +121,7 @@ export function HubPage() {
     <StepFrame
       title="Hubungkan WATTLINK Hub"
       subtitle="Nyalakan WATTLINK Hub. Layarnya menampilkan kode 8 karakter. Masukkan kode itu di sini."
-      backTo="/alat"
+      backTo={origin ? hubListPath : '/alat'}
     >
       {failure === 'code-unknown' ? (
         <Banner

@@ -21,6 +21,11 @@ export function LainnyaPage() {
               secondary="Nama usaha, jam kerja, zona waktu, tarif dan kepekaan"
               to="/lainnya/pengaturan"
             />
+            <ListRow
+              title="WATTLINK Hub"
+              secondary="Lihat hub mana yang mengirim data"
+              to="/lainnya/hub"
+            />
           </ul>
         </Card>
         <Card className="gap-0 px-4 py-1 lg:max-w-lg">
