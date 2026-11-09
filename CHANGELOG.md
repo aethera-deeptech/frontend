@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.0](https://github.com/aethera-deeptech/frontend/compare/v0.13.0...v0.14.0) (2026-11-09)
+
+
+### Features
+
+* **lainnya:** delete the account and the business from the app ([#108](https://github.com/aethera-deeptech/frontend/issues/108)) ([11d68b3](https://github.com/aethera-deeptech/frontend/commit/11d68b35f66e34e6fde69b351ef6e0a94e1f60d6))
+
+
+### Bug Fixes
+
+* **lainnya:** do not say what a plug does with its relay after the account is deleted ([70bdf80](https://github.com/aethera-deeptech/frontend/commit/70bdf806d4e8b694f98e989160ba2f917fa3794e))
+* **lainnya:** keep the open state of a deletion, hold the button after a 204 and match the return path in any case ([f4c3439](https://github.com/aethera-deeptech/frontend/commit/f4c3439fbcd78312b4382de172ee8cbe04e3d9e5))
+* **lainnya:** keep the progress words of the deletion in a live region that is always there ([8e5aaaf](https://github.com/aethera-deeptech/frontend/commit/8e5aaaf613092bee4c389d9fa79e56a37ccd1a25))
+
 ## [0.13.0](https://github.com/aethera-deeptech/frontend/compare/v0.12.0...v0.13.0) (2026-11-09)
 
 
