@@ -69,7 +69,7 @@ export function PilihJenisPage() {
         <Banner
           tone="warning"
           title="Ada WATTLINK Hub yang perlu dihubungkan lagi"
-          message="Alat yang hanya terjangkau hub itu tidak akan ditemukan."
+          message="Alat yang hanya ada di dekat hub itu tidak akan ditemukan."
           action={
             <Button asChild size="lg" className="self-start">
               <Link to="/lainnya/hub">Lihat WATTLINK Hub</Link>

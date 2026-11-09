@@ -1,12 +1,15 @@
 import { useRef, useState, type SubmitEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router';
 
 import {
   claimCodePattern,
   claimFailure,
   gatewayNameLength,
+  gatewaysKey,
   normalizeClaimCode,
   useClaimGateway,
+  type Gateway,
 } from '@/api/gateways';
 import { ApiError } from '@/api/client';
 import { countCharacters } from '@/lib/characters';
@@ -46,6 +49,7 @@ function checkName(value: string): string | undefined {
 export function HubPage() {
   const navigate = useNavigate();
   const origin = readHubOrigin(useLocation().state);
+  const queryClient = useQueryClient();
   const claim = useClaimGateway();
   const [code, setCode] = useState('');
   // The name of a claim replaces the old one, so a hub that is connected again starts with the name that it has
@@ -80,6 +84,11 @@ export function HubPage() {
       nameRef.current?.focus();
       return;
     }
+    // The hook puts the answer in the list before this page hears of it, so the hubs that were there are read first
+    const knownIds = (queryClient.getQueryData<{ items: Gateway[] }>(gatewaysKey)?.items ?? []).map(
+      (hub) => hub.id,
+    );
+
     claim.mutate(
       { claimCode: normalizeClaimCode(code), name: name.trim() },
       {
@@ -89,9 +98,10 @@ export function HubPage() {
             void navigate(addPath, { replace: true });
             return;
           }
-          // The backend picks the hub from the code. A code of another hub makes a new hub, and the cut one stays cut.
-          const kind =
-            origin.hubId === undefined ? 'new' : origin.hubId === gateway.id ? 'again' : 'other';
+          // The backend picks the hub from the code. A code of a hub that the list already had connects that hub again. Any other
+          // code makes a new hub, and the cut one stays cut.
+          const connectedAgain = knownIds.includes(gateway.id) || origin.hubId === gateway.id;
+          const kind = connectedAgain ? 'again' : origin.hubId === undefined ? 'new' : 'other';
 
           void navigate(hubListPath, {
             replace: true,

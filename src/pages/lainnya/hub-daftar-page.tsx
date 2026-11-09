@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation, useNavigate } from 'react-router';
 
-import { hubOnlineMs, maxGateways, useGateways, type Gateway } from '@/api/gateways';
+import {
+  hubOnlineMs,
+  maxGateways,
+  useGateways,
+  waitsForFirstData,
+  type Gateway,
+} from '@/api/gateways';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -67,6 +74,7 @@ const claimPath = `${addPath}/hub`;
 // The screen where the owner sees the WATTLINK Hubs of the business, which one sends data and which one has to be connected again
 export function HubDaftarPage() {
   const query = useGateways();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
   // The result of the claim page is copied once and taken out of the history, so a reload or the way Back does not show it again
@@ -134,33 +142,8 @@ export function HubDaftarPage() {
             </div>
           ) : null}
         </div>
-        {hubs && !query.isError ? (
-          hubs.length === 0 ? (
-            <>
-              <p className="text-body text-text-2">Belum ada WATTLINK Hub di usaha ini.</p>
-              <ClaimLink kind="accent" />
-            </>
-          ) : (
-            <>
-              <Card className="gap-0 px-4 py-1">
-                <ul>
-                  {hubs.map((hub) => (
-                    <HubRow key={hub.id} hub={hub} now={now} />
-                  ))}
-                </ul>
-              </Card>
-              {hubs.length >= maxGateways ? (
-                <p className="text-label text-text-2">
-                  {`Satu usaha bisa punya sampai ${maxGateways.toString()} WATTLINK Hub.`}
-                </p>
-              ) : (
-                <ClaimLink kind="neutral" />
-              )}
-            </>
-          )
-        ) : query.isPending ? (
-          <SkeletonCard label="Memuat WATTLINK Hub" />
-        ) : (
+        {/* The list is only read, so a read that fails over rows that are there keeps the rows and says so above them */}
+        {query.isError ? (
           <ErrorBanner
             error={query.error}
             title="Daftar WATTLINK Hub tidak bisa dimuat"
@@ -176,7 +159,41 @@ export function HubDaftarPage() {
               </Button>
             }
           />
-        )}
+        ) : null}
+        {hubs ? (
+          hubs.length === 0 ? (
+            query.isError ? null : (
+              <>
+                <p className="text-body text-text-2">Belum ada WATTLINK Hub di usaha ini.</p>
+                <ClaimLink kind="accent" />
+              </>
+            )
+          ) : (
+            <>
+              <Card className="gap-0 px-4 py-1">
+                <ul>
+                  {hubs.map((hub) => (
+                    <HubRow
+                      key={hub.id}
+                      hub={hub}
+                      now={now}
+                      waiting={waitsForFirstData(queryClient, hub)}
+                    />
+                  ))}
+                </ul>
+              </Card>
+              {hubs.length >= maxGateways ? (
+                <p className="text-label text-text-2">
+                  {`Satu usaha bisa punya sampai ${maxGateways.toString()} WATTLINK Hub.`}
+                </p>
+              ) : (
+                <ClaimLink kind="neutral" />
+              )}
+            </>
+          )
+        ) : query.isPending ? (
+          <SkeletonCard label="Memuat WATTLINK Hub" />
+        ) : null}
       </div>
     </>
   );
@@ -192,7 +209,14 @@ function ClaimLink({ kind }: { kind: 'accent' | 'neutral' }) {
   );
 }
 
-function HubRow({ hub, now }: { hub: Gateway; now: number }) {
+interface HubRowProps {
+  hub: Gateway;
+  now: number;
+  // The API answers the time of the claim as lastSeenAt until the first batch arrives
+  waiting: boolean;
+}
+
+function HubRow({ hub, now, waiting }: HubRowProps) {
   const seen = new Date(hub.lastSeenAt).getTime();
   // A time that is not a moment says nothing, so it does not count as connected
   const online = !hub.keyRevoked && now - seen <= hubOnlineMs;
@@ -204,6 +228,8 @@ function HubRow({ hub, now }: { hub: Gateway; now: number }) {
         <p className="text-h2 text-text-heading min-w-0 wrap-anywhere">{hub.name}</p>
         {hub.keyRevoked ? (
           <Tag tone="warning">Perlu dihubungkan lagi</Tag>
+        ) : waiting ? (
+          <Tag tone="accent">Menunggu data</Tag>
         ) : online ? (
           <Tag tone="success">Terhubung</Tag>
         ) : (
@@ -225,6 +251,10 @@ function HubRow({ hub, now }: { hub: Gateway; now: number }) {
             </Link>
           </Button>
         </>
+      ) : waiting ? (
+        <p className="text-label text-text-2">
+          Baru dihubungkan. Data pertama belum masuk, biasanya dalam beberapa menit.
+        </p>
       ) : (
         <p className="text-label text-text-2">{lastData}</p>
       )}

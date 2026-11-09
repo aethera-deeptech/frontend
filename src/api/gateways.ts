@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { ApiError, apiRequest } from '@/api/client';
@@ -20,6 +20,15 @@ const gatewaysSchema = z.object({ items: z.array(gatewaySchema) });
 export type Gateway = z.infer<typeof gatewaySchema>;
 
 export const gatewaysKey = ['gateways'] as const;
+
+// The API gives the time of the claim as lastSeenAt for a hub that never sent a batch, so a hub that was just claimed looks as if it
+// sent data. The app remembers the time that the claim answered, and a hub whose time has not moved since is still waiting for its
+// first batch. The memory lives as long as the client of the page and is gone after a reload.
+const claimedAt = new WeakMap<QueryClient, Map<string, string>>();
+
+export function waitsForFirstData(queryClient: QueryClient, hub: Gateway): boolean {
+  return claimedAt.get(queryClient)?.get(hub.id) === hub.lastSeenAt;
+}
 
 // A hub that sent a batch in the last 15 minutes counts as connected, the same limit as the plug read of the backend
 export const hubOnlineMs = 15 * 60_000;
@@ -51,8 +60,14 @@ export function useClaimGateway() {
       apiRequest('/v1/gateways', gatewaySchema, { method: 'POST', body: claim }),
     // The steps after this one ask the list to see that a hub exists. The list is filled here and not only marked old, so the
     // step does not read an empty list again and send the user back.
-    // A hub that is claimed again keeps its id, so it takes the place of the old row.
-    onSuccess: (gateway) => {
+    // A hub that is claimed again keeps its id, so it takes the place of the old row. A read that started before the claim must not
+    // put the old row back, so it is cancelled first.
+    onSuccess: async (gateway) => {
+      await queryClient.cancelQueries({ queryKey: gatewaysKey });
+      const remembered = claimedAt.get(queryClient) ?? new Map<string, string>();
+
+      remembered.set(gateway.id, gateway.lastSeenAt);
+      claimedAt.set(queryClient, remembered);
       queryClient.setQueryData(gatewaysKey, (old: z.infer<typeof gatewaysSchema> | undefined) => {
         const items = old?.items ?? [];
 
