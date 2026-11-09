@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/aethera-deeptech/frontend/compare/v0.12.0...v0.13.0) (2026-11-09)
+
+
+### Features
+
+* **lainnya:** list the WATTLINK Hubs and stop a search when every hub is cut ([#106](https://github.com/aethera-deeptech/frontend/issues/106)) ([5bb5cb5](https://github.com/aethera-deeptech/frontend/commit/5bb5cb5017b1b0c198d3fd6a7e09c8dee9de4678))
+
+
+### Bug Fixes
+
+* **lainnya:** show a hub that waits for its first data, keep rows on a failed read and tell the right news after a claim ([bdd81f8](https://github.com/aethera-deeptech/frontend/commit/bdd81f8df5d8b1ee9b03687ff5f4b50aaf868f6c))
+
 ## [0.12.0](https://github.com/aethera-deeptech/frontend/compare/v0.11.0...v0.12.0) (2026-11-09)
 
 
