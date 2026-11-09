@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createQueryClient } from '@/api/query-client';
 import { useDeleteSchedule, useSaveSchedule, useSendRelay } from '@/api/relay';
+import { useEndSession } from '@/api/sessions';
 import { useResetEnergy } from '@/api/devices';
 import { useReportDownload } from '@/pages/laporan/use-report-download';
 
@@ -32,21 +33,23 @@ function wrapperFor(client: ReturnType<typeof createQueryClient>) {
 }
 
 describe('the calls that skip the extra read after a busy answer', () => {
-  it('are the relay command, the schedule save, the schedule delete and the report download', async () => {
+  it('are the relay command, the schedule save, the schedule delete, the report download and the end of a session', async () => {
     const { client } = metaOf(() => undefined);
     const wrapper = wrapperFor(client);
     const send = renderHook(() => useSendRelay('d1'), { wrapper });
     const save = renderHook(() => useSaveSchedule('d1'), { wrapper });
     const remove = renderHook(() => useDeleteSchedule('d1'), { wrapper });
     const download = renderHook(() => useReportDownload(), { wrapper });
+    const endSession = renderHook(() => useEndSession(), { wrapper });
 
     send.result.current.mutate('off');
     save.result.current.mutate({ offAt: '17:30', onAt: null, days: 'mon-fri', enabled: true });
     remove.result.current.mutate();
     download.result.current.start('2026-10');
+    endSession.result.current.mutate('s1');
 
     await waitFor(() => {
-      expect(client.getMutationCache().getAll()).toHaveLength(4);
+      expect(client.getMutationCache().getAll()).toHaveLength(5);
     });
     expect(
       client
@@ -54,6 +57,7 @@ describe('the calls that skip the extra read after a busy answer', () => {
         .getAll()
         .map((mutation) => mutation.meta),
     ).toEqual([
+      { skipReread: true },
       { skipReread: true },
       { skipReread: true },
       { skipReread: true },

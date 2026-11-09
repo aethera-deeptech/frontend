@@ -117,6 +117,26 @@ function answer(method: string, pathname: string): unknown {
   if (pathname === '/v1/settings') {
     return sampleSettings();
   }
+  if (pathname === '/v1/auth/sessions') {
+    return {
+      items: [
+        {
+          id: '0b1f7a3e-6d2c-4f58-9a41-5c3e8d7b2a10',
+          label: 'Chrome on Windows',
+          createdAt: '2026-10-20T08:00:00+07:00',
+          lastUsedAt: '2026-10-29T14:20:00+07:00',
+          current: true,
+        },
+        {
+          id: '7c2d9e41-3a85-4b6f-8e12-9d4a6b1c5f33',
+          label: 'Safari on iPhone',
+          createdAt: '2026-10-12T19:30:00+07:00',
+          lastUsedAt: '2026-10-28T07:05:00+07:00',
+          current: false,
+        },
+      ],
+    };
+  }
   if (pathname === '/v1/gateways') {
     return { items: [{ id: 'g1', name: 'Hub pabrik', lastSeenAt: '2026-10-29T14:30:00+07:00' }] };
   }

@@ -241,6 +241,13 @@ export const routes: RouteObject[] = [
                     ),
                   },
                   {
+                    path: 'sesi',
+                    ...lazyPage(
+                      () => import('@/pages/lainnya/sesi-page'),
+                      (module) => module.SesiPage,
+                    ),
+                  },
+                  {
                     path: 'pengaturan',
                     children: [
                       {

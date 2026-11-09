@@ -208,6 +208,34 @@ export function formatDayTime(date: Date): string {
   return `${formatDate(date)}, ${formatTime(date)}`;
 }
 
+// How long ago a moment was, in words that do not claim more than they know. The difference is taken between two instants, so
+// the zone of the browser and the zone of the business do not matter. Only a moment from a week ago or more gets a date, in the
+// zone of the business. "Kemarin" and "hari ini" are left out on purpose, because they need the business day.
+export function formatRelativePast(iso: string, now: number = Date.now()): string {
+  const then = new Date(iso).getTime();
+
+  // A text that is not a moment says nothing, and the screens read their moments through a schema, so this is a guard for later callers
+  if (Number.isNaN(then)) {
+    return 'beberapa waktu lalu';
+  }
+  const minutes = Math.floor(Math.max(0, now - then) / 60_000);
+
+  if (minutes < 15) {
+    return 'beberapa menit lalu';
+  }
+  if (minutes < 60) {
+    return 'kurang dari 1 jam lalu';
+  }
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `${hours.toString()} jam lalu`;
+  }
+  const days = Math.floor(hours / 24);
+
+  return days < 7 ? `${days.toString()} hari lalu` : formatDateWithYear(parseMoment(iso));
+}
+
 export function formatDateTime(date: Date): string {
   return `${formatDateWithYear(date)}, ${formatTime(date)}`;
 }
