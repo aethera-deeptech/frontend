@@ -312,3 +312,44 @@ describe('Tambah alat with a cut hub', () => {
     expect(screen.queryByText(/perlu dihubungkan lagi/)).not.toBeInTheDocument();
   });
 });
+
+describe('State that a visit brings', () => {
+  it.each([
+    ['a text', 'selesai'],
+    ['an empty object', {}],
+    ['a claim that is not an object', { claimed: 'ya' }],
+    ['a claim with no name', { claimed: { kind: 'again' } }],
+    ['a claim with a name that is not a text', { claimed: { name: 5, kind: 'again' } }],
+    ['a claim with no kind', { claimed: { name: 'Hub lama' } }],
+    ['a claim with a kind that is not known', { claimed: { name: 'Hub lama', kind: 'lain' } }],
+  ])('shows no news for %s', async (_label, state) => {
+    stubApi(list(working));
+    renderAt('/lainnya/hub', state);
+
+    await rowOf('Hub pabrik');
+
+    expect(screen.queryByText('WATTLINK Hub terhubung lagi')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ini WATTLINK Hub baru')).not.toBeInTheDocument();
+    expect(screen.queryByText('WATTLINK Hub dihubungkan')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['a text', 'selesai'],
+    ['an empty object', {}],
+    ['a flag that is not true', { fromHubList: 'ya', hubName: 'Hub lama' }],
+  ])('does not take %s for the way of the hub list on the claim page', async (_label, state) => {
+    stubApi(list(working));
+    renderAt('/alat/tambah/hub', state);
+
+    expect(await screen.findByLabelText('Nama WATTLINK Hub')).toHaveValue('');
+    expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', '/alat');
+  });
+
+  it('ignores a hub id or a hub name on the claim page that is not a text', async () => {
+    stubApi(list(working));
+    renderAt('/alat/tambah/hub', { fromHubList: true, hubId: 7, hubName: 9 });
+
+    expect(await screen.findByLabelText('Nama WATTLINK Hub')).toHaveValue('');
+    expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', '/lainnya/hub');
+  });
+});
