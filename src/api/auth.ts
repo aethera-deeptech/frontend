@@ -209,7 +209,8 @@ export function deleteFailure(error: unknown): DeleteFailure {
   if (error.status === 401) {
     return 'no-session';
   }
-  return error.status >= 500 ? 'server' : 'refused';
+  // A proxy can answer 408 or 425 for a call that the API had already started, so those two are open as well
+  return error.status >= 500 || error.status === 408 || error.status === 425 ? 'server' : 'refused';
 }
 
 // What a failed call means for the screen. The code is the contract, the status is the fallback.

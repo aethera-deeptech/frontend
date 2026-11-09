@@ -47,18 +47,22 @@ export function HapusAkunPage() {
   const unsureRef = useRef(false);
   // A mutation shows that it runs a moment after the press, so two quick presses need a flag that is set at once
   const calling = useRef(false);
+  // Set once the API said 204, so the move to Masuk is the user's own and the blocker lets it pass
+  const leaving = useRef(false);
+  // The 204 came, and the button says so until the move to Masuk is done. The chunk of Masuk can take seconds on a slow phone.
+  const [done, setDone] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
   const failure = remove.isError ? deleteFailure(remove.error) : undefined;
   const waiting = left > 0;
   // A wrong password empties the field, so the text about it comes first. The text about an empty field must not replace it.
   const passwordError =
     failure === 'wrong-password'
-      ? 'Kata sandi salah. Periksa lalu coba lagi.'
+      ? `Kata sandi salah. Periksa lalu coba lagi. ${limitText}`
       : tried
         ? checkPasswordPresent(password)
         : undefined;
   // The user must not leave while the call runs. The deletion can end after the page is gone, and nothing could say so.
-  const blocker = useBlocker(() => calling.current);
+  const blocker = useBlocker(() => calling.current && !leaving.current);
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -118,7 +122,9 @@ export function HapusAkunPage() {
 
     call
       .then(() => {
-        calling.current = false;
+        // The press flag stays set, so no second call leaves while the page moves
+        leaving.current = true;
+        setDone(true);
         return leaveForMasuk({ notice: 'deleted' });
       })
       // The failure is handled below. Nothing else can go wrong here.
@@ -132,36 +138,33 @@ export function HapusAkunPage() {
       subtitle="Tindakan ini tidak bisa dibatalkan, dan tidak ada masa tunggu."
     >
       {isUncertain(failure) ? (
-        <>
-          <Banner
-            tone="warning"
-            title="Belum pasti dihapus"
-            message={`${uncertainCause[failure]} Penghapusan mungkin sudah berjalan sebagian atau selesai. Ulangi dengan kata sandi yang sama. ${limitText}`}
-          />
-          <p className="text-body text-text-1">
-            Jika Anda keluar sekarang, sebagian data mungkin sudah terhapus. Ulangi sampai selesai.
-          </p>
-        </>
+        <Banner
+          tone="warning"
+          title="Belum pasti dihapus"
+          message={`${uncertainCause[failure]} Penghapusan mungkin sudah berjalan sebagian atau selesai. Ulangi dengan kata sandi yang sama. ${limitText}`}
+        />
       ) : failure === 'refused' ? (
         <Banner
           tone="danger"
-          title="Akun belum dihapus"
+          title={unsure ? 'Belum berhasil' : 'Akun belum dihapus'}
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />
       ) : failure === 'rate-limited' && waiting ? (
-        <>
-          <FailureBanner
-            failure="rate-limited"
-            retryAfterSeconds={
-              remove.error instanceof ApiError ? remove.error.retryAfterSeconds : undefined
-            }
-          />
-          {unsure ? (
-            <p className="text-body text-text-1">
-              Penghapusan mungkin sebagian berjalan. Coba lagi setelah hitungan selesai.
-            </p>
-          ) : null}
-        </>
+        <FailureBanner
+          failure="rate-limited"
+          retryAfterSeconds={
+            remove.error instanceof ApiError ? (remove.error.retryAfterSeconds ?? 60) : 60
+          }
+        />
+      ) : null}
+      {/* The data that went does not come back, so this stays for the rest of the visit and not only for the last answer */}
+      {unsure ? (
+        <p className="text-body text-text-1">
+          {failure === 'rate-limited' && waiting
+            ? 'Penghapusan mungkin sebagian berjalan. Coba lagi setelah hitungan selesai. '
+            : ''}
+          Jika Anda keluar sekarang, sebagian data mungkin sudah terhapus. Ulangi sampai selesai.
+        </p>
       ) : null}
       <Card title="Yang ikut terhapus">
         <ul className="text-body text-text-1 flex list-disc flex-col gap-1 pl-5">
@@ -174,8 +177,8 @@ export function HapusAkunPage() {
         <ul className="text-body text-text-1 flex list-disc flex-col gap-1 pl-5">
           <li>WATTLINK Hub tidak bisa mengirim data lagi.</li>
           <li>
-            WATTLINK Plug yang masih menyala tetap di keadaan saklarnya dan tidak bisa diatur dari
-            aplikasi lagi. Atur saklarnya dulu ke keadaan yang Anda inginkan.
+            WATTLINK Plug yang masih mendapat listrik tetap di keadaan saklarnya dan tidak bisa
+            diatur dari aplikasi lagi. Atur saklarnya dulu ke keadaan yang Anda inginkan.
           </li>
           <li>Email ini boleh dipakai untuk mendaftar lagi.</li>
           <li>
@@ -183,10 +186,13 @@ export function HapusAkunPage() {
             untuk layanan pengiriman email kami.
           </li>
         </ul>
-        <p className="text-label text-text-2">
-          Hanya laporan bulanan yang bisa diunduh.{' '}
-          <TextLink to="/laporan">Unduh laporan dulu</TextLink>
-        </p>
+        {/* A report made after part of the data is gone would be incomplete, so the offer ends with the first open answer */}
+        {unsure ? null : (
+          <p className="text-label text-text-2">
+            Hanya laporan bulanan yang bisa diunduh.{' '}
+            <TextLink to="/laporan">Unduh laporan dulu</TextLink>
+          </p>
+        )}
       </Card>
       <form noValidate onSubmit={submit} className="flex flex-col gap-3">
         {session.data ? (
@@ -211,16 +217,20 @@ export function HapusAkunPage() {
         />
         {/* The call can take about 15 seconds, so the screen says so, and the region is always there for a screen reader */}
         <p aria-live="polite" className="text-body text-text-1 empty:hidden">
-          {remove.isPending ? 'Sedang menghapus. Jangan tutup halaman.' : ''}
+          {remove.isPending || done ? 'Sedang menghapus. Jangan tutup halaman.' : ''}
         </p>
         <div className="flex flex-col gap-3">
           <Button
             type="submit"
             kind="danger"
             size="lg"
-            aria-disabled={remove.isPending || waiting || undefined}
+            aria-disabled={remove.isPending || done || waiting || undefined}
           >
-            {remove.isPending ? 'Sedang menghapus' : unsure ? 'Coba lagi' : 'Ya, hapus akun'}
+            {remove.isPending || done
+              ? 'Sedang menghapus'
+              : unsure
+                ? 'Coba lagi'
+                : 'Ya, hapus akun'}
           </Button>
           <Button asChild size="lg">
             <Link to="/lainnya">{unsure ? 'Kembali ke Lainnya' : 'Batal'}</Link>

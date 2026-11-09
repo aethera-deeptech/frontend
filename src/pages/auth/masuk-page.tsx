@@ -112,7 +112,7 @@ export function MasukPage() {
     <AuthFrame title="Masuk" subtitle="Masuk untuk melihat saran penghematan usaha Anda.">
       {/* The region is always there, so the news is read out when it changes. The banner below shows the same words. */}
       <div aria-live="polite" className="sr-only">
-        {announcement}
+        {failure ? '' : announcement}
       </div>
       {notice && !failure ? (
         <div aria-hidden="true">
