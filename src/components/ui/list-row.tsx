@@ -15,6 +15,8 @@ interface ListRowProps {
   to?: string;
   // The row that is open in the detail next to the list
   selected?: boolean;
+  // The title of a row that leads to something that cannot be undone. The words say it too, the color is not the only sign.
+  tone?: 'danger';
   className?: string;
 }
 
@@ -27,12 +29,20 @@ export function ListRow({
   valueNote,
   to,
   selected = false,
+  tone,
   className,
 }: ListRowProps) {
   const content: ReactNode = (
     <>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body text-text-heading break-words">{title}</span>
+        <span
+          className={cn(
+            'text-body break-words',
+            tone === 'danger' ? 'text-text-danger' : 'text-text-heading',
+          )}
+        >
+          {title}
+        </span>
         {status || secondary ? (
           <span className="flex items-center gap-2">
             {status ? <StatusDot status={status} /> : null}

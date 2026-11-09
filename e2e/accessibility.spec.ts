@@ -33,6 +33,7 @@ const screens = [
   { name: 'WATTLINK Hub', path: '/lainnya/hub' },
   { name: 'Perangkat yang masuk', path: '/lainnya/sesi' },
   { name: 'Keluarkan semua perangkat lain', path: '/lainnya/sesi/keluarkan-semua' },
+  { name: 'Hapus akun dan usaha', path: '/lainnya/hapus-akun' },
   { name: 'Keluar', path: '/lainnya/keluar' },
   { name: 'Masuk', path: '/masuk' },
   { name: 'Daftar', path: '/daftar' },

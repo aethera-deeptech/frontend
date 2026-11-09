@@ -87,6 +87,14 @@ export const routes: RouteObject[] = [
               (module) => module.KeluarPage,
             ),
           },
+          // The question before the account is deleted has no menu either
+          {
+            path: 'lainnya/hapus-akun',
+            ...lazyPage(
+              () => import('@/pages/lainnya/hapus-akun-page'),
+              (module) => module.HapusAkunPage,
+            ),
+          },
           // The question before every other device is signed out has no menu either
           {
             path: 'lainnya/sesi/keluarkan-semua',
