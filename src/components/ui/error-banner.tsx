@@ -13,8 +13,9 @@ type ErrorBannerProps = Omit<ComponentProps<typeof Banner>, 'tone'> & {
   error: unknown;
   // A write may have been saved just before the service gave up, so its title cannot say "not saved". A read has nothing to save.
   kind?: 'read' | 'write';
-  // The title and the text of a busy write that fit a screen better than the common ones
+  // The title of a busy write that fits a screen better than the common one. A busy read keeps the title of the screen.
   busyTitle?: string;
+  // The text of a busy answer that fits a screen better than the common one, for a write and for a read
   busyMessage?: string;
   tone?: ComponentProps<typeof Banner>['tone'];
 };

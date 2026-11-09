@@ -58,6 +58,7 @@ export type ClaimFailure =
   | 'claimed-elsewhere'
   | 'too-many-gateways'
   | 'rate-limited'
+  | 'busy'
   | 'invalid-input'
   | 'offline'
   | 'other';
@@ -65,6 +66,10 @@ export type ClaimFailure =
 export function claimFailure(error: unknown): ClaimFailure {
   if (!(error instanceof ApiError)) {
     return error instanceof Error && error.name === 'NetworkError' ? 'offline' : 'other';
+  }
+  // The service ran out of time, so the claim may have been taken. A second claim then meets "claimed elsewhere".
+  if (error.busy) {
+    return 'busy';
   }
   // Only the code counts, because a 404 of a proxy or a missing route is not a wrong code
   if (error.code === 'claim_code_unknown') {

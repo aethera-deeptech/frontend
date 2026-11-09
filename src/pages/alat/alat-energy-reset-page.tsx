@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ApiError } from '@/api/client';
 import { useDevice, useResetEnergy } from '@/api/devices';
 import { Banner } from '@/components/ui/banner';
-import { ErrorBanner } from '@/components/ui/error-banner';
+import { busyReadMessage, ErrorBanner } from '@/components/ui/error-banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
@@ -32,16 +32,19 @@ export function AlatEnergyResetPage() {
     );
   }
   const gone = query.error instanceof ApiError && query.error.status === 404;
+  const busy = query.error instanceof ApiError && query.error.busy;
 
   return (
     <AuthFrame title={title} subtitle={subtitle}>
       <Banner
-        tone={gone ? 'warning' : 'danger'}
+        tone={gone || busy ? 'warning' : 'danger'}
         title={gone ? 'Alat tidak ditemukan' : 'Alat tidak bisa dimuat'}
         message={
           gone
             ? 'Alat ini sudah tidak ada. Pilih alat lain dari daftar.'
-            : 'Coba lagi. Jika tetap gagal, periksa koneksi internet Anda.'
+            : busy
+              ? busyReadMessage
+              : 'Coba lagi. Jika tetap gagal, periksa koneksi internet Anda.'
         }
         action={
           gone ? (
