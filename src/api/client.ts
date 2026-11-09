@@ -32,6 +32,23 @@ export class ApiError extends Error {
     this.fields = details.fields ?? {};
     this.pairingId = details.pairingId;
   }
+
+  // The service could not answer in time, for example while its database is slow. It says to try again in a moment, and a write
+  // may have been saved just before the time ran out.
+  get busy(): boolean {
+    return this.status === 503 && this.code === 'busy';
+  }
+}
+
+const defaultBusyWaitSeconds = 2;
+const longestBusyWaitSeconds = 10;
+
+// How long to wait before the app asks again after a busy answer. The API says how long, and an answer that asks for more than
+// a few seconds does not hold a screen for that long.
+export function busyWaitMs(error: ApiError): number {
+  const seconds = error.retryAfterSeconds ?? defaultBusyWaitSeconds;
+
+  return Math.min(seconds, longestBusyWaitSeconds) * 1000;
 }
 
 // The request never got an answer, for example because the phone has no connection
