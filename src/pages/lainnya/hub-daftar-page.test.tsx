@@ -1,7 +1,9 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { createQueryClient } from '@/api/query-client';
+import { gatewaysKey } from '@/api/gateways';
 import { renderAt, stubApi } from '@/test/stub-api';
 
 vi.mock('@/lib/env', () => ({
@@ -194,6 +196,8 @@ describe('Connecting a hub from the list', () => {
     const row = await rowOf('Hub lama');
 
     expect(row).not.toHaveTextContent('Perlu dihubungkan lagi');
+    // The time of the hub has not moved since the claim, so no batch of the new key has arrived
+    expect(row).toHaveTextContent('Menunggu data');
     expect(screen.getAllByText('Hub lama')).toHaveLength(1);
     // The news leaves the history, so the way Back or a reload does not show it again
     await waitFor(() => {
@@ -351,5 +355,144 @@ describe('State that a visit brings', () => {
 
     expect(await screen.findByLabelText('Nama WATTLINK Hub')).toHaveValue('');
     expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', '/lainnya/hub');
+  });
+});
+
+describe('The state of a hub over time', () => {
+  it('uses the limit of 15 minutes', async () => {
+    stubApi(
+      list(
+        { id: 'a', name: 'Hub empat belas', lastSeenAt: minutesAgo(14), keyRevoked: false },
+        { id: 'b', name: 'Hub enam belas', lastSeenAt: minutesAgo(16), keyRevoked: false },
+      ),
+    );
+    renderAt('/lainnya/hub');
+
+    expect(await rowOf('Hub empat belas')).toHaveTextContent('Terhubung');
+    expect(await rowOf('Hub enam belas')).toHaveTextContent('Tidak terhubung');
+  });
+
+  it('counts a time that is ahead of the clock of this device as connected', async () => {
+    stubApi(
+      list({
+        id: 'a',
+        name: 'Hub depan',
+        lastSeenAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+        keyRevoked: false,
+      }),
+    );
+    renderAt('/lainnya/hub');
+
+    expect(await rowOf('Hub depan')).toHaveTextContent('Terhubung');
+  });
+
+  it('says that a hub that was just claimed waits for its first data, and calls it connected once its time moves', async () => {
+    const claimedAt = minutesAgo(0);
+    let reads = 0;
+
+    stubApi({
+      'GET /v1/gateways': () => {
+        reads += 1;
+        return {
+          body: {
+            items:
+              reads === 1
+                ? [working]
+                : [
+                    working,
+                    { id: 'g8', name: 'Hub kantor', lastSeenAt: minutesAgo(1), keyRevoked: false },
+                  ],
+          },
+        };
+      },
+      'POST /v1/gateways': {
+        status: 201,
+        body: { id: 'g8', name: 'Hub kantor', lastSeenAt: claimedAt, keyRevoked: false },
+      },
+    });
+    const client = createQueryClient();
+
+    renderAt('/lainnya/hub', undefined, { client });
+    await userEvent.click(await screen.findByRole('link', { name: 'Hubungkan WATTLINK Hub' }));
+    await userEvent.type(await screen.findByLabelText('Kode di layar WATTLINK Hub'), 'K7M2Q9XA');
+    await userEvent.type(screen.getByLabelText('Nama WATTLINK Hub'), 'Hub kantor');
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    const row = await rowOf('Hub kantor');
+
+    expect(row).toHaveTextContent('Menunggu data');
+    expect(row).toHaveTextContent('Data pertama belum masuk');
+    expect(row).not.toHaveTextContent('Data terakhir masuk');
+
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: gatewaysKey });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Hub kantor').closest('li')).toHaveTextContent('Terhubung');
+    });
+    expect(screen.getByText('Hub kantor').closest('li')).not.toHaveTextContent('Menunggu data');
+  });
+
+  it('keeps the rows and shows the error above them when a new read fails', async () => {
+    let reads = 0;
+
+    stubApi({
+      'GET /v1/gateways': () => {
+        reads += 1;
+        return reads === 1 ? { body: { items: [working] } } : { status: 500, body: {} };
+      },
+    });
+    const client = createQueryClient();
+
+    renderAt('/lainnya/hub', undefined, { client });
+    await rowOf('Hub pabrik');
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: gatewaysKey });
+    });
+
+    expect(await screen.findByText('Daftar WATTLINK Hub tidak bisa dimuat')).toBeVisible();
+    expect(await rowOf('Hub pabrik')).toBeVisible();
+  });
+});
+
+describe('Connecting a hub that the list already had', () => {
+  it('says that it is connected again, also when the owner came from the link under the list', async () => {
+    stubApi({
+      ...list(working, cut),
+      'POST /v1/gateways': {
+        status: 201,
+        body: { id: 'g3', name: 'Hub lama', lastSeenAt: cut.lastSeenAt, keyRevoked: false },
+      },
+    });
+    renderAt('/lainnya/hub');
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Hubungkan WATTLINK Hub' }));
+    await userEvent.type(await screen.findByLabelText('Kode di layar WATTLINK Hub'), 'K7M2Q9XA');
+    await userEvent.type(screen.getByLabelText('Nama WATTLINK Hub'), 'Hub lama');
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    expect(await screen.findByText('WATTLINK Hub terhubung lagi')).toBeVisible();
+    expect(screen.queryByText('WATTLINK Hub dihubungkan')).not.toBeInTheDocument();
+  });
+
+  it('does not call the hub new when the owner came from a cut hub and typed the code of a hub that was on the list', async () => {
+    stubApi({
+      ...list(working, cut),
+      'POST /v1/gateways': {
+        status: 201,
+        body: { id: 'g1', name: 'Hub pabrik', lastSeenAt: working.lastSeenAt, keyRevoked: false },
+      },
+    });
+    renderAt('/lainnya/hub');
+
+    await userEvent.click(
+      within(await rowOf('Hub lama')).getByRole('link', { name: 'Hubungkan lagi Hub lama' }),
+    );
+    await userEvent.type(await screen.findByLabelText('Kode di layar WATTLINK Hub'), 'K7M2Q9XA');
+    await userEvent.click(screen.getByRole('button', { name: 'Hubungkan' }));
+
+    expect(await screen.findByText('WATTLINK Hub terhubung lagi')).toBeVisible();
+    expect(screen.queryByText('Ini WATTLINK Hub baru')).not.toBeInTheDocument();
   });
 });
