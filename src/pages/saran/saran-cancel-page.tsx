@@ -54,6 +54,8 @@ export function SaranCancelPage() {
         <ErrorBanner
           error={decision.error}
           kind="write"
+          busyTitle="Belum pasti dibatalkan"
+          busyMessage="Sistem sedang sibuk. Catatan mungkin sudah dibatalkan. Periksa dulu, lalu coba lagi jika perlu."
           title="Catatan belum dibatalkan"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

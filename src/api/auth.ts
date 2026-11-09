@@ -191,7 +191,8 @@ export function authFailure(error: unknown): AuthFailure {
     // A network error and a contract error both mean that the screen cannot tell what happened
     return error instanceof Error && error.name === 'NetworkError' ? 'offline' : 'other';
   }
-  // The password check has no free slot, or the service ran out of time. Nothing was decided about the sign in.
+  // The password check has no free slot, or the service ran out of time. A sign in decides nothing in that case, but a call that
+  // writes may have been saved, which the screen of that call says with the write flag of FailureBanner.
   if (error.busy) {
     return 'busy';
   }

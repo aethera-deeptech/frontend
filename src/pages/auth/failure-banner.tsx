@@ -18,11 +18,18 @@ interface FailureBannerProps {
   retryAfterSeconds?: number;
   // A button for the failures that a retry can fix
   action?: ReactNode;
+  // The call changes data (a new account, a new password, a room), so a busy answer may come after it was saved
+  write?: boolean;
 }
 
 // The answer to a call that failed for a reason that no screen has a text of its own for. The texts do not say which emails
 // have an account, because the API does not.
-export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBannerProps) {
+export function FailureBanner({
+  failure,
+  retryAfterSeconds,
+  action,
+  write = false,
+}: FailureBannerProps) {
   switch (failure) {
     case 'offline':
       return (
@@ -43,7 +50,15 @@ export function FailureBanner({ failure, retryAfterSeconds, action }: FailureBan
         />
       );
     case 'busy':
-      return (
+      // A write may have been taken just before the service gave up, and a second send then meets "already done"
+      return write ? (
+        <Banner
+          tone="warning"
+          title="Belum pasti berhasil"
+          message="Sistem sedang sibuk. Isian Anda mungkin sudah diterima. Periksa dulu, lalu coba lagi jika perlu."
+          action={action}
+        />
+      ) : (
         <Banner
           tone="warning"
           title="Sistem sedang sibuk"

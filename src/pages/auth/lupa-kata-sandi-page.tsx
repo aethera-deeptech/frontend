@@ -71,6 +71,7 @@ export function LupaKataSandiPage() {
     >
       {failure ? (
         <FailureBanner
+          write
           failure={failure}
           retryAfterSeconds={
             forgot.error instanceof ApiError ? forgot.error.retryAfterSeconds : undefined

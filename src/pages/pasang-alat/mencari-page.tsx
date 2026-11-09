@@ -107,6 +107,9 @@ export function MencariPage() {
       ) : start.isError ? (
         <ErrorBanner
           error={start.error}
+          kind="write"
+          busyTitle="Belum pasti dimulai"
+          busyMessage="Sistem sedang sibuk. Pencarian mungkin sudah dimulai. Coba lagi dalam beberapa detik."
           title="Pencarian belum bisa dimulai"
           message="Coba lagi. Jika tetap gagal, periksa koneksi internet Anda."
         />

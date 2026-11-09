@@ -185,6 +185,12 @@ function ScheduleForm({
         <ErrorBanner
           error={failure}
           kind="write"
+          busyTitle={remove.isError ? 'Belum pasti dihapus' : undefined}
+          busyMessage={
+            remove.isError
+              ? 'Sistem sedang sibuk. Jadwal mungkin sudah dihapus. Periksa dulu, lalu coba lagi jika perlu.'
+              : undefined
+          }
           title={
             lostSwitch
               ? 'Alat ini tidak punya saklar'
