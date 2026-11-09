@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/aethera-deeptech/frontend/compare/v0.11.0...v0.12.0) (2026-11-09)
+
+
+### Features
+
+* **api:** end every other session of the account ([32a05e8](https://github.com/aethera-deeptech/frontend/commit/32a05e8840b00c5d9c18fac12b1fb1d76e66defd))
+* **lainnya:** add the question before every other device is signed out ([67fd65d](https://github.com/aethera-deeptech/frontend/commit/67fd65d5f4994e1e79bbed902b88c38e6b6a80e9))
+* **lainnya:** end every other signed in device ([#104](https://github.com/aethera-deeptech/frontend/issues/104)) ([1fd6434](https://github.com/aethera-deeptech/frontend/commit/1fd64340cd287a8bcd908cd0b201b5d7730b30bc))
+
+
+### Bug Fixes
+
+* **lainnya:** keep the result when the user leaves mid-call and hedge a 5xx answer ([6d5f81e](https://github.com/aethera-deeptech/frontend/commit/6d5f81e5bcc52c6a1cda7b046a2797cfa4aedb21))
+
 ## [0.11.0](https://github.com/aethera-deeptech/frontend/compare/v0.10.0...v0.11.0) (2026-11-09)
 
 
