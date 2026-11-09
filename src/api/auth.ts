@@ -172,6 +172,46 @@ export function useLogout() {
   });
 }
 
+// Deletes the account and the business with everything under it. The API deletes the readings in steps before it deletes the
+// business, so an answer that is not a 204 or a definite refusal does not say that nothing was deleted. The call has an auth key
+// so that a 401 and a busy answer are not handled by the rules for the data calls. The screen reads both itself.
+export function useDeleteAccount() {
+  return useMutation({
+    mutationKey: [...authMutationKey, 'delete-account'],
+    mutationFn: (password: string) =>
+      apiRequest('/v1/account', z.null(), { method: 'DELETE', body: { password } }),
+    meta: { skipReread: true },
+    gcTime: 0,
+  });
+}
+
+// What a failed deletion means for the screen. The first four are certain. For the last three the account may be gone or
+// partly emptied, so the screen says that it is not sure.
+export type DeleteFailure =
+  'wrong-password' | 'rate-limited' | 'refused' | 'no-session' | 'busy' | 'offline' | 'server';
+
+export function deleteFailure(error: unknown): DeleteFailure {
+  if (!(error instanceof ApiError)) {
+    // A lost connection and an answer of a shape that the contract does not know both leave the outcome open
+    return error instanceof Error && error.name === 'NetworkError' ? 'offline' : 'server';
+  }
+  if (error.busy) {
+    return 'busy';
+  }
+  // The API answers 403 on purpose, because the session is still valid. Another 403 is a request that the API did not accept.
+  if (error.status === 403 && error.code === 'invalid_credentials') {
+    return 'wrong-password';
+  }
+  if (error.status === 429) {
+    return 'rate-limited';
+  }
+  // No session, which is what a finished deletion causes and also a session that ended. It is not a wrong password.
+  if (error.status === 401) {
+    return 'no-session';
+  }
+  return error.status >= 500 ? 'server' : 'refused';
+}
+
 // What a failed call means for the screen. The code is the contract, the status is the fallback.
 export type AuthFailure =
   | 'invalid-credentials'
