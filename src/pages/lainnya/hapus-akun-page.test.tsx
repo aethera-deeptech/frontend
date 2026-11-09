@@ -156,7 +156,8 @@ describe('Hapus akun, a clear yes', () => {
     await press();
     await press('Sedang menghapus');
 
-    expect(await screen.findByText('Sedang menghapus. Jangan tutup halaman.')).toBeVisible();
+    // The visible line and the words for a screen reader both carry the sentence
+    expect((await screen.findAllByText('Sedang menghapus. Jangan tutup halaman.')).length).toBe(2);
     expect(deletes(fetchMock as unknown as ReturnType<typeof stubApi>)).toHaveLength(1);
     answer(new Response(null, { status: 204 }));
   });

@@ -218,7 +218,10 @@ describe('Connecting a hub from the list', () => {
     await connectAgain('Hub baru');
 
     expect(await screen.findByText('Ini WATTLINK Hub baru')).toBeVisible();
-    expect(screen.getByText(/WATTLINK Hub yang tadi masih perlu dihubungkan lagi/)).toBeVisible();
+    // The banner and the words for a screen reader both carry the sentence
+    expect(
+      screen.getAllByText(/WATTLINK Hub yang tadi masih perlu dihubungkan lagi/).length,
+    ).toBeGreaterThan(0);
     // The cut hub stays cut next to the new one
     expect(await rowOf('Hub lama')).toHaveTextContent('Perlu dihubungkan lagi');
     expect(await rowOf('Hub baru')).toBeVisible();
