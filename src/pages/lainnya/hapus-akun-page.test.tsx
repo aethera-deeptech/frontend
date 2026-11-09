@@ -11,6 +11,8 @@ afterEach(() => {
 });
 
 const del = 'DELETE /v1/account';
+const wrongPasswordText =
+  'Kata sandi salah. Periksa lalu coba lagi. Sampai 5 percobaan per jam, termasuk yang gagal.';
 
 function deletes(fetchMock: ReturnType<typeof stubApi>) {
   return fetchMock.mock.calls.filter(
@@ -75,7 +77,7 @@ describe('Hapus akun, the entry and the page', () => {
     expect(screen.getByText(/Riwayat listrik, anomali, saran, dan catatan produksi/)).toBeVisible();
     expect(screen.getByText('WATTLINK Hub tidak bisa mengirim data lagi.')).toBeVisible();
     expect(
-      screen.getByText(/WATTLINK Plug yang masih menyala tetap di keadaan saklarnya/),
+      screen.getByText(/WATTLINK Plug yang masih mendapat listrik tetap di keadaan saklarnya/),
     ).toBeVisible();
     expect(screen.getByText(/Salinan di cadangan dan catatan sistem, jika ada/)).toBeVisible();
   });
@@ -205,7 +207,7 @@ describe('Hapus akun, a clear no', () => {
     await typePassword('salah');
     await press();
 
-    expect(await screen.findByText('Kata sandi salah. Periksa lalu coba lagi.')).toBeVisible();
+    expect(await screen.findByText(wrongPasswordText)).toBeVisible();
     const field = screen.getByLabelText('Kata sandi Anda');
 
     expect(field).toHaveValue('');
@@ -218,7 +220,7 @@ describe('Hapus akun, a clear no', () => {
     ).toHaveLength(0);
     // The text goes away when the user types again
     await typePassword('x');
-    expect(screen.queryByText('Kata sandi salah. Periksa lalu coba lagi.')).not.toBeInTheDocument();
+    expect(screen.queryByText(wrongPasswordText)).not.toBeInTheDocument();
   });
 
   it.each([
@@ -392,7 +394,7 @@ describe('Hapus akun, an open answer', () => {
     expect(await screen.findByText('Terlalu banyak percobaan')).toBeVisible();
     expect(
       screen.getByText(
-        'Penghapusan mungkin sebagian berjalan. Coba lagi setelah hitungan selesai.',
+        /Penghapusan mungkin sebagian berjalan\. Coba lagi setelah hitungan selesai\./,
       ),
     ).toBeVisible();
   });
@@ -415,8 +417,105 @@ describe('Hapus akun, an open answer', () => {
     await screen.findByText('Belum pasti dihapus');
     await press('Coba lagi');
 
-    expect(await screen.findByText('Kata sandi salah. Periksa lalu coba lagi.')).toBeVisible();
+    expect(await screen.findByText(wrongPasswordText)).toBeVisible();
     expect(screen.getByRole('link', { name: 'Kembali ke Lainnya' })).toBeVisible();
+  });
+});
+
+describe('Hapus akun, what an open answer leaves behind', () => {
+  async function openThen(answer: { status: number; body?: unknown }) {
+    let calls = 0;
+
+    stubApi({
+      [del]: () => {
+        calls += 1;
+        return calls === 1 ? { status: 503, body: { code: 'busy' } } : answer;
+      },
+    });
+    const router = renderAt('/lainnya/hapus-akun');
+
+    await typePassword();
+    await press();
+    await screen.findByText('Belum pasti dihapus');
+    await press('Coba lagi');
+    return router;
+  }
+
+  const warning =
+    'Jika Anda keluar sekarang, sebagian data mungkin sudah terhapus. Ulangi sampai selesai.';
+
+  it('keeps the warning and the limit after a later wrong password', async () => {
+    await openThen({ status: 403, body: { code: 'invalid_credentials' } });
+
+    expect(await screen.findByText(wrongPasswordText)).toBeVisible();
+    expect(screen.getByText(warning)).toBeVisible();
+  });
+
+  it('does not say that nothing was deleted after a later refusal', async () => {
+    await openThen({ status: 422, body: { code: 'validation_failed' } });
+
+    expect(await screen.findByText('Belum berhasil')).toBeVisible();
+    expect(screen.queryByText('Akun belum dihapus')).not.toBeInTheDocument();
+    expect(screen.getByText(warning)).toBeVisible();
+  });
+
+  it('keeps the warning after a 429 and adds the line about the wait', async () => {
+    await openThen({ status: 429, body: { code: 'rate_limited', retryAfterSeconds: 60 } });
+
+    expect(
+      await screen.findByText(
+        /Penghapusan mungkin sebagian berjalan\. Coba lagi setelah hitungan selesai\./,
+      ),
+    ).toBeVisible();
+    expect(screen.getByText(new RegExp(warning.replaceAll('.', '\\.')))).toBeVisible();
+  });
+
+  it('takes the offer of a report away, because it would be incomplete', async () => {
+    stubApi({});
+    renderAt('/lainnya/hapus-akun');
+    expect(screen.getByRole('link', { name: 'Unduh laporan dulu' })).toBeVisible();
+
+    await typePassword();
+    await press();
+    await screen.findByText('Belum pasti dihapus');
+
+    expect(screen.queryByRole('link', { name: 'Unduh laporan dulu' })).not.toBeInTheDocument();
+  });
+
+  it('lets the user leave after an open answer', async () => {
+    stubApi({ [del]: { status: 503, body: { code: 'busy' } } });
+    const router = renderAt('/lainnya/hapus-akun');
+
+    await typePassword();
+    await press();
+    await screen.findByText('Belum pasti dihapus');
+    await userEvent.click(screen.getByRole('link', { name: 'Kembali ke Lainnya' }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/lainnya');
+    });
+  });
+
+  it('counts a 408 from a proxy as open and not as a refusal', async () => {
+    stubApi({ [del]: { status: 408, body: {} } });
+    renderAt('/lainnya/hapus-akun');
+
+    await typePassword();
+    await press();
+
+    expect(await screen.findByText('Belum pasti dihapus')).toBeVisible();
+    expect(screen.queryByText('Akun belum dihapus')).not.toBeInTheDocument();
+  });
+
+  it('waits 60 seconds when a 429 does not say how long', async () => {
+    stubApi({ [del]: { status: 429, body: { code: 'rate_limited' } } });
+    renderAt('/lainnya/hapus-akun');
+
+    await typePassword();
+    await press();
+
+    expect(await screen.findByText('Terlalu banyak percobaan')).toBeVisible();
+    expect(screen.getByText('Coba lagi dalam 60 detik.')).toBeVisible();
   });
 });
 
@@ -438,7 +537,7 @@ describe('Hapus akun, a session that ended', () => {
 
 describe('Masuk, the news of another screen', () => {
   it('shows the news once and keeps the address that the guard remembered', async () => {
-    stubApi({}, undefined);
+    stubApi({});
     const router = renderAt('/masuk', { notice: 'deleted', from: '/alat' }, { session: false });
 
     expect(await screen.findByText('Akun sudah dihapus')).toBeVisible();
@@ -468,5 +567,29 @@ describe('Masuk, the news of another screen', () => {
     expect(await screen.findByText('Tidak bisa masuk')).toBeVisible();
     expect(screen.queryByText('Anda sudah keluar')).not.toBeInTheDocument();
     expect(within(document.body).queryAllByRole('alert').length).toBeGreaterThan(0);
+  });
+});
+
+describe('Masuk, the words for a screen reader', () => {
+  // The frame has a live region of its own, so the words are read from all of them
+  const announced = () =>
+    Array.from(document.querySelectorAll('[aria-live="polite"]'))
+      .map((region) => region.textContent)
+      .join(' ')
+      .trim();
+
+  it('drops the news from the live region when a sign in fails', async () => {
+    stubApi({ 'POST /v1/auth/login': { status: 401, body: { code: 'invalid_credentials' } } });
+    renderAt('/masuk', { notice: 'maybe-deleted' }, { session: false });
+
+    await waitFor(() => {
+      expect(announced()).toContain('Anda sudah keluar');
+    });
+    await userEvent.type(screen.getByLabelText('Email'), 'dewi@example.com');
+    await userEvent.type(screen.getByLabelText('Kata sandi'), 'rahasia123');
+    await userEvent.click(screen.getByRole('button', { name: 'Masuk' }));
+    await screen.findByText('Tidak bisa masuk');
+
+    expect(announced()).not.toContain('Anda sudah keluar');
   });
 });

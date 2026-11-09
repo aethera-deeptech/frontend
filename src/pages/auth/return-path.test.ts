@@ -22,6 +22,7 @@ describe('returnPath', () => {
     ['the page of the email link', '/verify-email'],
     ['the question before the sign out', '/lainnya/keluar'],
     ['the question before the account is deleted', '/lainnya/hapus-akun'],
+    ['the same question in capital letters, which the router also matches', '/LAINNYA/HAPUS-AKUN'],
     ['the question before every other device is signed out', '/lainnya/sesi/keluarkan-semua'],
     ['the page to ask for a reset link', '/lupa-kata-sandi'],
     ['the page of the reset link', '/reset-password?token=x'],
