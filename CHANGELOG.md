@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/aethera-deeptech/frontend/compare/v0.9.0...v0.10.0) (2026-11-09)
+
+
+### Features
+
+* **api:** handle a busy service on every screen ([#99](https://github.com/aethera-deeptech/frontend/issues/99)) ([c45fb69](https://github.com/aethera-deeptech/frontend/commit/c45fb69369a90d2889dfe29bfee9e2ed2f199d18))
+* **api:** wait as asked and read again after a busy answer ([736f3e3](https://github.com/aethera-deeptech/frontend/commit/736f3e383ae0188ada173fb6f555628a0eeef452))
+* **pages:** say that the system is busy and not that the connection failed ([ae48499](https://github.com/aethera-deeptech/frontend/commit/ae48499a1e3ff5f7c39b5be4e5fec976f6a7b0d4))
+* **ui:** add an error banner that knows a busy service ([669e60a](https://github.com/aethera-deeptech/frontend/commit/669e60ab27f697fa29990a2a3a15a44c841f347e))
+
+
+### Bug Fixes
+
+* **pages:** hedge a busy answer for the calls that write data ([0bca3cf](https://github.com/aethera-deeptech/frontend/commit/0bca3cffa8c6e16879c05e75774b90c4b6787eed))
+* **pages:** show the busy text for a hub claim, a resend and a device that loads ([35de105](https://github.com/aethera-deeptech/frontend/commit/35de105ecc54682aa28bedf4c0ba164e3f95767c))
+
 ## [0.9.0](https://github.com/aethera-deeptech/frontend/compare/v0.8.0...v0.9.0) (2026-11-08)
 
 
