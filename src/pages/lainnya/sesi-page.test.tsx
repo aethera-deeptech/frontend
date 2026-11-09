@@ -294,6 +294,34 @@ describe('Perangkat yang masuk ke akun', () => {
     expect(screen.getByRole('button', { name: /Keluarkan Safari on iPhone/ })).toBeVisible();
   });
 
+  it('shows the error and not the old list when the list cannot be read again after a device was ended', async () => {
+    let reads = 0;
+    stubApi({
+      'GET /v1/auth/sessions': () => {
+        reads += 1;
+        return reads === 1 ? list(current, phone) : reads === 2 ? { status: 500 } : list(current);
+      },
+      [deletePath(phone.id)]: { status: 204 },
+    });
+    renderAt('/lainnya/sesi');
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Keluarkan Safari on iPhone/ }),
+    );
+
+    expect(await screen.findByText('Daftar perangkat tidak bisa dimuat')).toBeVisible();
+    // The old list would still show a working button for a device that is gone
+    expect(
+      screen.queryByRole('button', { name: /Keluarkan Safari on iPhone/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Safari on iPhone')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Coba lagi' }));
+
+    expect(await screen.findByText('Chrome on Windows')).toBeVisible();
+    expect(screen.getByText('Tidak ada perangkat lain yang masuk ke akun ini.')).toBeVisible();
+  });
+
   it('says that the list is loading, and that it could not be loaded, and tries again on request', async () => {
     let reads = 0;
     stubApi({
