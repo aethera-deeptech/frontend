@@ -112,24 +112,32 @@ describe('ProduksiPage', () => {
     expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('120');
   });
 
-  it('reads the records again and does not say that the save failed when the service was busy', async () => {
+  it('reads the records again and keeps the number that was typed when the service was busy', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(json(sampleProduction()))
       .mockResolvedValueOnce(json({ code: 'busy', message: 'No', retryAfterSeconds: 2 }, 503))
-      // The save went through just before the time ran out, so the read after it has the new number
-      .mockResolvedValueOnce(json(sampleProduction()));
+      // The newest record changed on the service, so a read that overwrote the typed number would show 125
+      .mockResolvedValueOnce(
+        json(
+          sampleProduction({
+            recent: [{ date: '2026-10-28', quantity: 125 }, ...sampleProduction().recent.slice(1)],
+          }),
+        ),
+      );
     vi.stubGlobal('fetch', fetchMock);
     renderPage({ realClient: true });
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Simpan' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Tambah' }));
+    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('121');
+    await userEvent.click(screen.getByRole('button', { name: 'Simpan' }));
 
     expect(await screen.findByText('Belum pasti tersimpan')).toBeInTheDocument();
     expect(screen.queryByText('Catatan belum tersimpan')).not.toBeInTheDocument();
     expect(
       screen.getByText(/Sistem sedang sibuk\. Angka Anda masih di layar\./),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('120');
+    expect(screen.getByRole('textbox', { name: 'Angka' })).toHaveValue('121');
     // The two reads of the records, and the one save between them
     const methods = fetchMock.mock.calls.map(
       ([, init]) => (init as RequestInit | undefined)?.method ?? 'GET',
