@@ -1,4 +1,4 @@
-import { QueryObserver } from '@tanstack/react-query';
+import { MutationObserver, QueryObserver } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, ContractError, NetworkError } from '@/api/client';
@@ -210,15 +210,62 @@ describe('a write that fails with a busy answer', () => {
 
   it('reads the screen again before the write shows its failure', async () => {
     const client = createQueryClient();
-    const { reads, stop } = watch(client);
-    await vi.waitFor(() => {
-      expect(reads.count).toBe(1);
+    let value = 'old';
+    const observer = new QueryObserver(client, {
+      queryKey: ['production'],
+      // The service is slow, so the read ends a moment after the write failed
+      queryFn: () =>
+        new Promise<string>((resolve) => {
+          const answer = value;
+          setTimeout(() => {
+            resolve(answer);
+          }, 30);
+        }),
     });
+    const stop = observer.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(client.getQueryData(['production'])).toBe('old');
+    });
+    // The write was saved just before it gave up, so the read after it brings the new value
+    value = 'saved';
 
     await write(client);
 
-    // The count is read the moment the failure is shown, so the read came first
-    expect(reads.count).toBe(2);
+    // The failure is shown only when the read has ended, so the screen already has the new value
+    expect(client.getQueryData(['production'])).toBe('saved');
+    stop();
+  });
+
+  it('lets the callback of the screen run after the read, with the error', async () => {
+    const client = createQueryClient();
+    let value = 'old';
+    const observer = new QueryObserver(client, {
+      queryKey: ['production'],
+      queryFn: () => Promise.resolve(value),
+    });
+    const stop = observer.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(client.getQueryData(['production'])).toBe('old');
+    });
+    value = 'saved';
+    const seen: { error: unknown; data: unknown }[] = [];
+
+    // The callbacks of a call only run while something listens to the mutation, as a screen does
+    const mutation = new MutationObserver(client, { mutationFn: () => Promise.reject(busy()) });
+    const stopMutation = mutation.subscribe(() => undefined);
+
+    await mutation
+      .mutate(undefined, {
+        onError: (error) => {
+          seen.push({ error, data: client.getQueryData(['production']) });
+        },
+      })
+      .catch(() => undefined);
+    stopMutation();
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.error).toBeInstanceOf(ApiError);
+    expect(seen[0]?.data).toBe('saved');
     stop();
   });
 

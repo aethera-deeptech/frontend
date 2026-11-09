@@ -14,6 +14,14 @@ describe('authFailure', () => {
 });
 
 describe('FailureBanner', () => {
+  it('does not say that nothing happened when a call that writes was busy', () => {
+    render(<FailureBanner failure="busy" write />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Belum pasti berhasil');
+    expect(screen.getByRole('status')).toHaveTextContent('mungkin sudah diterima');
+    expect(screen.queryByText('Sistem sedang sibuk')).not.toBeInTheDocument();
+  });
+
   it('says that the system is busy, as a warning, and shows the retry button it is given', () => {
     render(<FailureBanner failure="busy" action={<button type="button">Coba lagi</button>} />);
 
