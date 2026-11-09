@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -159,8 +159,11 @@ describe('the question before every other device is signed out', () => {
     expect(await screen.findByText('2 perangkat sudah keluar dari akun ini.')).toBeVisible();
   });
 
-  it('says that nothing changed when the service refuses, and offers the list and a new try', async () => {
-    stubApi({ 'GET /v1/auth/sessions': list(current, phone), [revokePath]: { status: 500 } });
+  it('says that nothing changed when the service refuses the call, and offers the list and a new try', async () => {
+    stubApi({
+      'GET /v1/auth/sessions': list(current, phone),
+      [revokePath]: { status: 403, body: { code: 'origin_not_allowed', message: 'No' } },
+    });
     renderAt('/lainnya/sesi/keluarkan-semua');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ya, keluarkan semuanya' }));
@@ -171,6 +174,66 @@ describe('the question before every other device is signed out', () => {
       'href',
       '/lainnya/sesi',
     );
+  });
+
+  it('does not say that nothing changed on a 500, because a server error can hide a call that went through', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current, phone), [revokePath]: { status: 500 } });
+    renderAt('/lainnya/sesi/keluarkan-semua');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, keluarkan semuanya' }));
+
+    expect(await screen.findByText('Belum pasti dikeluarkan')).toBeVisible();
+    expect(screen.queryByText('Perangkat lain belum dikeluarkan')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Lihat daftar perangkat' })).toBeVisible();
+  });
+
+  it('does not say that nothing changed when the answer has the wrong shape', async () => {
+    stubApi({
+      'GET /v1/auth/sessions': list(current, phone),
+      [revokePath]: { body: { ended: 'many' } },
+    });
+    const router = renderAt('/lainnya/sesi/keluarkan-semua');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, keluarkan semuanya' }));
+
+    expect(await screen.findByText('Belum pasti dikeluarkan')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/lainnya/sesi/keluarkan-semua');
+  });
+
+  it('sends one call for two presses in the same moment', async () => {
+    const fetchMock = stubApi({ 'GET /v1/auth/sessions': list(current, phone, tablet) });
+    holdRevoke(fetchMock);
+    renderAt('/lainnya/sesi/keluarkan-semua');
+
+    const button = await screen.findByRole('button', { name: 'Ya, keluarkan semuanya' });
+    // Both presses come before the screen has heard that the first call runs
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    await screen.findByRole('button', { name: 'Sedang mengeluarkan' });
+    expect(posts(fetchMock)).toHaveLength(1);
+  });
+
+  it('does not move a user who left while the call ran', async () => {
+    const fetchMock = stubApi({ 'GET /v1/auth/sessions': list(current, phone, tablet) });
+    const held = holdRevoke(fetchMock);
+    const router = renderAt('/lainnya');
+
+    await userEvent.click(
+      await screen.findByRole('link', { name: /Perangkat yang masuk ke akun/ }),
+    );
+    await userEvent.click(
+      await screen.findByRole('link', { name: 'Keluarkan semua perangkat lain' }),
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Ya, keluarkan semuanya' }));
+    await screen.findByRole('button', { name: 'Sedang mengeluarkan' });
+
+    // The user goes back to the menu while the service has not answered
+    await act(() => router.navigate('/lainnya'));
+    held.finish?.({ ended: 2 });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(router.state.location.pathname).toBe('/lainnya');
   });
 
   it('does not say that nothing changed when the answer is lost, because the call may have gone through', async () => {

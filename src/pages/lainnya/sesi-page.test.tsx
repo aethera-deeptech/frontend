@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -165,6 +165,23 @@ describe('Perangkat yang masuk ke akun', () => {
       expect(router.state.location.state).toBeNull();
     });
     expect(screen.getByText('Perangkat lain dikeluarkan').closest('[tabindex="-1"]')).toHaveFocus();
+  });
+
+  it('shows the result when it comes to a list that is already open, for example after Back', async () => {
+    stubApi({ 'GET /v1/auth/sessions': list(current) });
+    const router = renderAt('/lainnya/sesi');
+    await screen.findByText('Chrome on Windows');
+    expect(screen.queryByText('Perangkat lain dikeluarkan')).not.toBeInTheDocument();
+
+    await act(() =>
+      router.navigate('/lainnya/sesi', { replace: true, state: { revoked: { ended: 2 } } }),
+    );
+
+    expect(await screen.findByText('Perangkat lain dikeluarkan')).toBeVisible();
+    expect(screen.getByText('2 perangkat sudah keluar dari akun ini.')).toBeVisible();
+    await waitFor(() => {
+      expect(router.state.location.state).toBeNull();
+    });
   });
 
   it('ignores a state that is not a result of the question', async () => {
