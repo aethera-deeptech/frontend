@@ -1,8 +1,10 @@
-import { Navigate, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 
 import { useGateways } from '@/api/gateways';
 import type { DeviceKind } from '@/api/pairing';
 import { ChevronRightIcon } from '@/components/icons/chevron-right-icon';
+import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 import { useWizard } from '@/pages/pasang-alat/wizard-context';
@@ -36,12 +38,45 @@ export function PilihJenisPage() {
     return <Navigate to={`${addPath}/hub`} replace />;
   }
 
+  const hubs = gateways.data?.items ?? [];
+  const cut = hubs.filter((hub) => hub.keyRevoked).length;
+
+  // Every hub is cut, so a search would run for minutes and find nothing. The backend does not stop it, so the step does.
+  if (hubs.length > 0 && cut === hubs.length) {
+    return (
+      <StepFrame title="Tambah alat" subtitle="WATTLINK Hub yang mencari alat baru." backTo="/alat">
+        <Banner
+          tone="warning"
+          title="WATTLINK Hub perlu dihubungkan lagi"
+          message="Semua WATTLINK Hub Anda tidak mengirim data. Alat baru hanya bisa dicari setelah ada WATTLINK Hub yang terhubung."
+          action={
+            <Button asChild kind="accent" size="lg" className="self-start">
+              <Link to={`${addPath}/hub`}>Hubungkan WATTLINK Hub</Link>
+            </Button>
+          }
+        />
+      </StepFrame>
+    );
+  }
+
   return (
     <StepFrame
       title="Tambah alat"
       subtitle="Pilih jenis alat yang akan Anda pasang."
       backTo="/alat"
     >
+      {cut > 0 ? (
+        <Banner
+          tone="warning"
+          title="Ada WATTLINK Hub yang perlu dihubungkan lagi"
+          message="Alat yang hanya terjangkau hub itu tidak akan ditemukan."
+          action={
+            <Button asChild size="lg" className="self-start">
+              <Link to="/lainnya/hub">Lihat WATTLINK Hub</Link>
+            </Button>
+          }
+        />
+      ) : null}
       <ul className="flex flex-col gap-3">
         {choices.map((choice) => (
           <li key={choice.kind}>

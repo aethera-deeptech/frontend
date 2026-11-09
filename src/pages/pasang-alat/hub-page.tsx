@@ -1,5 +1,5 @@
 import { useRef, useState, type SubmitEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import {
   claimCodePattern,
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { FailureBanner } from '@/pages/auth/failure-banner';
 import { useCountdown } from '@/pages/auth/use-countdown';
+import { hubListPath, readHubOrigin } from '@/pages/pasang-alat/hub-origin';
 import { addPath, StepFrame } from '@/pages/pasang-alat/step-frame';
 
 const codeHelper = 'Huruf besar dan angka 2 sampai 9. Kode berlaku 10 menit.';
@@ -40,12 +41,15 @@ function checkName(value: string): string | undefined {
     : undefined;
 }
 
-// The first step when the business has no hub yet. A new hub shows a code on its display, and the owner types it here.
+// The first step when the business has no hub yet. A new hub shows a code on its display, and the owner types it here. The list of
+// hubs opens the same page for a hub that has to be connected again, and then the page leads back to the list.
 export function HubPage() {
   const navigate = useNavigate();
+  const origin = readHubOrigin(useLocation().state);
   const claim = useClaimGateway();
   const [code, setCode] = useState('');
-  const [name, setName] = useState('');
+  // The name of a claim replaces the old one, so a hub that is connected again starts with the name that it has
+  const [name, setName] = useState(origin?.hubName ?? '');
   const [tried, setTried] = useState(false);
   // The time when the button works again after the API said to wait, and 0 when it did not
   const [readyAt, setReadyAt] = useState(0);
@@ -79,9 +83,20 @@ export function HubPage() {
     claim.mutate(
       { claimCode: normalizeClaimCode(code), name: name.trim() },
       {
-        onSuccess: () => {
+        onSuccess: (gateway) => {
           // The step leaves the history, so Back from the choice does not open an empty claim form
-          void navigate(addPath, { replace: true });
+          if (!origin) {
+            void navigate(addPath, { replace: true });
+            return;
+          }
+          // The backend picks the hub from the code. A code of another hub makes a new hub, and the cut one stays cut.
+          const kind =
+            origin.hubId === undefined ? 'new' : origin.hubId === gateway.id ? 'again' : 'other';
+
+          void navigate(hubListPath, {
+            replace: true,
+            state: { claimed: { name: gateway.name, kind } },
+          });
         },
         onError: (error) => {
           if (error instanceof ApiError && error.status === 429) {
@@ -96,7 +111,7 @@ export function HubPage() {
     <StepFrame
       title="Hubungkan WATTLINK Hub"
       subtitle="Nyalakan WATTLINK Hub. Layarnya menampilkan kode 8 karakter. Masukkan kode itu di sini."
-      backTo="/alat"
+      backTo={origin ? hubListPath : '/alat'}
     >
       {failure === 'code-unknown' ? (
         <Banner
