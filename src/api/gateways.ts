@@ -10,6 +10,9 @@ const gatewaySchema = z.object({
   id: z.string(),
   name: z.string(),
   lastSeenAt: z.string(),
+  // True from the moment the owner cuts the key of the hub until the same hardware is claimed again. A backend that does not send
+  // the field yet has no cut hubs, so it reads as false.
+  keyRevoked: z.boolean().default(false),
 });
 
 const gatewaysSchema = z.object({ items: z.array(gatewaySchema) });
@@ -17,6 +20,11 @@ const gatewaysSchema = z.object({ items: z.array(gatewaySchema) });
 export type Gateway = z.infer<typeof gatewaySchema>;
 
 export const gatewaysKey = ['gateways'] as const;
+
+// A hub that sent a batch in the last 15 minutes counts as connected, the same limit as the plug read of the backend
+export const hubOnlineMs = 15 * 60_000;
+// The most hubs that one business can have. Every hub counts, also a cut one, and the API has no way to delete one.
+export const maxGateways = 10;
 
 // A claim code has 8 characters, capital letters and the digits 2 to 9, and works once for 10 minutes
 export const claimCodePattern = /^[A-Z2-9]{8}$/;
@@ -43,10 +51,17 @@ export function useClaimGateway() {
       apiRequest('/v1/gateways', gatewaySchema, { method: 'POST', body: claim }),
     // The steps after this one ask the list to see that a hub exists. The list is filled here and not only marked old, so the
     // step does not read an empty list again and send the user back.
+    // A hub that is claimed again keeps its id, so it takes the place of the old row.
     onSuccess: (gateway) => {
-      queryClient.setQueryData(gatewaysKey, (old: z.infer<typeof gatewaysSchema> | undefined) => ({
-        items: [...(old?.items.filter((item) => item.id !== gateway.id) ?? []), gateway],
-      }));
+      queryClient.setQueryData(gatewaysKey, (old: z.infer<typeof gatewaysSchema> | undefined) => {
+        const items = old?.items ?? [];
+
+        return {
+          items: items.some((item) => item.id === gateway.id)
+            ? items.map((item) => (item.id === gateway.id ? gateway : item))
+            : [...items, gateway],
+        };
+      });
     },
     gcTime: 0,
   });

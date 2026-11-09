@@ -32,6 +32,7 @@ export const sampleGateway = {
   id: 'g1',
   name: 'Hub pabrik',
   lastSeenAt: '2026-10-29T14:30:00+07:00',
+  keyRevoked: false,
 };
 
 export function stubApi(overrides: Record<string, Answer | (() => Answer)>) {
