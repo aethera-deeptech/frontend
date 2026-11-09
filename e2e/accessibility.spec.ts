@@ -31,6 +31,7 @@ const screens = [
   { name: 'Pengaturan, time zone', path: '/lainnya/pengaturan/zona-waktu' },
   { name: 'Pengaturan, sensitivity', path: '/lainnya/pengaturan/kepekaan' },
   { name: 'Perangkat yang masuk', path: '/lainnya/sesi' },
+  { name: 'Keluarkan semua perangkat lain', path: '/lainnya/sesi/keluarkan-semua' },
   { name: 'Keluar', path: '/lainnya/keluar' },
   { name: 'Masuk', path: '/masuk' },
   { name: 'Daftar', path: '/daftar' },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 import { ApiError } from '@/api/client';
 import { useEndSession, useSessions, type DeviceSession } from '@/api/sessions';
@@ -13,25 +13,77 @@ import { TextLink } from '@/components/ui/text-link';
 import { formatDateWithYear, formatRelativePast, parseMoment } from '@/lib/format';
 import { sessionLabel } from '@/pages/lainnya/session-label';
 
-type Notice = { kind: 'ended'; label: string } | { kind: 'gone' };
+type Notice =
+  { kind: 'ended'; label: string } | { kind: 'gone' } | { kind: 'revoked'; ended: number };
+
+// The confirm page to end every other device leaves its result in the state of the visit
+function readRevoked(state: unknown): Notice | undefined {
+  if (typeof state !== 'object' || state === null || !('revoked' in state)) {
+    return undefined;
+  }
+  const revoked = state.revoked;
+
+  if (typeof revoked !== 'object' || revoked === null || !('ended' in revoked)) {
+    return undefined;
+  }
+  const ended = revoked.ended;
+
+  return typeof ended === 'number' && Number.isInteger(ended) && ended >= 0
+    ? { kind: 'revoked', ended }
+    : undefined;
+}
+
+// What a screen reader is told when the news changes
+function noticeSpeech(notice: Notice | undefined): string {
+  switch (notice?.kind) {
+    case 'ended':
+      return `Perangkat dikeluarkan. ${notice.label} sudah keluar dari akun ini.`;
+    case 'gone':
+      return 'Perangkat itu sudah keluar. Daftar di bawah sudah diperbarui.';
+    case 'revoked':
+      return notice.ended > 0
+        ? `Perangkat lain dikeluarkan. ${notice.ended.toString()} perangkat sudah keluar dari akun ini.`
+        : 'Tidak ada perangkat lain. Tidak ada yang perlu dikeluarkan.';
+    default:
+      return '';
+  }
+}
 
 // The screen where the owner sees the browsers that can open the account and ends the ones that should not
 export function SesiPage() {
   const query = useSessions();
   const end = useEndSession();
-  const [notice, setNotice] = useState<Notice>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // The result of the confirm page is copied once and then taken out of the history, so a reload or the way Back does not show it again
+  const [notice, setNotice] = useState<Notice | undefined>(() => readRevoked(location.state));
+  const [announcement, setAnnouncement] = useState('');
   const noticeRef = useRef<HTMLDivElement>(null);
   // The observer tells the screen that a call runs a moment after the press, so two quick presses need a flag that is set at once
   const calling = useRef(false);
   // The times on the rows are counted from the moment the list was read, so the words and the data belong together
   const now = query.dataUpdatedAt;
 
-  // The button that was pressed leaves with its row, so the focus moves to the news and a screen reader reads it
+  // The button that was pressed leaves with its row, so the focus moves to the news. The words for a screen reader are set here,
+  // after the screen is there, so that a screen that opens with news announces it too.
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnnouncement(noticeSpeech(notice));
+    }, 0);
+
     if (notice) {
       noticeRef.current?.focus();
     }
+    return () => {
+      clearTimeout(timer);
+    };
   }, [notice]);
+
+  useEffect(() => {
+    if (readRevoked(location.state)) {
+      void navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    }
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const endSession = (session: DeviceSession) => {
     // A second press does nothing while a call runs, and the focus stays on the button
@@ -78,12 +130,7 @@ export function SesiPage() {
         </div>
         {/* The region is always there, so the news is read out when it changes. The banner below shows the same words. */}
         <div aria-live="polite" className="sr-only">
-          {notice?.kind === 'ended'
-            ? `Perangkat dikeluarkan. ${notice.label} sudah keluar dari akun ini.`
-            : ''}
-          {notice?.kind === 'gone'
-            ? 'Perangkat itu sudah keluar. Daftar di bawah sudah diperbarui.'
-            : ''}
+          {announcement}
         </div>
         <div
           ref={noticeRef}
@@ -105,6 +152,19 @@ export function SesiPage() {
                 tone="info"
                 title="Perangkat itu sudah keluar"
                 message="Daftar di bawah sudah diperbarui."
+              />
+            </div>
+          ) : null}
+          {notice?.kind === 'revoked' ? (
+            <div aria-hidden="true">
+              <Banner
+                tone="info"
+                title={notice.ended > 0 ? 'Perangkat lain dikeluarkan' : 'Tidak ada perangkat lain'}
+                message={
+                  notice.ended > 0
+                    ? `${notice.ended.toString()} perangkat sudah keluar dari akun ini.`
+                    : 'Tidak ada yang perlu dikeluarkan.'
+                }
               />
             </div>
           ) : null}
@@ -138,6 +198,11 @@ export function SesiPage() {
                 ))}
               </ul>
             </Card>
+            {others.length >= 2 ? (
+              <Button asChild size="lg" className="mt-1 self-start">
+                <Link to="/lainnya/sesi/keluarkan-semua">Keluarkan semua perangkat lain</Link>
+              </Button>
+            ) : null}
             {others.length === 0 ? (
               <p className="text-body text-text-2">
                 Tidak ada perangkat lain yang masuk ke akun ini.
