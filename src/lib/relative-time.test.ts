@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { formatRelativePast } from '@/lib/format';
 
@@ -45,5 +45,38 @@ describe('formatRelativePast', () => {
 
     expect(formatRelativePast(sameInstant, now)).toBe(formatRelativePast(instant, now));
     expect(formatRelativePast(sameInstant, now)).toBe('3 jam lalu');
+  });
+});
+
+// The browser may be in any zone, and the answer must be the same
+describe.each(['UTC', 'Pacific/Honolulu', 'Asia/Jakarta'])(
+  'formatRelativePast in a browser in %s',
+  (zone) => {
+    const original = process.env.TZ;
+
+    afterEach(() => {
+      if (original === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = original;
+      }
+    });
+
+    it('gives the same words for the same instant, written in UTC or in the zone of the business', () => {
+      process.env.TZ = zone;
+      const now = at + hours(3);
+
+      expect(formatRelativePast(instant, now)).toBe('3 jam lalu');
+      expect(formatRelativePast(sameInstant, now)).toBe('3 jam lalu');
+      expect(formatRelativePast('2026-10-29T14:00:00+07:00', at + minutes(2))).toBe(
+        'beberapa menit lalu',
+      );
+    });
+  },
+);
+
+describe('formatRelativePast with a text that is not a moment', () => {
+  it('says that some time passed and does not print a date of NaN', () => {
+    expect(formatRelativePast('not a moment', at)).toBe('beberapa waktu lalu');
   });
 });

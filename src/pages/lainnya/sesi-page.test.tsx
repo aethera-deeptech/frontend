@@ -75,7 +75,7 @@ describe('Perangkat yang masuk ke akun', () => {
     expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', '/lainnya');
   });
 
-  it('shows this device first with a tag, the sign in date and the way to sign out', async () => {
+  it('shows this device, which the service puts first, with a tag, the sign in date and the way to sign out', async () => {
     stubApi({ 'GET /v1/auth/sessions': list(current, phone) });
     renderAt('/lainnya/sesi');
 
@@ -163,10 +163,11 @@ describe('Perangkat yang masuk ke akun', () => {
       await screen.findByRole('button', { name: /Keluarkan Safari on iPhone/ }),
     );
 
-    // The row has not left, because the service has not answered
+    // The row has not left, because the service has not answered, and the name of its button follows its text
+    expect(await screen.findByText('Sedang mengeluarkan')).toBeVisible();
     expect(
-      await screen.findByRole('button', { name: /Keluarkan Safari on iPhone/ }),
-    ).toHaveTextContent('Sedang mengeluarkan');
+      screen.getByRole('button', { name: 'Sedang mengeluarkan Safari on iPhone' }),
+    ).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Safari on iPhone')).toBeVisible();
     expect(
       screen.getByRole('button', { name: /Keluarkan Jenis perangkat tidak terbaca/ }),
@@ -204,11 +205,54 @@ describe('Perangkat yang masuk ke akun', () => {
     );
 
     expect(await screen.findByText('Perangkat itu sudah keluar')).toBeVisible();
+    expect(screen.getByText('Perangkat itu sudah keluar').closest('[tabindex="-1"]')).toHaveFocus();
     expect(screen.queryByText('Perangkat belum dikeluarkan')).not.toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /Keluarkan/ })).not.toBeInTheDocument();
     });
     expect(reads).toBe(2);
+  });
+
+  it('sends one call for two quick presses, and names the device afterwards', async () => {
+    let finish: (() => void) | undefined;
+    const fetchMock = stubApi({ 'GET /v1/auth/sessions': list(current, phone) });
+    const answer = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((input: string, init?: RequestInit) =>
+      init?.method === 'DELETE'
+        ? new Promise<Response>((resolve) => {
+            finish = () => {
+              resolve(new Response(null, { status: 204 }));
+            };
+          })
+        : (answer?.(input, init) ?? Promise.reject(new TypeError('no answer'))),
+    );
+    renderAt('/lainnya/sesi');
+
+    await userEvent.dblClick(
+      await screen.findByRole('button', { name: /Keluarkan Safari on iPhone/ }),
+    );
+
+    await screen.findByText('Sedang mengeluarkan');
+    expect(calls(fetchMock, 'DELETE', `/v1/auth/sessions/${phone.id}`)).toHaveLength(1);
+    finish?.();
+    expect(await screen.findByText('Safari on iPhone sudah keluar dari akun ini.')).toBeVisible();
+  });
+
+  it('sends the user to Masuk when the session ended while the screen was open', async () => {
+    stubApi({
+      'GET /v1/auth/sessions': list(current, phone),
+      [deletePath(phone.id)]: { status: 401, body: { code: 'unauthorized', message: 'No' } },
+      'GET /v1/auth/me': { status: 401, body: { code: 'unauthorized', message: 'No' } },
+    });
+    const router = renderAt('/lainnya/sesi');
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Keluarkan Safari on iPhone/ }),
+    );
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/masuk');
+    });
   });
 
   it('does not say that nothing happened when the service was busy, and reads the list again', async () => {
