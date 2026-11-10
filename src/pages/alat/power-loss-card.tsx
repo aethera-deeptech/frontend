@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { ApiError } from '@/api/client';
-import { powerLossChoices, useSetPowerLoss, type PowerLossChoice } from '@/api/relay';
+import { useSetPowerLoss, type PowerLossChoice } from '@/api/relay';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -17,10 +17,6 @@ const options: { value: PowerLossChoice; label: string; description?: string }[]
       'Menyala lagi jika tadi menyala. Mesin yang menyala bisa menyala sendiri saat listrik kembali, jadi pilih ini hanya jika aman untuk mesin itu.',
   },
 ];
-
-function isChoice(value: string): value is PowerLossChoice {
-  return powerLossChoices.some((choice) => choice === value);
-}
 
 // What the owner chose for the moment that the plug loses its own power. The service only stores the choice and the plug does not
 // get it yet, so the card says so above the options. The call sets one value, so sending it again is safe.
@@ -42,16 +38,14 @@ export function PowerLossCard({
   }
   const shown = draft ?? choice;
   const dirty = draft !== null && draft !== choice;
-  const status = save.error instanceof ApiError ? save.error.status : undefined;
+  const apiError = save.error instanceof ApiError ? save.error : undefined;
   // A lost answer, a busy service and a 5xx leave it open whether the value was stored. A later read can tell.
   // The news is about the pick that is still unsaved, so it ends when a read shows another value or the pick goes
   const uncertain =
-    save.isError &&
-    dirty &&
-    (!(save.error instanceof ApiError) || save.error.busy || (status ?? 0) >= 500);
+    save.isError && dirty && (apiError === undefined || apiError.busy || apiError.status >= 500);
   const stored = save.isError && save.variables === choice && !dirty;
   // Like the open answer, the refusal is about the pick that is still unsaved
-  const failed = save.isError && dirty && !uncertain && status !== 404 && status !== 409;
+  const failed = save.isError && dirty && !uncertain;
 
   return (
     <Card title="Setelah listrik padam">
@@ -68,9 +62,6 @@ export function PowerLossCard({
         options={options}
         disabled={save.isPending}
         onValueChange={(value) => {
-          if (!isChoice(value)) {
-            return;
-          }
           // A new pick ends the news of the last try, so a notice never stands next to a choice that is not saved
           save.reset();
           setDraft(value === choice ? null : value);

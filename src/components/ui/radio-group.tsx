@@ -3,18 +3,24 @@ import { useId } from 'react';
 
 import { cn } from '@/lib/cn';
 
-interface RadioGroupProps {
+interface RadioGroupProps<T extends string> {
   label: string;
-  value: string;
-  onValueChange: (value: string) => void;
+  value: T;
+  onValueChange: (value: T) => void;
   // A description sits under the label of its row, and the row is read with it
-  options: { value: string; label: string; description?: string }[];
+  options: { value: T; label: string; description?: string }[];
   disabled?: boolean;
 }
 
 // One choice out of a few. Each row is the touch target, 44 px high like the Checkbox, and the checked one shows a dot as well as the
 // color.
-export function RadioGroup({ label, value, onValueChange, options, disabled }: RadioGroupProps) {
+export function RadioGroup<T extends string>({
+  label,
+  value,
+  onValueChange,
+  options,
+  disabled,
+}: RadioGroupProps<T>) {
   const labelId = useId();
 
   return (
@@ -25,7 +31,10 @@ export function RadioGroup({ label, value, onValueChange, options, disabled }: R
       <RadioGroupPrimitive.Root
         aria-labelledby={labelId}
         value={value}
-        onValueChange={onValueChange}
+        // The rows are the options, so the value that the primitive gives back is one of them
+        onValueChange={(next) => {
+          onValueChange(next as T);
+        }}
         disabled={disabled}
         className="flex flex-col"
       >
