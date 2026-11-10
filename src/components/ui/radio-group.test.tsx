@@ -49,4 +49,23 @@ describe('RadioGroup', () => {
 
     expect(screen.getByRole('radio', { name: 'Senin sampai Jumat' })).toBeChecked();
   });
+
+  it('reads the description of a row with the row and keeps the label as the name', () => {
+    render(
+      <RadioGroup
+        label="Berlaku pada"
+        value="a"
+        onValueChange={() => undefined}
+        options={[
+          { value: 'a', label: 'Pertama', description: 'Penjelasan pertama.' },
+          { value: 'b', label: 'Kedua' },
+        ]}
+      />,
+    );
+
+    const first = screen.getByRole('radio', { name: 'Pertama' });
+
+    expect(first).toHaveAccessibleDescription('Penjelasan pertama.');
+    expect(screen.getByRole('radio', { name: 'Kedua' })).not.toHaveAccessibleDescription();
+  });
 });
