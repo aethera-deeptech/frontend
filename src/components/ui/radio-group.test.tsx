@@ -68,4 +68,27 @@ describe('RadioGroup', () => {
     expect(first).toHaveAccessibleDescription('Penjelasan pertama.');
     expect(screen.getByRole('radio', { name: 'Kedua' })).not.toHaveAccessibleDescription();
   });
+
+  it('selects the row when the owner clicks the label of a row that has a description', async () => {
+    function WithDescription() {
+      const [value, setValue] = useState('a');
+
+      return (
+        <RadioGroup
+          label="Berlaku pada"
+          value={value}
+          onValueChange={setValue}
+          options={[
+            { value: 'a', label: 'Pertama' },
+            { value: 'b', label: 'Kedua', description: 'Penjelasan kedua.' },
+          ]}
+        />
+      );
+    }
+    render(<WithDescription />);
+
+    await userEvent.click(screen.getByText('Kedua'));
+
+    expect(screen.getByRole('radio', { name: 'Kedua' })).toBeChecked();
+  });
 });

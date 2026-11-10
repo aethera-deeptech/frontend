@@ -96,7 +96,9 @@ describe('PowerLossCard', () => {
 
     const last = await screen.findByRole('radio', { name: 'Seperti sebelum listrik padam' });
 
-    expect(last).toHaveAccessibleDescription(/Mesin akan menyala sendiri saat listrik kembali/);
+    expect(last).toHaveAccessibleDescription(
+      /Mesin yang menyala bisa menyala sendiri saat listrik kembali/,
+    );
   });
 
   it('does not save until the owner changes the choice, and then saves one field', async () => {
@@ -286,5 +288,215 @@ describe('PowerLossCard', () => {
       ).not.toBeInTheDocument();
     });
     expect(screen.queryByText('Pilihan belum disimpan')).not.toBeInTheDocument();
+  });
+});
+
+describe('PowerLossCard, the state over time', () => {
+  const pending = {
+    id: 'c1',
+    action: 'off',
+    status: 'pending',
+    expiresAt: '2099-10-29T09:40:00+07:00',
+  };
+  const schedule = { enabled: true, offAt: '18:00', onAt: null, days: 'daily' };
+
+  // The service answers as stubApi says, but a read of the relay view after the first one never ends, so the cache shows what the
+  // call itself wrote
+  function hangingReads(base: ReturnType<typeof stubApi>) {
+    let reads = 0;
+
+    vi.stubGlobal('fetch', (input: string, init?: RequestInit) => {
+      const relayRead =
+        new URL(input).pathname === '/v1/devices/d4/relay' && (init?.method ?? 'GET') === 'GET';
+
+      if (relayRead) {
+        reads += 1;
+        if (reads > 1) {
+          return new Promise<Response>(() => undefined);
+        }
+      }
+      return base(input, init);
+    });
+  }
+
+  it('merges the answer into the view and does not replace it', async () => {
+    const client = createQueryClient();
+
+    hangingReads(
+      stubApi({
+        ...plug,
+        [get]: { body: relayBody({ afterPowerLoss: 'off', pending, schedule }) },
+        [put]: { body: { afterPowerLoss: 'last' } },
+      }),
+    );
+    renderAt('/alat/d4', undefined, { client });
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+
+    await waitFor(() => {
+      expect(client.getQueryData<{ afterPowerLoss: string }>(relayKey('d4'))?.afterPowerLoss).toBe(
+        'last',
+      );
+    });
+    const cached = client.getQueryData<{ pending: unknown; schedule: unknown }>(relayKey('d4'));
+
+    expect(cached?.pending).toMatchObject({ id: 'c1' });
+    expect(cached?.schedule).toMatchObject({ offAt: '18:00' });
+  });
+
+  it('holds the group and the button while the call runs and sends one call', async () => {
+    const base = stubApi({
+      ...plug,
+      [get]: { body: relayBody({ afterPowerLoss: 'off' }) },
+    });
+    let puts = 0;
+
+    vi.stubGlobal('fetch', (input: string, init?: RequestInit) => {
+      if (new URL(input).pathname.endsWith('/power-loss') && init?.method === 'PUT') {
+        puts += 1;
+        return new Promise<Response>(() => undefined);
+      }
+      return base(input, init);
+    });
+    renderAt('/alat/d4');
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+
+    const button = await screen.findByRole('button', { name: 'Sedang menyimpan' });
+
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('radio', { name: 'Mati sampai Anda nyalakan' })).toBeDisabled();
+    await userEvent.click(button);
+    expect(puts).toBe(1);
+  });
+
+  it('ends the difference when the owner picks the value of the service again', async () => {
+    const fetchMock = stubApi(storingService());
+    renderAt('/alat/d4');
+    await pick(/Seperti sebelum listrik padam/);
+    await pick(/Mati sampai Anda nyalakan/);
+
+    expect(screen.getByRole('button', { name: 'Simpan pilihan' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    await save();
+    expect(puts(fetchMock)).toHaveLength(0);
+  });
+
+  it('drops the hedge when the owner picks again after an open answer', async () => {
+    stubApi({
+      ...plug,
+      [get]: { body: relayBody({ afterPowerLoss: 'off' }) },
+      [put]: { status: 503, body: { code: 'busy' } },
+    });
+    renderAt('/alat/d4');
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+    await screen.findByText('Belum pasti tersimpan');
+
+    await pick(/Mati sampai Anda nyalakan/);
+
+    expect(screen.queryByText('Belum pasti tersimpan')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['a 403', { status: 403, body: { code: 'csrf_header_missing' } }],
+    ['a 400', { status: 400, body: { code: 'invalid_json' } }],
+  ])('says that the choice is not saved after %s', async (_label, answer) => {
+    stubApi({
+      ...plug,
+      [get]: { body: relayBody({ afterPowerLoss: 'off' }) },
+      [put]: answer,
+    });
+    renderAt('/alat/d4');
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+
+    expect(await screen.findByText('Pilihan belum disimpan')).toBeVisible();
+  });
+
+  it('saves after a failure with the same pick', async () => {
+    let calls = 0;
+    let value = 'off';
+
+    stubApi({
+      ...plug,
+      [get]: () => ({ body: relayBody({ afterPowerLoss: value }) }),
+      [put]: () => {
+        calls += 1;
+        if (calls === 1) {
+          return { status: 422, body: { code: 'validation_failed' } };
+        }
+        value = 'last';
+        return { body: { afterPowerLoss: 'last' } };
+      },
+    });
+    renderAt('/alat/d4');
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+    await screen.findByText('Pilihan belum disimpan');
+    await save();
+
+    expect(await screen.findByText('Pilihan disimpan')).toBeVisible();
+    expect(screen.queryByText('Pilihan belum disimpan')).not.toBeInTheDocument();
+  });
+
+  it('ends the news of a save when another tab changes the value later', async () => {
+    const client = createQueryClient();
+    let value = 'off';
+
+    stubApi({
+      ...plug,
+      [get]: () => ({ body: relayBody({ afterPowerLoss: value }) }),
+      [put]: () => {
+        value = 'last';
+        return { body: { afterPowerLoss: 'last' } };
+      },
+    });
+    renderAt('/alat/d4', undefined, { client });
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+    await screen.findByText('Pilihan disimpan');
+    value = 'off';
+
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: relayKey('d4') });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Mati sampai Anda nyalakan' })).toBeChecked();
+    });
+    expect(screen.queryByText('Pilihan disimpan')).not.toBeInTheDocument();
+  });
+
+  it('does not keep the hedge when another tab changes the value after a read showed the pick', async () => {
+    const client = createQueryClient();
+    let value = 'off';
+
+    stubApi({
+      ...plug,
+      [get]: () => ({ body: relayBody({ afterPowerLoss: value }) }),
+      [put]: () => {
+        // The service stored the value and the answer was lost
+        value = 'last';
+        return { status: 503, body: { code: 'busy' } };
+      },
+    });
+    renderAt('/alat/d4', undefined, { client });
+    await pick(/Seperti sebelum listrik padam/);
+    await save();
+    await screen.findByText('Pilihan disimpan');
+    value = 'off';
+
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: relayKey('d4') });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Mati sampai Anda nyalakan' })).toBeChecked();
+    });
+    expect(screen.queryByText('Belum pasti tersimpan')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pilihan disimpan')).not.toBeInTheDocument();
   });
 });
