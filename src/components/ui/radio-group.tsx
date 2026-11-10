@@ -7,7 +7,8 @@ interface RadioGroupProps {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  // A description sits under the label of its row, and the row is read with it
+  options: { value: string; label: string; description?: string }[];
   disabled?: boolean;
 }
 
@@ -30,26 +31,32 @@ export function RadioGroup({ label, value, onValueChange, options, disabled }: R
       >
         {options.map((option) => {
           const id = `${labelId}-${option.value}`;
+          const descriptionId = `${id}-description`;
 
           return (
-            <div key={option.value} className="flex min-h-11 items-center gap-3">
+            <div key={option.value} className="flex min-h-11 items-start gap-3">
               <RadioGroupPrimitive.Item
                 id={id}
                 value={option.value}
+                aria-describedby={option.description ? descriptionId : undefined}
                 className={cn(
-                  'bg-bg-1 border-text-2 flex size-5 shrink-0 items-center justify-center rounded-full border-[1.5px]',
+                  'bg-bg-1 border-text-2 mt-3 flex size-5 shrink-0 items-center justify-center rounded-full border-[1.5px]',
                   'data-[state=checked]:bg-btn-accent-face data-[state=checked]:border-btn-accent-chonk',
                   'disabled:opacity-(--disabled-opacity)',
                 )}
               >
                 <RadioGroupPrimitive.Indicator className="bg-btn-accent-ink size-2 rounded-full" />
               </RadioGroupPrimitive.Item>
-              <label
-                htmlFor={id}
-                className="text-body text-text-1 flex min-h-11 flex-1 items-center"
-              >
-                {option.label}
-              </label>
+              <div className="flex min-h-11 flex-1 flex-col justify-center py-2">
+                <label htmlFor={id} className="text-body text-text-1 flex items-center">
+                  {option.label}
+                </label>
+                {option.description ? (
+                  <p id={descriptionId} className="text-label text-text-2">
+                    {option.description}
+                  </p>
+                ) : null}
+              </div>
             </div>
           );
         })}
