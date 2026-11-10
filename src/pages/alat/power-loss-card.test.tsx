@@ -498,5 +498,7 @@ describe('PowerLossCard, the state over time', () => {
     });
     expect(screen.queryByText('Belum pasti tersimpan')).not.toBeInTheDocument();
     expect(screen.queryByText('Pilihan disimpan')).not.toBeInTheDocument();
+    // The old answer was a 503, and it must not turn into a refusal when the value moves
+    expect(screen.queryByText('Pilihan belum disimpan')).not.toBeInTheDocument();
   });
 });

@@ -50,7 +50,8 @@ export function PowerLossCard({
     dirty &&
     (!(save.error instanceof ApiError) || save.error.busy || (status ?? 0) >= 500);
   const stored = save.isError && save.variables === choice && !dirty;
-  const failed = save.isError && !uncertain && status !== 404 && status !== 409;
+  // Like the open answer, the refusal is about the pick that is still unsaved
+  const failed = save.isError && dirty && !uncertain && status !== 404 && status !== 409;
 
   return (
     <Card title="Setelah listrik padam">
