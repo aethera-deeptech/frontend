@@ -253,7 +253,7 @@ export function RelayCard({
         />
         <ScheduleCard deviceId={deviceId} schedule={query.data.schedule} />
         {query.data.afterPowerLoss ? (
-          <PowerLossCard deviceId={deviceId} choice={query.data.afterPowerLoss} />
+          <PowerLossCard key={deviceId} deviceId={deviceId} choice={query.data.afterPowerLoss} />
         ) : null}
       </>
     );

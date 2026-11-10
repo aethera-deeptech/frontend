@@ -14,7 +14,7 @@ const options: { value: PowerLossChoice; label: string; description?: string }[]
     value: 'last',
     label: 'Seperti sebelum listrik padam',
     description:
-      'Menyala lagi jika tadi menyala. Mesin akan menyala sendiri saat listrik kembali, jadi pilih ini hanya jika aman untuk mesin itu.',
+      'Menyala lagi jika tadi menyala. Mesin yang menyala bisa menyala sendiri saat listrik kembali, jadi pilih ini hanya jika aman untuk mesin itu.',
   },
 ];
 
@@ -44,8 +44,11 @@ export function PowerLossCard({
   const dirty = draft !== null && draft !== choice;
   const status = save.error instanceof ApiError ? save.error.status : undefined;
   // A lost answer, a busy service and a 5xx leave it open whether the value was stored. A later read can tell.
+  // The news is about the pick that is still unsaved, so it ends when a read shows another value or the pick goes
   const uncertain =
-    save.isError && (!(save.error instanceof ApiError) || save.error.busy || (status ?? 0) >= 500);
+    save.isError &&
+    dirty &&
+    (!(save.error instanceof ApiError) || save.error.busy || (status ?? 0) >= 500);
   const stored = save.isError && save.variables === choice && !dirty;
   const failed = save.isError && !uncertain && status !== 404 && status !== 409;
 
@@ -55,8 +58,8 @@ export function PowerLossCard({
         <Tag>Belum aktif</Tag>
       </div>
       <p className="text-body text-text-1">
-        Pilihan ini baru disimpan, belum dijalankan oleh colokan. Setelah sistem WATTLINK
-        mendukungnya, pilihan ini berlaku dengan sendirinya.
+        Pilihan ini baru disimpan, belum dijalankan oleh colokan. Jika sistem WATTLINK nanti
+        mendukungnya, pilihan ini langsung dipakai tanpa Anda mengisi lagi.
       </p>
       <RadioGroup
         label="Saat listrik kembali, colokan:"
@@ -72,17 +75,13 @@ export function PowerLossCard({
           setDraft(value === choice ? null : value);
         }}
       />
-      {save.isSuccess || stored ? (
-        <Banner
-          tone="info"
-          title="Pilihan disimpan"
-          message="Colokan belum menjalankannya. Itu mulai berlaku setelah sistem WATTLINK mendukungnya."
-        />
+      {(save.isSuccess && save.data.afterPowerLoss === choice) || stored ? (
+        <Banner tone="info" title="Pilihan disimpan" message="Colokan belum menjalankannya." />
       ) : uncertain ? (
         <Banner
           tone="warning"
           title="Belum pasti tersimpan"
-          message="Pilihan Anda mungkin sudah tersimpan. Periksa pilihan di atas, lalu simpan lagi jika perlu. Menyimpan dua kali tidak merusak apa pun."
+          message="Pilihan Anda mungkin sudah tersimpan. Tunggu beberapa saat atau simpan lagi. Menyimpan dua kali tidak merusak apa pun."
         />
       ) : failed ? (
         <Banner tone="danger" title="Pilihan belum disimpan" message="Coba lagi." />

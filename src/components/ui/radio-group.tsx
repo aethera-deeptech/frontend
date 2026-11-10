@@ -34,7 +34,7 @@ export function RadioGroup({ label, value, onValueChange, options, disabled }: R
           const descriptionId = `${id}-description`;
 
           return (
-            <div key={option.value} className="flex min-h-11 items-start gap-3">
+            <div key={option.value} className="flex items-start gap-3">
               <RadioGroupPrimitive.Item
                 id={id}
                 value={option.value}
@@ -47,12 +47,12 @@ export function RadioGroup({ label, value, onValueChange, options, disabled }: R
               >
                 <RadioGroupPrimitive.Indicator className="bg-btn-accent-ink size-2 rounded-full" />
               </RadioGroupPrimitive.Item>
-              <div className="flex min-h-11 flex-1 flex-col justify-center py-2">
-                <label htmlFor={id} className="text-body text-text-1 flex items-center">
+              <div className="flex flex-1 flex-col">
+                <label htmlFor={id} className="text-body text-text-1 flex min-h-11 items-center">
                   {option.label}
                 </label>
                 {option.description ? (
-                  <p id={descriptionId} className="text-label text-text-2">
+                  <p id={descriptionId} className="text-label text-text-2 -mt-2 pb-3">
                     {option.description}
                   </p>
                 ) : null}
