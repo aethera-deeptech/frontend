@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
 import { formatTime, parseMoment } from '@/lib/format';
+import { PowerLossCard } from '@/pages/alat/power-loss-card';
 import { ScheduleCard } from '@/pages/alat/schedule-card';
 import { useCountdown } from '@/pages/auth/use-countdown';
 
@@ -251,6 +252,9 @@ export function RelayCard({
           }}
         />
         <ScheduleCard deviceId={deviceId} schedule={query.data.schedule} />
+        {query.data.afterPowerLoss ? (
+          <PowerLossCard deviceId={deviceId} choice={query.data.afterPowerLoss} />
+        ) : null}
       </>
     );
   }
