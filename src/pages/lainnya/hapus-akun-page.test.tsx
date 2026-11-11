@@ -12,7 +12,7 @@ afterEach(() => {
 
 const del = 'DELETE /v1/account';
 const wrongPasswordText =
-  'Kata sandi salah. Periksa lalu coba lagi. Sampai 5 kata sandi salah per jam.';
+  'Kata sandi salah. Periksa lalu coba lagi. Sampai 5 kata sandi salah per jam. Hitungan ini dipakai bersama untuk penghapusan akun dan penghapusan WATTLINK Hub.';
 
 function deletes(fetchMock: ReturnType<typeof stubApi>) {
   return fetchMock.mock.calls.filter(
@@ -61,7 +61,9 @@ describe('Hapus akun, the entry and the page', () => {
     ).toBeVisible();
     expect(document.title).toBe('Hapus akun dan semua data? · WATTLINK');
     expect(
-      screen.getByText('Kata sandi akun ini. Sampai 5 kata sandi salah per jam.'),
+      screen.getByText(
+        'Kata sandi akun ini. Sampai 5 kata sandi salah per jam. Hitungan ini dipakai bersama untuk penghapusan akun dan penghapusan WATTLINK Hub.',
+      ),
     ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Batal' })).toHaveAttribute('href', '/lainnya');
     expect(screen.getByRole('link', { name: 'Unduh laporan dulu' })).toHaveAttribute(
