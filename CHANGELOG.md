@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.16.0](https://github.com/aethera-deeptech/frontend/compare/v0.15.0...v0.16.0) (2026-11-11)
+
+
+### Features
+
+* **api:** delete a WATTLINK Hub with the password and drop what depended on it ([70ce928](https://github.com/aethera-deeptech/frontend/commit/70ce9289c08b93beae9c3b036af09c0f22f021d7))
+* **lainnya:** ask for the password before a WATTLINK Hub is deleted ([333b12a](https://github.com/aethera-deeptech/frontend/commit/333b12a7eae82a572c2e2523e48d185018d9911e))
+* **lainnya:** delete a WATTLINK Hub with the password of the owner ([#114](https://github.com/aethera-deeptech/frontend/issues/114)) ([c221548](https://github.com/aethera-deeptech/frontend/commit/c221548c99afc241f4a5cd183018446c09f263e6))
+* **lainnya:** say that the owner may get an email when the account is deleted ([ec793ba](https://github.com/aethera-deeptech/frontend/commit/ec793baef2e828204deb8575feb37f0458e59422))
+* **lainnya:** say that the owner may get an email when the account is deleted ([#116](https://github.com/aethera-deeptech/frontend/issues/116)) ([9e4bb10](https://github.com/aethera-deeptech/frontend/commit/9e4bb108193f202e1fa8d1f49430759f80a62d56))
+
+
+### Bug Fixes
+
+* **lainnya:** count a 404 as gone only with the API code and promise no way back for the hub ([720262d](https://github.com/aethera-deeptech/frontend/commit/720262d1a9315b19abd2d9dbe0b04ce4a3b7cc17))
+* **lainnya:** name the retry loss path in the doc and assert the whole email line in the test ([4727759](https://github.com/aethera-deeptech/frontend/commit/47277592a539792bb19992d864086c165f35d9db))
+
 ## [0.15.0](https://github.com/aethera-deeptech/frontend/compare/v0.14.0...v0.15.0) (2026-11-11)
 
 
