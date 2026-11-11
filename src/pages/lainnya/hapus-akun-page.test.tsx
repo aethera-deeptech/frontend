@@ -84,7 +84,7 @@ describe('Hapus akun, the entry and the page', () => {
     expect(screen.getByText(/Salinan di cadangan dan catatan sistem, jika ada/)).toBeVisible();
     expect(
       screen.getByText(
-        /Kami berusaha mengirim satu email singkat.*Email itu bisa saja tidak terkirim/,
+        'Kami berusaha mengirim satu email singkat ke alamat ini bahwa akun sudah dihapus. Email itu bisa saja tidak terkirim.',
       ),
     ).toBeVisible();
   });
