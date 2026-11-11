@@ -13,9 +13,10 @@ import { FailureBanner } from '@/pages/auth/failure-banner';
 import { PasswordField } from '@/pages/auth/password-field';
 import { useCountdown } from '@/pages/auth/use-countdown';
 import { checkPasswordPresent } from '@/pages/auth/validation';
+import { deleteLimitText } from '@/pages/lainnya/delete-limit';
 
 // Only a wrong password counts. A repeat after a busy answer and a right password cost nothing.
-const limitText = 'Sampai 5 kata sandi salah per jam.';
+const limitText = deleteLimitText;
 
 // What the screen says for an answer after which part of the data may be gone. The cause comes first, because a lost connection
 // asks the user for something else than a busy service does.

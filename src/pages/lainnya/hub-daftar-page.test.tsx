@@ -107,7 +107,11 @@ describe('WATTLINK Hub list', () => {
     stubApi(list(...ten));
     renderAt('/lainnya/hub');
 
-    expect(await screen.findByText('Satu usaha bisa punya sampai 10 WATTLINK Hub.')).toBeVisible();
+    expect(
+      await screen.findByText(
+        'Satu usaha bisa punya sampai 10 WATTLINK Hub. Hapus satu hub untuk memberi tempat.',
+      ),
+    ).toBeVisible();
     expect(screen.queryByRole('link', { name: 'Hubungkan WATTLINK Hub' })).not.toBeInTheDocument();
   });
 
@@ -502,5 +506,55 @@ describe('Connecting a hub that the list already had', () => {
 
     expect(await screen.findByText('WATTLINK Hub terhubung lagi')).toBeVisible();
     expect(screen.queryByText('Ini WATTLINK Hub baru')).not.toBeInTheDocument();
+  });
+});
+
+describe('WATTLINK Hub list, what another screen leaves in the state of the visit', () => {
+  it('shows the note of a hub that is already gone and takes it out of the history', async () => {
+    stubApi(list(working));
+    const router = renderAt('/lainnya/hub', { removed: { name: 'Hub lama', kind: 'gone' } });
+
+    expect(await screen.findByText('WATTLINK Hub sudah tidak ada')).toBeVisible();
+    expect(screen.getByText('Daftar sudah diperbarui.')).toBeVisible();
+    await waitFor(() => {
+      expect(router.state.location.state).toBeNull();
+    });
+  });
+
+  it.each([
+    ['a removed note that is not an object', { removed: 5 }],
+    ['a removed note with no name', { removed: { kind: 'removed' } }],
+    ['a removed note with no kind', { removed: { name: 'Hub lama' } }],
+    ['a removed note with a kind that is not known', { removed: { name: 'Hub lama', kind: 'x' } }],
+  ])('shows no note for %s', async (_label, state) => {
+    stubApi(list(working));
+    renderAt('/lainnya/hub', state);
+
+    expect(await screen.findByText('Hub pabrik')).toBeVisible();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText('WATTLINK Hub dihapus')).not.toBeInTheDocument();
+    expect(screen.queryByText('WATTLINK Hub sudah tidak ada')).not.toBeInTheDocument();
+  });
+
+  it('marks the hub whose deletion is not finished', async () => {
+    stubApi(list(working, quiet));
+    renderAt('/lainnya/hub', { removing: { id: 'g1', name: 'Hub pabrik' } });
+
+    const row = await rowOf('Hub pabrik');
+
+    expect(row).toHaveTextContent('Penghapusan belum selesai');
+    expect(within(row).getByRole('link', { name: 'Ulangi hapus Hub pabrik' })).toBeVisible();
+    expect(await rowOf('Hub gudang')).not.toHaveTextContent('Penghapusan belum selesai');
+  });
+
+  it.each([
+    ['not an object', { removing: 5 }],
+    ['without an id', { removing: { name: 'Hub pabrik' } }],
+    ['without a name', { removing: { id: 'g1' } }],
+  ])('marks no hub when the state of an unfinished deletion is %s', async (_label, state) => {
+    stubApi(list(working));
+    renderAt('/lainnya/hub', state);
+
+    expect(await rowOf('Hub pabrik')).not.toHaveTextContent('Penghapusan belum selesai');
   });
 });

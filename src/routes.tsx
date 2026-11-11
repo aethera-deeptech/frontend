@@ -95,6 +95,14 @@ export const routes: RouteObject[] = [
               (module) => module.HapusAkunPage,
             ),
           },
+          // The question before a WATTLINK Hub is deleted has no menu either
+          {
+            path: 'lainnya/hub/:id/hapus',
+            ...lazyPage(
+              () => import('@/pages/lainnya/hub-hapus-page'),
+              (module) => module.HubHapusPage,
+            ),
+          },
           // The question before every other device is signed out has no menu either
           {
             path: 'lainnya/sesi/keluarkan-semua',
