@@ -461,6 +461,26 @@ describe('RelayCard on the page of a device', () => {
     );
   });
 
+  it('shows the chart before the cards of the switch, so it is on the first screen of a plug', async () => {
+    stubApi({
+      'GET /v1/devices/d4': { body: sampleNormal({ kind: 'plug' }) },
+      'GET /v1/devices/d4/relay': { body: relayBody },
+    });
+    renderAt('/alat/d4');
+
+    const switchHeading = await screen.findByRole('heading', { name: 'Saklar' });
+    const chartHeading = screen.getByRole('heading', { name: 'Pola daya satu hari' });
+    const infoHeading = screen.getByRole('heading', { name: 'Info alat' });
+
+    expect(
+      chartHeading.compareDocumentPosition(switchHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // The info card stays last
+    expect(
+      switchHeading.compareDocumentPosition(infoHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('shows the card for a plug and switches it off', async () => {
     let sent = false;
     const pending = {
