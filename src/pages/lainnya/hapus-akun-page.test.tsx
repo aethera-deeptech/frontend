@@ -82,7 +82,11 @@ describe('Hapus akun, the entry and the page', () => {
     // What a plug does with its relay is not decided, so the page does not say it
     expect(screen.queryByText(/keadaan saklarnya/)).not.toBeInTheDocument();
     expect(screen.getByText(/Salinan di cadangan dan catatan sistem, jika ada/)).toBeVisible();
-    expect(screen.getByText(/Email itu bisa saja tidak terkirim/)).toBeVisible();
+    expect(
+      screen.getByText(
+        /Kami berusaha mengirim satu email singkat.*Email itu bisa saja tidak terkirim/,
+      ),
+    ).toBeVisible();
   });
 
   it('asks for the password first and sends nothing without it', async () => {
