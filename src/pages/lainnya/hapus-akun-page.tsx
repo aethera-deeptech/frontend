@@ -181,6 +181,10 @@ export function HapusAkunPage() {
           <li>WATTLINK Plug tidak bisa diatur dari aplikasi lagi.</li>
           <li>Email ini boleh dipakai untuk mendaftar lagi.</li>
           <li>
+            Kami berusaha mengirim satu email singkat ke alamat ini bahwa akun sudah dihapus. Email
+            itu bisa saja tidak terkirim.
+          </li>
+          <li>
             Salinan di cadangan dan catatan sistem, jika ada, tidak ikut terhapus. Itu juga berlaku
             untuk layanan pengiriman email kami.
           </li>
