@@ -60,7 +60,9 @@ describe('Hapus akun, the entry and the page', () => {
       await screen.findByText('Usaha Konveksi Maju Jaya. Akun dewi@example.com.'),
     ).toBeVisible();
     expect(document.title).toBe('Hapus akun dan semua data? · WATTLINK');
-    expect(screen.getByText('Sampai 5 kata sandi salah per jam.', { exact: false })).toBeVisible();
+    expect(
+      screen.getByText('Kata sandi akun ini. Sampai 5 kata sandi salah per jam.'),
+    ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Batal' })).toHaveAttribute('href', '/lainnya');
     expect(screen.getByRole('link', { name: 'Unduh laporan dulu' })).toHaveAttribute(
       'href',
@@ -298,6 +300,8 @@ describe('Hapus akun, an open answer', () => {
       screen.getByText(/Jika kata sandinya benar, mengulang tidak memakai jatah percobaan\./),
     ).toBeVisible();
     expect(screen.queryByText(/termasuk yang gagal/)).not.toBeInTheDocument();
+    // The text under the field keeps the limit while the banner is open, and it is the only place that names it
+    expect(screen.getByText(/Sampai 5 kata sandi salah per jam\./)).toBeVisible();
     expect(
       screen.getByText(
         'Jika Anda keluar sekarang, sebagian data mungkin sudah terhapus. Ulangi sampai selesai.',
