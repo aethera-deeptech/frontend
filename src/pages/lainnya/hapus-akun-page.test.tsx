@@ -12,7 +12,7 @@ afterEach(() => {
 
 const del = 'DELETE /v1/account';
 const wrongPasswordText =
-  'Kata sandi salah. Periksa lalu coba lagi. Sampai 5 percobaan per jam, termasuk yang gagal.';
+  'Kata sandi salah. Periksa lalu coba lagi. Sampai 5 kata sandi salah per jam.';
 
 function deletes(fetchMock: ReturnType<typeof stubApi>) {
   return fetchMock.mock.calls.filter(
@@ -61,7 +61,7 @@ describe('Hapus akun, the entry and the page', () => {
     ).toBeVisible();
     expect(document.title).toBe('Hapus akun dan semua data? · WATTLINK');
     expect(
-      screen.getByText('Sampai 5 percobaan per jam, termasuk yang gagal.', { exact: false }),
+      screen.getByText('Kata sandi akun ini. Sampai 5 kata sandi salah per jam.'),
     ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Batal' })).toHaveAttribute('href', '/lainnya');
     expect(screen.getByRole('link', { name: 'Unduh laporan dulu' })).toHaveAttribute(
@@ -295,10 +295,13 @@ describe('Hapus akun, an open answer', () => {
     expect(
       screen.getByText(/Penghapusan mungkin sudah berjalan sebagian atau selesai/),
     ).toBeVisible();
-    // The text under the field and the banner both name the limit
-    expect(screen.getAllByText(/Sampai 5 percobaan per jam, termasuk yang gagal\./)).toHaveLength(
-      2,
-    );
+    // A repeat costs nothing, so the banner says that instead of the limit
+    expect(
+      screen.getByText(/Jika kata sandinya benar, mengulang tidak memakai jatah percobaan\./),
+    ).toBeVisible();
+    expect(screen.queryByText(/termasuk yang gagal/)).not.toBeInTheDocument();
+    // The text under the field keeps the limit while the banner is open, and it is the only place that names it
+    expect(screen.getByText(/Sampai 5 kata sandi salah per jam\./)).toBeVisible();
     expect(
       screen.getByText(
         'Jika Anda keluar sekarang, sebagian data mungkin sudah terhapus. Ulangi sampai selesai.',
