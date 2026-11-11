@@ -15,13 +15,63 @@ import { Card } from '@/components/ui/card';
 import { ErrorBanner } from '@/components/ui/error-banner';
 import { SkeletonCard } from '@/components/ui/skeleton-card';
 import { Tag } from '@/components/ui/tag';
+import { TextLink } from '@/components/ui/text-link';
 import { formatRelativePast } from '@/lib/format';
 import { addPath } from '@/pages/pasang-alat/step-frame';
 
-// What the claim page found out when the owner typed a code
+// What another screen found out and left in the state of the visit. The claim page tells what happened to the code, and the page
+// that deletes a hub tells that the hub is gone.
 interface Notice {
   name: string;
-  kind: 'again' | 'other' | 'new';
+  kind: 'again' | 'other' | 'new' | 'removed' | 'gone';
+}
+
+// The hub whose deletion ended with an answer that left it open. The row says that the deletion is not finished.
+interface Removing {
+  id: string;
+  name: string;
+}
+
+function readRemoving(state: unknown): Removing | undefined {
+  if (typeof state !== 'object' || state === null || !('removing' in state)) {
+    return undefined;
+  }
+  const removing = state.removing;
+
+  if (typeof removing !== 'object' || removing === null) {
+    return undefined;
+  }
+  if (!('id' in removing) || typeof removing.id !== 'string') {
+    return undefined;
+  }
+  if (!('name' in removing) || typeof removing.name !== 'string') {
+    return undefined;
+  }
+  return { id: removing.id, name: removing.name };
+}
+
+function readRemoved(state: unknown): Notice | undefined {
+  if (typeof state !== 'object' || state === null || !('removed' in state)) {
+    return undefined;
+  }
+  const removed = state.removed;
+
+  if (typeof removed !== 'object' || removed === null) {
+    return undefined;
+  }
+  if (!('name' in removed) || typeof removed.name !== 'string') {
+    return undefined;
+  }
+  if (!('kind' in removed)) {
+    return undefined;
+  }
+  const kind = removed.kind;
+
+  return kind === 'removed' || kind === 'gone' ? { name: removed.name, kind } : undefined;
+}
+
+function readNotice(state: unknown): Notice | undefined {
+  return readClaimed(state) ?? readRemoved(state);
 }
 
 function readClaimed(state: unknown): Notice | undefined {
@@ -66,10 +116,23 @@ function noticeText(notice: Notice): { tone: 'info' | 'warning'; title: string; 
         title: 'WATTLINK Hub dihubungkan',
         message: `${notice.name} sudah masuk ke daftar.`,
       };
+    case 'removed':
+      return {
+        tone: 'info',
+        title: 'WATTLINK Hub dihapus',
+        message: `${notice.name} dan alat di belakangnya sudah dihapus.`,
+      };
+    case 'gone':
+      return {
+        tone: 'info',
+        title: 'WATTLINK Hub sudah tidak ada',
+        message: 'Daftar sudah diperbarui.',
+      };
   }
 }
 
 const claimPath = `${addPath}/hub`;
+const listPath = '/lainnya/hub';
 
 // The screen where the owner sees the WATTLINK Hubs of the business, which one sends data and which one has to be connected again
 export function HubDaftarPage() {
@@ -77,8 +140,9 @@ export function HubDaftarPage() {
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
-  // The result of the claim page is copied once and taken out of the history, so a reload or the way Back does not show it again
-  const [notice] = useState<Notice | undefined>(() => readClaimed(location.state));
+  // The result of another screen is copied once and taken out of the history, so a reload or the way Back does not show it again
+  const [notice] = useState<Notice | undefined>(() => readNotice(location.state));
+  const [removing] = useState<Removing | undefined>(() => readRemoving(location.state));
   const [announcement, setAnnouncement] = useState('');
   const noticeRef = useRef<HTMLDivElement>(null);
   // The times on the rows are counted from the moment the list was read, so the words and the data belong together
@@ -100,7 +164,7 @@ export function HubDaftarPage() {
   }, [notice]);
 
   useEffect(() => {
-    if (readClaimed(location.state)) {
+    if (readNotice(location.state) ?? readRemoving(location.state)) {
       void navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
     }
   }, [location.pathname, location.search, location.state, navigate]);
@@ -178,13 +242,16 @@ export function HubDaftarPage() {
                       hub={hub}
                       now={now}
                       waiting={waitsForFirstData(queryClient, hub)}
+                      unfinished={removing?.id === hub.id}
+                      // The way to delete a hub needs the list to be right, so it is not offered while the list failed
+                      canRemove={!query.isError}
                     />
                   ))}
                 </ul>
               </Card>
               {hubs.length >= maxGateways ? (
                 <p className="text-label text-text-2">
-                  {`Satu usaha bisa punya sampai ${maxGateways.toString()} WATTLINK Hub.`}
+                  {`Satu usaha bisa punya sampai ${maxGateways.toString()} WATTLINK Hub. Hapus satu hub untuk memberi tempat.`}
                 </p>
               ) : (
                 <ClaimLink kind="neutral" />
@@ -214,9 +281,12 @@ interface HubRowProps {
   now: number;
   // The API answers the time of the claim as lastSeenAt until the first batch arrives
   waiting: boolean;
+  // The deletion of this hub ended with an answer that left it open, so it is not finished
+  unfinished: boolean;
+  canRemove: boolean;
 }
 
-function HubRow({ hub, now, waiting }: HubRowProps) {
+function HubRow({ hub, now, waiting, unfinished, canRemove }: HubRowProps) {
   const seen = new Date(hub.lastSeenAt).getTime();
   // A time that is not a moment says nothing, so it does not count as connected
   const online = !hub.keyRevoked && now - seen <= hubOnlineMs;
@@ -236,7 +306,14 @@ function HubRow({ hub, now, waiting }: HubRowProps) {
           <Tag>Tidak terhubung</Tag>
         )}
       </div>
-      {hub.keyRevoked ? (
+      {unfinished ? (
+        // The key is cut by the first call, so the hub looks like one that can be connected again. The way back is not offered
+        // while part of its data is gone.
+        <p className="text-label text-text-2">
+          Penghapusan belum selesai. Ulangi sampai selesai, karena sebagian data hub ini mungkin
+          sudah terhapus.
+        </p>
+      ) : hub.keyRevoked ? (
         <>
           <p className="text-label text-text-2">
             WATTLINK Hub ini tidak mengirim data sampai Anda menghubungkannya lagi dengan kode baru.
@@ -258,6 +335,17 @@ function HubRow({ hub, now, waiting }: HubRowProps) {
       ) : (
         <p className="text-label text-text-2">{lastData}</p>
       )}
+      {/* A link and not a button, away from the main action of the row, and the name is in the label because the list has more
+          than one of them. The danger color is for the question and not for the list. */}
+      {canRemove ? (
+        <TextLink
+          to={`${listPath}/${encodeURIComponent(hub.id)}/hapus`}
+          aria-label={`${unfinished ? 'Ulangi hapus' : 'Hapus'} ${hub.name}`}
+          className="self-start"
+        >
+          {unfinished ? 'Ulangi hapus' : 'Hapus'}
+        </TextLink>
+      ) : null}
     </li>
   );
 }

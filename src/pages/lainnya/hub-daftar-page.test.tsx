@@ -107,7 +107,11 @@ describe('WATTLINK Hub list', () => {
     stubApi(list(...ten));
     renderAt('/lainnya/hub');
 
-    expect(await screen.findByText('Satu usaha bisa punya sampai 10 WATTLINK Hub.')).toBeVisible();
+    expect(
+      await screen.findByText(
+        'Satu usaha bisa punya sampai 10 WATTLINK Hub. Hapus satu hub untuk memberi tempat.',
+      ),
+    ).toBeVisible();
     expect(screen.queryByRole('link', { name: 'Hubungkan WATTLINK Hub' })).not.toBeInTheDocument();
   });
 
