@@ -88,7 +88,8 @@ describe('Hapus WATTLINK Hub, the entry and the page', () => {
     expect(screen.getByText('Semua alat yang tersambung lewat hub ini.')).toBeVisible();
     expect(screen.getByText(/penghematan yang sudah terbukti/)).toBeVisible();
     expect(screen.getByText(/bulan-bulan lalu ikut mengecil untuk seluruh usaha/)).toBeVisible();
-    expect(screen.getByText(/muncul\s+sebagai alat baru tanpa riwayat/)).toBeVisible();
+    expect(screen.getByText(/dipasang lagi sebagai alat baru tanpa riwayat/)).toBeVisible();
+    expect(screen.queryByText(/Tambah alat|menghubungkan hub lagi/)).not.toBeInTheDocument();
     expect(screen.getByText(/ruangan Anda tetap ada/)).toBeVisible();
     expect(screen.getByText(/Salinan di cadangan dan catatan sistem/)).toBeVisible();
     expect(screen.queryByText(/BOOT|tombol/i)).not.toBeInTheDocument();
@@ -99,7 +100,7 @@ describe('Hapus WATTLINK Hub, the entry and the page', () => {
     renderAt('/lainnya/hub/g1/hapus');
 
     expect(
-      await screen.findByText(/Ini satu-satunya WATTLINK Hub Anda\. Data baru tidak masuk/),
+      await screen.findByText(/Ini satu-satunya WATTLINK Hub Anda\. Data baru tidak masuk lagi\./),
     ).toBeVisible();
   });
 
@@ -142,15 +143,26 @@ describe('Hapus WATTLINK Hub, the entry and the page', () => {
 
 describe('Hapus WATTLINK Hub, a clear yes', () => {
   it('deletes with the password, drops what depended on the hub and opens the list with the news', async () => {
-    let rows = [working, other];
+    let deleted = false;
     const fetchMock = stubApi({
-      'GET /v1/gateways': () => ({ body: { items: rows } }),
+      ...list(working, other),
       [del]: () => {
-        rows = [other];
+        deleted = true;
         return { status: 204 };
       },
     });
+    const inner = global.fetch;
+
+    // The read of the list that follows the delete never ends, so the list on screen is what the page left in the cache
+    vi.stubGlobal('fetch', (input: string, init?: RequestInit) =>
+      deleted && new URL(input).pathname === '/v1/gateways'
+        ? new Promise<Response>(() => undefined)
+        : inner(input, init),
+    );
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['beranda'], { id: 'b' });
+    client.setQueryData(['report', 'current'], { id: 'r' });
+    client.setQueryData(['recommendations'], { items: [] });
     client.setQueryData(['devices', 'd1'], { id: 'd1' });
     client.setQueryData(['pairing', 'p1'], { id: 'p1' });
     client.setQueryData(['rooms'], { items: [{ id: 'r1', name: 'Gudang' }] });
@@ -165,11 +177,13 @@ describe('Hapus WATTLINK Hub, a clear yes', () => {
     });
     expect(await screen.findByText('WATTLINK Hub dihapus')).toBeVisible();
     expect(screen.getByText('Hub pabrik dan alat di belakangnya sudah dihapus.')).toBeVisible();
-    await waitFor(() => {
-      expect(screen.queryByText('Hub pabrik', { selector: 'p.text-h2' })).not.toBeInTheDocument();
-    });
+    expect(screen.queryByText('Hub pabrik', { selector: 'p.text-h2' })).not.toBeInTheDocument();
     expect(screen.getByText('Hub gudang')).toBeVisible();
-    // What depended on the hub is gone, and the rooms stay
+    // What depended on the hub is gone, the sums that were made from it are marked old, and the rooms stay
+    expect(client.getQueryState(['beranda'])?.isInvalidated).toBe(true);
+    expect(client.getQueryState(['report', 'current'])?.isInvalidated).toBe(true);
+    expect(client.getQueryState(['recommendations'])?.isInvalidated).toBe(true);
+    expect(client.getQueryState(['rooms'])?.isInvalidated).toBe(false);
     expect(client.getQueryData(['devices', 'd1'])).toBeUndefined();
     expect(client.getQueryData(['pairing', 'p1'])).toBeUndefined();
     expect(client.getQueryData(['rooms'])).toBeDefined();
@@ -189,6 +203,31 @@ describe('Hapus WATTLINK Hub, a clear yes', () => {
     // The news leaves the history, so a reload does not show it again
     await waitFor(() => {
       expect(router.state.location.state).toBeNull();
+    });
+  });
+
+  it('keeps the user on the page while the call runs', async () => {
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    stubApi({ ...list(working, other), [del]: { status: 204 } });
+    const inner = global.fetch;
+
+    vi.stubGlobal('fetch', (input: string, init?: RequestInit) =>
+      init?.method === 'DELETE' ? gate.then(() => inner(input, init)) : inner(input, init),
+    );
+    const router = renderAt('/lainnya/hub/g1/hapus');
+
+    await screen.findByLabelText('Kata sandi Anda');
+    await typePassword();
+    await press();
+    await userEvent.click(screen.getByRole('link', { name: 'Batal' }));
+
+    expect(router.state.location.pathname).toBe('/lainnya/hub/g1/hapus');
+    release?.();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/lainnya/hub');
     });
   });
 
@@ -301,6 +340,18 @@ describe('Hapus WATTLINK Hub, a clear no', () => {
     });
     expect(await screen.findByText('WATTLINK Hub sudah tidak ada')).toBeVisible();
     expect(screen.queryByText('WATTLINK Hub dihapus')).not.toBeInTheDocument();
+  });
+
+  it('does not call a 404 without the code of the API a hub that is gone', async () => {
+    stubApi({ ...list(working, other), [del]: { status: 404, body: {} } });
+    const router = renderAt('/lainnya/hub/g1/hapus');
+
+    await screen.findByLabelText('Kata sandi Anda');
+    await typePassword();
+    await press();
+
+    expect(await screen.findByText('WATTLINK Hub belum dihapus')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/lainnya/hub/g1/hapus');
   });
 
   it('sends the user to Masuk when the session ended', async () => {
