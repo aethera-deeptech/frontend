@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.15.0](https://github.com/aethera-deeptech/frontend/compare/v0.14.0...v0.15.0) (2026-11-11)
+
+
+### Features
+
+* **alat:** add the card to choose what a plug does after a power loss ([796e1b1](https://github.com/aethera-deeptech/frontend/commit/796e1b127ad4694d9cc05d9448068a61ae135f31))
+* **alat:** choose what a plug does after it loses its own power ([#110](https://github.com/aethera-deeptech/frontend/issues/110)) ([8747032](https://github.com/aethera-deeptech/frontend/commit/8747032bef3b9daf397a36985f8b410306c5e4a4))
+* **api:** read and set what a plug does after it loses its own power ([2b91c26](https://github.com/aethera-deeptech/frontend/commit/2b91c269805f51cd44a187b0048b6a50a21f3f84))
+
+
+### Bug Fixes
+
+* **alat:** end the refusal banner of the power loss card when the pick is gone ([989c01f](https://github.com/aethera-deeptech/frontend/commit/989c01ff88d3c824121a41ae241150746c53a165))
+* **alat:** keep the 44 px row of the radio group and end stale notices of the power loss card ([305dd82](https://github.com/aethera-deeptech/frontend/commit/305dd82d94a07f4ed8cd5c2dd094baca38d0039b))
+* **alat:** put the cards of the switch after the chart so the chart is on the first screen of a plug ([cb1663c](https://github.com/aethera-deeptech/frontend/commit/cb1663c82615ccf7b689a10486e149dc8360b06a))
+* **alat:** put the cards of the switch after the chart so the chart is on the first screen of a plug ([#113](https://github.com/aethera-deeptech/frontend/issues/113)) ([dcaf0fb](https://github.com/aethera-deeptech/frontend/commit/dcaf0fb39d747693d20d8268383ac8cf8c71c8e1))
+* **lainnya:** say that only a wrong password counts against the delete limit ([60d1997](https://github.com/aethera-deeptech/frontend/commit/60d1997ac8fe223ec75ef0b63a9e7b2ccbe29230))
+* **lainnya:** say that only a wrong password counts against the delete limit ([#112](https://github.com/aethera-deeptech/frontend/issues/112)) ([804bc9b](https://github.com/aethera-deeptech/frontend/commit/804bc9bd119ad311a85ab077a01dbe8a17bff324))
+
 ## [0.14.0](https://github.com/aethera-deeptech/frontend/compare/v0.13.0...v0.14.0) (2026-11-09)
 
 
