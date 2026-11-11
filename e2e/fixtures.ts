@@ -99,6 +99,7 @@ function answer(method: string, pathname: string): unknown {
       pending: null,
       last: null,
       schedule: null,
+      afterPowerLoss: 'off',
     };
   }
   if (device) {

@@ -43,6 +43,11 @@ export const scheduleSchema = z.object({
 // know leaves it out.
 const cutByDeviceSchema = z.object({ reason: z.literal('overload'), at: moment });
 
+// What the plug does when its own power returns after a loss. A value that this version does not know leaves the choice out.
+export const powerLossChoices = ['off', 'last'] as const;
+export type PowerLossChoice = (typeof powerLossChoices)[number];
+const powerLossSchema = z.object({ afterPowerLoss: z.enum(powerLossChoices) });
+
 export const relaySchema = z.object({
   state: z.enum([...relayActions, 'unknown']).catch('unknown'),
   reportedAt: moment.nullable(),
@@ -55,6 +60,9 @@ export const relaySchema = z.object({
   gatewayOnline: z.boolean().optional().catch(undefined),
   // Set while the relay is off after an overload that the plug answered by itself. An API before 0.7.0 leaves it out.
   cutByDevice: cutByDeviceSchema.nullable().default(null).catch(null),
+  // The choice of the owner for the moment that the plug loses its own power. An API before 0.15.0 leaves it out, and the card
+  // of the choice stays out with it. The service only stores it, so it is no sign of what the plug does today.
+  afterPowerLoss: z.enum(powerLossChoices).optional().catch(undefined),
 });
 
 export type Relay = z.infer<typeof relaySchema>;
@@ -149,6 +157,30 @@ export function useDeleteSchedule(id: string) {
     },
     // This hook reads again by itself, so the busy re-read of the query client is left out
     meta: { skipReread: true },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
+  });
+}
+
+// The service stores one value for the plug and answers with it. The relay view is merged and not replaced, so a command that
+// waits and a schedule that was read a moment ago stay as they are. The call has one field, because an unknown field is a 400.
+export function useSetPowerLoss(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (afterPowerLoss: PowerLossChoice) =>
+      apiRequest(`/v1/devices/${encodeURIComponent(id)}/power-loss`, powerLossSchema, {
+        method: 'PUT',
+        body: { afterPowerLoss },
+      }),
+    onSuccess: async ({ afterPowerLoss }) => {
+      await queryClient.cancelQueries({ queryKey: relayKey(id) });
+      queryClient.setQueryData<Relay>(relayKey(id), (old) =>
+        old ? { ...old, afterPowerLoss } : old,
+      );
+    },
+    // This hook reads again by itself, so the busy re-read of the query client is left out
+    meta: { skipReread: true },
+    // The same value can be sent twice, so a lost answer is fixed by a read and a repeat
     onSettled: () => queryClient.invalidateQueries({ queryKey: relayKey(id) }),
   });
 }
