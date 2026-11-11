@@ -146,7 +146,8 @@ export function useRemoveGateway() {
 export type RemoveGatewayFailure = DeleteFailure | 'gone';
 
 export function removeGatewayFailure(error: unknown): RemoveGatewayFailure {
-  if (error instanceof ApiError && error.status === 404 && !error.busy) {
+  // Only the code of the API counts, because a 404 of a proxy or of a version that has no such route does not say that the hub is gone
+  if (error instanceof ApiError && error.status === 404 && error.code === 'not_found') {
     return 'gone';
   }
   return deleteFailure(error);

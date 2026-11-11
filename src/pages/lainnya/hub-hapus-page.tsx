@@ -243,8 +243,7 @@ export function HubHapusPage() {
         <p className="text-label text-text-2">{lastData}</p>
         {hubs.length === 1 ? (
           <p className="text-body text-text-1">
-            Ini satu-satunya WATTLINK Hub Anda. Data baru tidak masuk sampai Anda menghubungkan hub
-            lagi.
+            Ini satu-satunya WATTLINK Hub Anda. Data baru tidak masuk lagi.
           </p>
         ) : null}
       </div>
@@ -263,8 +262,7 @@ export function HubHapusPage() {
             dihitung dari alat yang masih ada.
           </li>
           <li>
-            WATTLINK Plug dan WATTLINK Clamp harus dipasang lagi lewat Tambah alat. Alat itu muncul
-            sebagai alat baru tanpa riwayat.
+            WATTLINK Plug dan WATTLINK Clamp harus dipasang lagi sebagai alat baru tanpa riwayat.
           </li>
           <li>WATTLINK Hub ini tidak bisa mengirim data lagi.</li>
           <li>Satu tempat WATTLINK Hub kosong lagi, dan ruangan Anda tetap ada.</li>
