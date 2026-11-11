@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { deleteFailure, type DeleteFailure } from '@/api/auth';
+import { berandaKey } from '@/api/beranda';
 import { ApiError, apiRequest } from '@/api/client';
+import { devicesKey } from '@/api/devices';
+import { pairingKey } from '@/api/pairing';
+import { recommendationsKey } from '@/api/recommendations';
+import { reportKey } from '@/api/reports';
 
 // The paths and shapes in this file follow openapi.yaml of the backend (tag Pasang alat). The gateway is the WATTLINK Hub, the
 // only unit that talks to the service. The screens call it WATTLINK Hub, and the code keeps the name of the API.
@@ -32,7 +38,7 @@ export function waitsForFirstData(queryClient: QueryClient, hub: Gateway): boole
 
 // A hub that sent a batch in the last 15 minutes counts as connected, the same limit as the plug read of the backend
 export const hubOnlineMs = 15 * 60_000;
-// The most hubs that one business can have. Every hub counts, also a cut one, and the API has no way to delete one.
+// The most hubs that one business can have. Every hub counts, also a cut one, until the owner deletes it.
 export const maxGateways = 10;
 
 // A claim code has 8 characters, capital letters and the digits 2 to 9, and works once for 10 minutes
@@ -115,4 +121,51 @@ export function claimFailure(error: unknown): ClaimFailure {
     return 'rate-limited';
   }
   return error.status === 422 ? 'invalid-input' : 'other';
+}
+
+// Deletes a hub with everything behind it. The API needs the password of the owner, counts a wrong one against the same budget
+// as the deletion of the account, and deletes the big tables in steps. So an answer that is not a 204 or a definite refusal does
+// not say that nothing was deleted, and the same call can be repeated until it ends. It has a key of its own and not the key of
+// the account calls, because a 401 here is a session that ended and the query client must handle it.
+export function useRemoveGateway() {
+  return useMutation({
+    mutationKey: ['remove-gateway'],
+    mutationFn: (call: { id: string; password: string }) =>
+      apiRequest(`/v1/gateways/${encodeURIComponent(call.id)}`, z.null(), {
+        method: 'DELETE',
+        body: { password: call.password },
+      }),
+    // The screen reads the answer itself and the list is read again after it
+    meta: { skipReread: true },
+    gcTime: 0,
+  });
+}
+
+// What a failed deletion means for the screen. A 404 comes only after the password was checked, and the API deletes the hub row
+// last, so it says that the hub is gone, also after an open answer.
+export type RemoveGatewayFailure = DeleteFailure | 'gone';
+
+export function removeGatewayFailure(error: unknown): RemoveGatewayFailure {
+  if (error instanceof ApiError && error.status === 404 && !error.busy) {
+    return 'gone';
+  }
+  return deleteFailure(error);
+}
+
+// What the app keeps about a hub that is gone. The devices behind it, the search for a plug and the sums that were made from its
+// readings go with it, and the list loses the row at once. Rooms stay, because the API keeps them.
+export async function forgetGateway(queryClient: QueryClient, id: string): Promise<void> {
+  await queryClient.cancelQueries({ queryKey: gatewaysKey });
+  claimedAt.get(queryClient)?.delete(id);
+  queryClient.setQueryData(gatewaysKey, (old: z.infer<typeof gatewaysSchema> | undefined) =>
+    old ? { items: old.items.filter((item) => item.id !== id) } : old,
+  );
+  queryClient.removeQueries({ queryKey: devicesKey });
+  queryClient.removeQueries({ queryKey: pairingKey });
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: gatewaysKey }),
+    queryClient.invalidateQueries({ queryKey: berandaKey }),
+    queryClient.invalidateQueries({ queryKey: reportKey }),
+    queryClient.invalidateQueries({ queryKey: recommendationsKey }),
+  ]);
 }
