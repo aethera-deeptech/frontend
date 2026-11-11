@@ -94,8 +94,6 @@ export function AlatDetailView({
         </Card>
       ) : null}
 
-      {switchCard}
-
       <div className="grid grid-cols-2 gap-2">
         <StatTile
           label="Hari ini"
@@ -116,6 +114,9 @@ export function AlatDetailView({
       </div>
 
       <PowerSection detail={detail} />
+
+      {/* The cards of a plug (switch, schedule, power loss) come after the chart, so the chart is on the first screen for a plug as it is for a clamp */}
+      {switchCard}
 
       <SectionCard heading="Info alat">
         <dl className="flex flex-col gap-2">
