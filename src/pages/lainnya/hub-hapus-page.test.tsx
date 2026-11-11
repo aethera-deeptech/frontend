@@ -497,3 +497,72 @@ describe('Hapus WATTLINK Hub, an open answer', () => {
     });
   });
 });
+
+describe('Hapus WATTLINK Hub, the edges of the page', () => {
+  it('says that the list failed when it cannot name the hub, and offers a new try', async () => {
+    stubApi({ 'GET /v1/gateways': { status: 500, body: {} } });
+    renderAt('/lainnya/hub/g1/hapus');
+
+    expect(await screen.findByText('Daftar WATTLINK Hub tidak bisa dimuat')).toBeVisible();
+    expect(screen.queryByLabelText('Kata sandi Anda')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Coba lagi' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Kembali ke daftar hub' })).toBeVisible();
+  });
+
+  it('waits 60 seconds when a 429 does not say how long', async () => {
+    stubApi({ ...list(working, other), [del]: { status: 429, body: { code: 'rate_limited' } } });
+    renderAt('/lainnya/hub/g1/hapus');
+
+    await screen.findByLabelText('Kata sandi Anda');
+    await typePassword();
+    await press();
+
+    expect(await screen.findByText('Coba lagi dalam 60 detik.')).toBeVisible();
+  });
+
+  it('adds the line about the wait when a 429 follows an open answer', async () => {
+    let calls = 0;
+    stubApi({
+      ...list(working, other),
+      [del]: () => {
+        calls += 1;
+        return calls === 1
+          ? { status: 500, body: {} }
+          : { status: 429, body: { code: 'rate_limited', retryAfterSeconds: 30 } };
+      },
+    });
+    renderAt('/lainnya/hub/g1/hapus');
+
+    await screen.findByLabelText('Kata sandi Anda');
+    await typePassword();
+    await press();
+    await screen.findByText('Belum pasti dihapus');
+    await press('Coba lagi');
+
+    expect(await screen.findByText(/Penghapusan mungkin sebagian berjalan/)).toBeVisible();
+    expect(screen.getByText('Coba lagi dalam 30 detik.')).toBeVisible();
+  });
+
+  it('does not say that nothing was deleted after a refusal that follows an open answer', async () => {
+    let calls = 0;
+    stubApi({
+      ...list(working, other),
+      [del]: () => {
+        calls += 1;
+        return calls === 1
+          ? { status: 500, body: {} }
+          : { status: 400, body: { code: 'invalid_json' } };
+      },
+    });
+    renderAt('/lainnya/hub/g1/hapus');
+
+    await screen.findByLabelText('Kata sandi Anda');
+    await typePassword();
+    await press();
+    await screen.findByText('Belum pasti dihapus');
+    await press('Coba lagi');
+
+    expect(await screen.findByText('Belum berhasil')).toBeVisible();
+    expect(screen.queryByText('WATTLINK Hub belum dihapus')).not.toBeInTheDocument();
+  });
+});
