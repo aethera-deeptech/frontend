@@ -174,7 +174,7 @@ jobs:
       - name: Check the spelling
         env:
           # renovate: datasource=npm depName=cspell
-          version: 10.4.0
+          version: 10.5.0
         run: npx --yes "cspell@${version}" lint --no-progress --no-summary
 
   names:
